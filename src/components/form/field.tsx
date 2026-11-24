@@ -33,7 +33,12 @@ export function Field({
 export const kelasInput =
   "w-full text-sm border rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-1";
 
-export function kelasField(galat?: string) {
+export function kelasField(galat?: string, bacaSaja?: boolean) {
+  if (bacaSaja) {
+    // Bidang terkunci tetap harus terbaca sebagai data, bukan sebagai kontrol
+    // yang mati: latar abu dan teks penuh, tanpa cincin fokus biru.
+    return "w-full text-sm border rounded-xl px-3 py-2 bg-slate-50 border-slate-200 text-slate-900 cursor-default";
+  }
   return `${kelasInput} ${
     galat
       ? "border-rose-400 focus:border-rose-500 focus:ring-rose-300"
@@ -45,12 +50,14 @@ export function InputAngka({
   nilai,
   ubah,
   galat,
+  bacaSaja,
   min = 0,
   ...sisa
 }: {
   nilai: number;
   ubah: (n: number) => void;
   galat?: string;
+  bacaSaja?: boolean;
   min?: number;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
   return (
@@ -60,7 +67,9 @@ export function InputAngka({
       min={min}
       value={Number.isFinite(nilai) ? nilai : 0}
       onChange={(e) => ubah(e.target.value === "" ? 0 : Number(e.target.value))}
-      className={kelasField(galat)}
+      readOnly={bacaSaja}
+      aria-readonly={bacaSaja || undefined}
+      className={kelasField(galat, bacaSaja)}
       {...sisa}
     />
   );

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilChecklist, SEMUA_JENIS } from "@/lib/data/kepatuhan";
 import { LABEL_JENIS } from "@/lib/validasi/laporan";
+import { terkunciUntukPetugas } from "@/lib/laporan";
 import { Badge } from "@/components/dashboard/panel";
 
 export const metadata = { title: "Laporan Saya — Pos SAPA" };
@@ -189,6 +190,15 @@ export default async function LaporanSaya({
                       const dibuka = Boolean(s.catatanBukaKunci);
                       const bisaDiisi =
                         s.status === "belum" || s.status === "draf" || dibuka;
+                      // Laporan terkirim terkunci: datanya tetap dapat DILIHAT
+                      // petugas, tetapi tidak diubah sampai Admin memverifikasi
+                      // atau membuka kuncinya. Sebelumnya sel ini tidak punya
+                      // tautan apa pun, jadi isinya hanya terjangkau lewat URL
+                      // yang diketik manual.
+                      const terkunci = terkunciUntukPetugas(
+                        s.status,
+                        s.catatanBukaKunci
+                      );
                       return (
                         <li key={s.jenis} className="px-4 py-2.5">
                           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -200,7 +210,7 @@ export default async function LaporanSaya({
                                 {LABEL_JENIS[s.jenis]}
                               </span>
                             </div>
-                            {bisaDiisi && (
+                            {bisaDiisi ? (
                               <Link
                                 href={`/input?pos=${p.pos_id}&jenis=${s.jenis}&periode=${idPeriode}`}
                                 className="text-[11px] font-semibold text-blue-700 hover:underline no-print"
@@ -212,7 +222,14 @@ export default async function LaporanSaya({
                                     : "Isi"}{" "}
                                 →
                               </Link>
-                            )}
+                            ) : terkunci ? (
+                              <Link
+                                href={`/input?pos=${p.pos_id}&jenis=${s.jenis}&periode=${idPeriode}`}
+                                className="text-[11px] font-semibold text-slate-600 hover:underline no-print"
+                              >
+                                Lihat
+                              </Link>
+                            ) : null}
                           </div>
 
                           {dibuka && (

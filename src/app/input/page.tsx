@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { FormulirInput, type NilaiServer } from "./formulir";
+import { FormulirInput, type NilaiServer, type StatusJenis } from "./formulir";
 import { LABEL_JENIS, type JenisForm } from "@/lib/validasi/laporan";
+import type { StatusLaporan } from "@/lib/laporan";
 
 export const metadata = { title: "Input Laporan — Pos SAPA" };
 export const dynamic = "force-dynamic";
@@ -166,6 +167,12 @@ export default async function HalamanInput({
   // perlu diambil — bukan seluruh lokasi petugas sepanjang waktu.
   const nilaiServer = await ambilNilaiTersimpan(supabase, pos.id, periode.id);
 
+  // Status per jenis untuk kombinasi ini. Kunci laporan berlaku per jenis:
+  // satu lokasi dapat punya laporan anak yang sudah terkirim sementara
+  // rekap pengaduannya masih draf, jadi mode tidak dapat dihitung sekali
+  // untuk seluruh kombinasi.
+  const statusPerJenis = await ambilStatusJenis(supabase, pos.id, periode.id);
+
   const wilayah = wilayahRes.data as unknown as {
     kab_kota: string;
     provinsi: string;
@@ -190,6 +197,7 @@ export default async function HalamanInput({
         periode={{ id: periode.id, label: periode.label }}
         jenisAwal={jenisAwal}
         nilaiServer={nilaiServer}
+        statusPerJenis={statusPerJenis}
       />
     </>
   );
@@ -203,6 +211,42 @@ const DETAIL: { jenis: JenisForm; kunci: string }[] = [
   { jenis: "tindak_lanjut_kasus", kunci: "laporan_kasus" },
   { jenis: "publikasi", kunci: "laporan_publikasi" },
 ];
+
+/**
+ * Status dan penanda buka kunci untuk setiap jenis pada satu kombinasi.
+ *
+ * Jenis yang belum pernah dibuat tidak muncul di hasil; pemanggil memperlakukan
+ * yang tidak ada sebagai "belum".
+ */
+async function ambilStatusJenis(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  posId: string,
+  periodeId: string
+): Promise<Partial<Record<JenisForm, StatusJenis>>> {
+  const { data, error } = await supabase
+    .from("laporan")
+    .select("jenis_laporan, status, catatan_buka_kunci")
+    .eq("pos_id", posId)
+    .eq("periode_id", periodeId);
+
+  if (error) {
+    console.error("[ambilStatusJenis]", error.message);
+    return {};
+  }
+
+  const hasil: Partial<Record<JenisForm, StatusJenis>> = {};
+  for (const baris of (data ?? []) as {
+    jenis_laporan: JenisForm;
+    status: StatusLaporan;
+    catatan_buka_kunci: string | null;
+  }[]) {
+    hasil[baris.jenis_laporan] = {
+      status: baris.status,
+      catatanBukaKunci: baris.catatan_buka_kunci,
+    };
+  }
+  return hasil;
+}
 
 /**
  * Rincian laporan yang masih dapat diubah petugas untuk satu kombinasi lokasi

@@ -22,10 +22,13 @@ export function FormAnak({
   nilai,
   ubah,
   galat,
+  bacaSaja = false,
 }: {
   nilai: NilaiAnak;
   ubah: <K extends keyof NilaiAnak>(k: K, v: NilaiAnak[K]) => void;
   galat: Record<string, string>;
+  /** Laporan terkirim: tampilkan isinya, jangan biarkan diubah. */
+  bacaSaja?: boolean;
 }) {
   const totalUsia = nilai.usia_0_5 + nilai.usia_6_12 + nilai.usia_13_17;
   const totalGender = nilai.laki_laki + nilai.perempuan;
@@ -50,6 +53,7 @@ export function FormAnak({
             ubah={(v) => ubah("jumlah_kegiatan", v)}
             galat={galat.jumlah_kegiatan}
             min={1}
+            bacaSaja={bacaSaja}
           />
         </Field>
 
@@ -59,7 +63,8 @@ export function FormAnak({
             value={nilai.nama_kegiatan}
             onChange={(e) => ubah("nama_kegiatan", e.target.value)}
             placeholder="Contoh: Ruang Sahabat Anak & Edukasi Perlindungan Diri"
-            className={kelasField(galat.nama_kegiatan)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.nama_kegiatan, bacaSaja)}
           />
         </Field>
       </div>
@@ -74,11 +79,12 @@ export function FormAnak({
                 type="button"
                 onClick={() => toggleJenis(j)}
                 aria-pressed={aktif}
+                disabled={bacaSaja}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
                   aktif
                     ? "bg-blue-600 text-white border-blue-600"
                     : "bg-white text-slate-600 border-slate-300 hover:border-blue-400"
-                }`}
+                } ${bacaSaja ? "cursor-default opacity-90" : ""}`}
               >
                 {j}
               </button>
@@ -94,22 +100,22 @@ export function FormAnak({
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <Field label="Usia 0–5 tahun" galat={galat.usia_0_5}>
-            <InputAngka nilai={nilai.usia_0_5} ubah={(v) => ubah("usia_0_5", v)} galat={galat.usia_0_5} />
+            <InputAngka nilai={nilai.usia_0_5} ubah={(v) => ubah("usia_0_5", v)} galat={galat.usia_0_5} bacaSaja={bacaSaja} />
           </Field>
           <Field label="Usia 6–12 tahun" galat={galat.usia_6_12}>
-            <InputAngka nilai={nilai.usia_6_12} ubah={(v) => ubah("usia_6_12", v)} galat={galat.usia_6_12} />
+            <InputAngka nilai={nilai.usia_6_12} ubah={(v) => ubah("usia_6_12", v)} galat={galat.usia_6_12} bacaSaja={bacaSaja} />
           </Field>
           <Field label="Usia 13–17 tahun" galat={galat.usia_13_17}>
-            <InputAngka nilai={nilai.usia_13_17} ubah={(v) => ubah("usia_13_17", v)} galat={galat.usia_13_17} />
+            <InputAngka nilai={nilai.usia_13_17} ubah={(v) => ubah("usia_13_17", v)} galat={galat.usia_13_17} bacaSaja={bacaSaja} />
           </Field>
           <Field label="Laki-laki" galat={galat.laki_laki}>
-            <InputAngka nilai={nilai.laki_laki} ubah={(v) => ubah("laki_laki", v)} galat={galat.laki_laki} />
+            <InputAngka nilai={nilai.laki_laki} ubah={(v) => ubah("laki_laki", v)} galat={galat.laki_laki} bacaSaja={bacaSaja} />
           </Field>
           <Field label="Perempuan" galat={galat.perempuan}>
-            <InputAngka nilai={nilai.perempuan} ubah={(v) => ubah("perempuan", v)} galat={galat.perempuan} />
+            <InputAngka nilai={nilai.perempuan} ubah={(v) => ubah("perempuan", v)} galat={galat.perempuan} bacaSaja={bacaSaja} />
           </Field>
           <Field label="Penyandang disabilitas" galat={galat.disabilitas}>
-            <InputAngka nilai={nilai.disabilitas} ubah={(v) => ubah("disabilitas", v)} galat={galat.disabilitas} />
+            <InputAngka nilai={nilai.disabilitas} ubah={(v) => ubah("disabilitas", v)} galat={galat.disabilitas} bacaSaja={bacaSaja} />
           </Field>
         </div>
 
@@ -142,6 +148,7 @@ export function FormAnak({
               nilai={nilai.perlu_layanan_lanjutan}
               ubah={(v) => ubah("perlu_layanan_lanjutan", v)}
               galat={galat.perlu_layanan_lanjutan}
+              bacaSaja={bacaSaja}
             />
           </Field>
 
@@ -153,7 +160,8 @@ export function FormAnak({
               rows={3}
               value={nilai.temuan}
               onChange={(e) => ubah("temuan", e.target.value)}
-              className={kelasField(galat.temuan)}
+              readOnly={bacaSaja}
+              className={kelasField(galat.temuan, bacaSaja)}
               placeholder="Contoh: 1 anak menunjukkan gejala kecemasan berat…"
             />
           </Field>
@@ -163,7 +171,8 @@ export function FormAnak({
               rows={3}
               value={nilai.tindak_lanjut}
               onChange={(e) => ubah("tindak_lanjut", e.target.value)}
-              className={kelasField(galat.tindak_lanjut)}
+              readOnly={bacaSaja}
+              className={kelasField(galat.tindak_lanjut, bacaSaja)}
               placeholder="Contoh: Konseling psikososial dan rujukan ke UPTD PPA…"
             />
           </Field>

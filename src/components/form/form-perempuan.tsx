@@ -18,10 +18,13 @@ export function FormPerempuan({
   nilai,
   ubah,
   galat,
+  bacaSaja = false,
 }: {
   nilai: NilaiPerempuan;
   ubah: <K extends keyof NilaiPerempuan>(k: K, v: NilaiPerempuan[K]) => void;
   galat: Record<string, string>;
+  /** Laporan terkirim: tampilkan isinya, jangan biarkan diubah. */
+  bacaSaja?: boolean;
 }) {
   return (
     <div className="space-y-5">
@@ -32,6 +35,7 @@ export function FormPerempuan({
             ubah={(v) => ubah("jumlah_kegiatan", v)}
             galat={galat.jumlah_kegiatan}
             min={1}
+            bacaSaja={bacaSaja}
           />
         </Field>
 
@@ -40,6 +44,7 @@ export function FormPerempuan({
             nilai={nilai.total_ikut}
             ubah={(v) => ubah("total_ikut", v)}
             galat={galat.total_ikut}
+            bacaSaja={bacaSaja}
           />
         </Field>
       </div>
@@ -50,7 +55,8 @@ export function FormPerempuan({
           value={nilai.nama_kegiatan}
           onChange={(e) => ubah("nama_kegiatan", e.target.value)}
           placeholder="Contoh: Sekolah Perempuan Mandiri"
-          className={kelasField(galat.nama_kegiatan)}
+          readOnly={bacaSaja}
+          className={kelasField(galat.nama_kegiatan, bacaSaja)}
         />
       </Field>
 
@@ -62,7 +68,8 @@ export function FormPerempuan({
           type="text"
           value={nilai.jenis_kegiatan}
           onChange={(e) => ubah("jenis_kegiatan", e.target.value)}
-          className={kelasField(galat.jenis_kegiatan)}
+          readOnly={bacaSaja}
+          className={kelasField(galat.jenis_kegiatan, bacaSaja)}
         />
       </Field>
 
@@ -81,6 +88,7 @@ export function FormPerempuan({
               nilai={nilai.kepala_keluarga}
               ubah={(v) => ubah("kepala_keluarga", v)}
               galat={galat.kepala_keluarga}
+              bacaSaja={bacaSaja}
             />
           </Field>
           <Field label="Hamil / menyusui" galat={galat.hamil_menyusui}>
@@ -88,6 +96,7 @@ export function FormPerempuan({
               nilai={nilai.hamil_menyusui}
               ubah={(v) => ubah("hamil_menyusui", v)}
               galat={galat.hamil_menyusui}
+              bacaSaja={bacaSaja}
             />
           </Field>
           <Field label="Lansia" galat={galat.lansia}>
@@ -95,6 +104,7 @@ export function FormPerempuan({
               nilai={nilai.lansia}
               ubah={(v) => ubah("lansia", v)}
               galat={galat.lansia}
+              bacaSaja={bacaSaja}
             />
           </Field>
           <Field label="Disabilitas" galat={galat.disabilitas}>
@@ -102,6 +112,7 @@ export function FormPerempuan({
               nilai={nilai.disabilitas}
               ubah={(v) => ubah("disabilitas", v)}
               galat={galat.disabilitas}
+              bacaSaja={bacaSaja}
             />
           </Field>
         </div>
@@ -112,7 +123,8 @@ export function FormPerempuan({
           rows={3}
           value={nilai.manfaat}
           onChange={(e) => ubah("manfaat", e.target.value)}
-          className={kelasField(galat.manfaat)}
+          readOnly={bacaSaja}
+          className={kelasField(galat.manfaat, bacaSaja)}
           placeholder="Contoh: Menambah keterampilan wirausaha rumah tangga"
         />
       </Field>

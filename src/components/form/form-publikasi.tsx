@@ -16,10 +16,13 @@ export function FormPublikasi({
   nilai,
   ubah,
   galat,
+  bacaSaja = false,
 }: {
   nilai: NilaiPublikasi;
   ubah: <K extends keyof NilaiPublikasi>(k: K, v: NilaiPublikasi[K]) => void;
   galat: Record<string, string>;
+  /** Laporan terkirim: tampilkan isinya, jangan biarkan diubah. */
+  bacaSaja?: boolean;
 }) {
   return (
     <div className="space-y-5">
@@ -29,7 +32,8 @@ export function FormPublikasi({
             type="date"
             value={nilai.tanggal_publikasi}
             onChange={(e) => ubah("tanggal_publikasi", e.target.value)}
-            className={kelasField(galat.tanggal_publikasi)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.tanggal_publikasi, bacaSaja)}
           />
         </Field>
 
@@ -39,7 +43,8 @@ export function FormPublikasi({
             onChange={(e) =>
               ubah("platform", e.target.value as NilaiPublikasi["platform"])
             }
-            className={kelasField(galat.platform)}
+            disabled={bacaSaja}
+            className={kelasField(galat.platform, bacaSaja)}
           >
             {PLATFORM.map((p) => (
               <option key={p} value={p}>
@@ -55,7 +60,8 @@ export function FormPublikasi({
           type="text"
           value={nilai.kegiatan}
           onChange={(e) => ubah("kegiatan", e.target.value)}
-          className={kelasField(galat.kegiatan)}
+          readOnly={bacaSaja}
+          className={kelasField(galat.kegiatan, bacaSaja)}
           placeholder="Contoh: Dokumentasi Ruang Sahabat Anak"
         />
       </Field>
@@ -66,7 +72,8 @@ export function FormPublikasi({
             type="text"
             value={nilai.nama_akun}
             onChange={(e) => ubah("nama_akun", e.target.value)}
-            className={kelasField(galat.nama_akun)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.nama_akun, bacaSaja)}
             placeholder="Contoh: Dinas PPPA Kab. X"
           />
         </Field>
@@ -76,7 +83,8 @@ export function FormPublikasi({
             type="text"
             value={nilai.file_publikasi}
             onChange={(e) => ubah("file_publikasi", e.target.value)}
-            className={kelasField(galat.file_publikasi)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.file_publikasi, bacaSaja)}
             placeholder="Nama berkas atau tautan"
           />
         </Field>
@@ -92,7 +100,8 @@ export function FormPublikasi({
           type="url"
           value={nilai.link_publikasi}
           onChange={(e) => ubah("link_publikasi", e.target.value)}
-          className={kelasField(galat.link_publikasi)}
+          readOnly={bacaSaja}
+          className={kelasField(galat.link_publikasi, bacaSaja)}
           placeholder="https://www.instagram.com/p/..."
         />
       </Field>

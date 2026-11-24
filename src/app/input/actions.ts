@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { validasi, type JenisForm } from "@/lib/validasi/laporan";
+import { terkunciUntukPetugas, type StatusLaporan } from "@/lib/laporan";
 
 export type HasilSimpan =
   | { sukses: true; laporanId: string }
@@ -72,6 +73,42 @@ export async function simpanLaporan(masukan: {
     };
   }
 
+  // Laporan yang sudah terkirim terkunci untuk petugas: ia boleh membacanya,
+  // tetapi tidak boleh mengubahnya sampai Admin memverifikasi atau membuka
+  // kunci. Diperiksa di sini supaya petugas mendapat penjelasan yang jelas —
+  // RLS dan trigger `laporan_cek_kunci_petugas` tetap menjadi penegak
+  // sebenarnya, jadi pemeriksaan ini tidak dapat dilewati dari klien.
+  const { data: tersimpan, error: errCek } = await supabase
+    .from("laporan")
+    .select("id, status, catatan_buka_kunci")
+    .eq("pos_id", masukan.posId)
+    .eq("periode_id", masukan.periodeId)
+    .eq("jenis_laporan", masukan.jenis)
+    .maybeSingle();
+
+  if (errCek) {
+    return {
+      sukses: false,
+      pesan: `Gagal memeriksa status laporan: ${errCek.message}`,
+    };
+  }
+
+  if (
+    tersimpan &&
+    terkunciUntukPetugas(
+      tersimpan.status as StatusLaporan,
+      tersimpan.catatan_buka_kunci
+    )
+  ) {
+    return {
+      sukses: false,
+      pesan:
+        tersimpan.status === "terverifikasi"
+          ? "Laporan ini sudah terverifikasi dan terkunci. Minta Admin membuka kuncinya bila perlu diperbaiki."
+          : "Laporan ini sudah terkirim dan menunggu verifikasi, sehingga belum dapat diubah. Minta Admin membuka kuncinya bila perlu diperbaiki.",
+    };
+  }
+
   // Validasi otoritatif di server — jangan percaya validasi klien.
   const hasil = validasi(masukan.jenis, masukan.data);
   if (!hasil.sukses) return { sukses: false, galat: hasil.galat };
@@ -81,40 +118,58 @@ export async function simpanLaporan(masukan: {
     return { sukses: false, pesan: "Sesi berakhir. Silakan masuk kembali." };
   }
 
-  // Upsert induk: satu laporan per (pos, periode, jenis).
+  // ---------------------------------------------------------------------------
+  // URUTAN PENYIMPANAN TIGA LANGKAH — jangan disederhanakan.
   //
-  // `catatan_buka_kunci` dikosongkan saat laporan dikirim: catatan itu menandai
-  // "kunci sedang dibuka, ini alasannya". Setelah petugas mengirim ulang,
-  // tanda itu tidak lagi berlaku. Riwayatnya tetap tersimpan di audit_log.
-  const { data: induk, error: errInduk } = await supabase
-    .from("laporan")
-    .upsert(
-      {
+  // RLS menilai Hak TULIS rincian dari keadaan baris INDUK: `boleh_tulis_laporan`
+  // mengizinkan petugas menulis rincian hanya bila induknya `draf`, atau
+  // `terkirim` yang `catatan_buka_kunci`-nya terisi. Akibatnya laporan yang baru
+  // saja menjadi `terkirim` tanpa penanda LANGSUNG terkunci — termasuk
+  // rinciannya sendiri. Kalau status akhir ditetapkan pada langkah pertama,
+  // upsert rincian di langkah berikutnya selalu ditolak RLS, dan tidak ada satu
+  // pun laporan yang bisa terkirim.
+  //
+  // Jadi induk disimpan dalam keadaan yang masih boleh ditulis, rinciannya
+  // disusul, dan status final ditetapkan paling akhir.
+  // ---------------------------------------------------------------------------
+  const terkirim = masukan.status === "terkirim";
+
+  // 1. Induk. Baris yang SUDAH ADA sengaja tidak disentuh sama sekali:
+  //    mengubah statusnya di sini akan menutup hak tulis rincian pada langkah 2.
+  //    Baris baru disisipkan berstatus draf — satu-satunya status yang boleh
+  //    disisipkan petugas.
+  let indukId: string;
+
+  if (tersimpan) {
+    indukId = tersimpan.id;
+  } else {
+    const { data: indukBaru, error: errInduk } = await supabase
+      .from("laporan")
+      .insert({
         pos_id: masukan.posId,
         periode_id: masukan.periodeId,
         jenis_laporan: masukan.jenis,
-        status: masukan.status,
+        status: "draf",
         sumber_input: "form_internal",
         submitted_by: user.id,
-        ...(masukan.status === "terkirim" ? { catatan_buka_kunci: null } : {}),
-      },
-      { onConflict: "pos_id,periode_id,jenis_laporan" }
-    )
-    .select("id")
-    .single();
+      })
+      .select("id")
+      .single();
 
-  if (errInduk || !induk) {
-    return {
-      sukses: false,
-      pesan: `Gagal menyimpan laporan: ${errInduk?.message ?? "tidak diketahui"}`,
-    };
+    if (errInduk || !indukBaru) {
+      return {
+        sukses: false,
+        pesan: `Gagal menyimpan laporan: ${errInduk?.message ?? "tidak diketahui"}`,
+      };
+    }
+    indukId = indukBaru.id;
   }
 
-  // Upsert detail.
+  // 2. Rincian — disimpan selagi hak tulisnya masih terbuka.
   const { error: errDetail } = await supabase
     .from(TABEL_DETAIL[masukan.jenis])
     .upsert(
-      { laporan_id: induk.id, ...(hasil.data as Record<string, unknown>) },
+      { laporan_id: indukId, ...(hasil.data as Record<string, unknown>) },
       { onConflict: "laporan_id" }
     );
 
@@ -122,11 +177,39 @@ export async function simpanLaporan(masukan: {
     return { sukses: false, pesan: `Gagal menyimpan detail: ${errDetail.message}` };
   }
 
+  // 3. Status final + pelepasan penanda buka kunci, setelah rincian tersimpan.
+  //
+  //    Kiriman pertama : draf -> terkirim.
+  //    Kiriman ulang   : tetap terkirim, penanda buka kunci dilepas supaya
+  //                      laporan kembali masuk antrean verifikasi. Riwayat buka
+  //                      kuncinya tetap tersimpan di audit_log.
+  if (terkirim) {
+    const finalKolom: Record<string, unknown> = { status: "terkirim" };
+    if (tersimpan) finalKolom.catatan_buka_kunci = null;
+
+    const { error: errFinal } = await supabase
+      .from("laporan")
+      .update(finalKolom)
+      .eq("id", indukId);
+
+    if (errFinal) {
+      // Isi laporan sudah tersimpan dan rinciannya lengkap; yang gagal hanya
+      // penetapan status akhir. Dikatakan apa adanya supaya tidak dikira
+      // seluruh kiriman hilang — petugas cukup mengirim ulang sekali lagi.
+      return {
+        sukses: false,
+        pesan:
+          "Rincian laporan tersimpan, tetapi status akhir gagal ditetapkan: " +
+          `${errFinal.message}. Coba kirim ulang sekali lagi.`,
+      };
+    }
+  }
+
   revalidatePath("/laporan-saya");
   revalidatePath("/monitoring");
   revalidatePath("/dashboard");
 
-  return { sukses: true, laporanId: induk.id };
+  return { sukses: true, laporanId: indukId };
 }
 
 export async function hapusDraf(laporanId: string): Promise<HasilSimpan> {

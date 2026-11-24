@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { simpanLaporan } from "./actions";
 import { LABEL_JENIS, type JenisForm } from "@/lib/validasi/laporan";
+import {
+  bacaSaja as hitungBacaSaja,
+  modeFormulir,
+  type ModeFormulir,
+  type StatusLaporan,
+} from "@/lib/laporan";
+import { Badge } from "@/components/dashboard/panel";
 import { FormAnak, type NilaiAnak } from "@/components/form/form-anak";
 import { FormPerempuan, type NilaiPerempuan } from "@/components/form/form-perempuan";
 import { FormRekap, type NilaiRekap } from "@/components/form/form-rekap";
@@ -68,6 +75,12 @@ const NILAI_AWAL: Record<JenisForm, unknown> = {
 
 const KUNCI_DRAF = (posId: string) => `possapa_draf_${posId}`;
 
+/** Status laporan tersimpan untuk satu jenis, plus penanda buka kunci. */
+export type StatusJenis = {
+  status: StatusLaporan;
+  catatanBukaKunci: string | null;
+};
+
 /** pos_id -> periode_id -> jenis laporan -> isian tersimpan. */
 export type NilaiServer = Record<
   string,
@@ -87,6 +100,7 @@ export function FormulirInput({
   periode,
   jenisAwal,
   nilaiServer = {},
+  statusPerJenis = {},
 }: {
   /** Lokasi yang diisi — ditentukan /laporan-saya, tidak dapat diubah di sini. */
   pos: Pos;
@@ -96,6 +110,8 @@ export function FormulirInput({
   periode: { id: string; label: string };
   jenisAwal: JenisForm;
   nilaiServer?: NilaiServer;
+  /** Status tersimpan per jenis; yang tidak ada berarti belum pernah diisi. */
+  statusPerJenis?: Partial<Record<JenisForm, StatusJenis>>;
 }) {
   const router = useRouter();
 
@@ -132,6 +148,20 @@ export function FormulirInput({
   // merender kembali — kalau tidak, isian pengguna bisa tertimpa.
   const serverRef = useRef(nilaiServer);
   serverRef.current = nilaiServer;
+
+  /** Status satu jenis pada kombinasi yang dibuka; "belum" bila belum ada. */
+  const statusJenis: StatusLaporan = statusPerJenis[jenis]?.status ?? "belum";
+  const catatanBukaKunci =
+    statusPerJenis[jenis]?.catatanBukaKunci ?? null;
+
+  // Mode mengikuti JENIS yang sedang dibuka, bukan seluruh kombinasi: satu
+  // lokasi dapat punya laporan anak yang sudah terkirim sementara rekapan
+  // pengaduannya masih draf.
+  const mode: ModeFormulir = modeFormulir(statusJenis, catatanBukaKunci);
+  const bacaSaja = hitungBacaSaja(mode);
+  // Draf pada jenis yang terkunci tetap tidak boleh ditulis; kalau tidak, draf
+  // lokal dari kunjungan lama akan muncul dan menyesatkan.
+  const bolehSimpanDraf = !bacaSaja && mode === "draf";
 
   /** Isian tersimpan di server untuk satu kombinasi, atau formulir kosong. */
   const dasarUntuk = useCallback(
@@ -179,15 +209,25 @@ export function FormulirInput({
     setNilai(() => {
       const gabung = {} as Record<JenisForm, unknown>;
       for (const j of Object.keys(NILAI_AWAL) as JenisForm[]) {
-        gabung[j] = dasarUntuk(j);
-      }
-      for (const [k, v] of Object.entries(draf?.data ?? {})) {
-        gabung[k as JenisForm] = v;
+        // Untuk jenis yang terkunci, yang ditampilkan adalah isian tersimpan di
+        // server — bukan draf lokal. Draf lokal adalah suntingan yang belum
+        // pernah terkirim, jadi menampilkannya di atas laporan terkirim akan
+        // memperlihatkan angka yang tidak pernah disetujui siapa pun.
+        const s = statusPerJenis[j]?.status;
+        gabung[j] =
+          s === "terkirim" || s === "terverifikasi"
+            ? dasarUntuk(j)
+            : { ...dasarUntuk(j), ...(draf?.data?.[j] as object | undefined) };
       }
       return gabung;
     });
 
-    if (draf?.data) setPesan("Draf tersimpan di perangkat ini dipulihkan.");
+    if (draf?.data && !bacaSaja) {
+      setPesan("Draf tersimpan di perangkat ini dipulihkan.");
+    }
+    // Dipasang sekali saat halaman dibuka; `statusPerJenis` tidak berubah di
+    // sisi klien — setelah kirim berhasil halaman ini ditinggalkan.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dasarUntuk, bacaDraf]);
 
   // Simpan draf otomatis (debounce 600 ms).
@@ -195,6 +235,9 @@ export function FormulirInput({
     // Setelah laporan terkirim, biarkan draf di localStorage terhapus seperti
     // yang dilakukan kirim(); jangan tulis ulang isian yang sudah tersimpan.
     if (lewatiSimpan.current) return;
+    // Jenis yang terkunci tidak punya draf untuk ditulis, dan jenis yang baru
+    // terkirim tidak boleh menulis ulang isian yang baru saja dihapus.
+    if (!bolehSimpanDraf) return;
 
     const t = setTimeout(() => {
       const isi = dasarUntuk(jenis);
@@ -213,7 +256,7 @@ export function FormulirInput({
       setTersimpan(new Date().toLocaleTimeString("id-ID"));
     }, 600);
     return () => clearTimeout(t);
-  }, [nilai, periodeId, jenis, posId, dasarUntuk, bacaDraf]);
+  }, [nilai, periodeId, jenis, posId, dasarUntuk, bacaDraf, bolehSimpanDraf]);
 
   const ubah = useMemo(
     () =>
@@ -285,18 +328,20 @@ export function FormulirInput({
       // Isian TIDAK dikosongkan di sini — halaman langsung ditinggalkan, jadi
       // tidak ada gunanya. Yang penting draf lokalnya sudah dihapus di atas.
       lewatiSimpan.current = true;
-      setPesan("Laporan berhasil dikirim.");
 
-      // Kembali ke Laporan Saya dengan PERIODE YANG BARUSAN DIISI tetap
-      // terpilih. Tanpa parameter periode, halaman itu jatuh ke periode
-      // terbaru — dan itulah yang dulu terasa seperti "dikembalikan ke periode
-      // sebelumnya": laporan tersimpan di periode yang benar, tetapi yang
-      // tampil periode lain, sehingga seolah kirimannya tidak masuk.
+      // KEMBALI KE MODEL "LANGSUNG DITINGGALKAN".
       //
-      // `refresh()` juga tidak dipakai lagi: ia mengirim ulang /input tanpa
-      // searchParams sehingga penjaga parameter halaman mem-`redirect()` ke
-      // /laporan-saya tanpa periode. Menavigasi dengan URL lengkap membuat
-      // halaman tujuan dirender segar, jadi data terbaru tetap terbaca.
+      // Versi sebelumnya menandai status lokal lalu menawarkan tombol
+      // "Selesai — kembali ke Laporan Saya", dan itu menggantung: tidak ada
+      // satu pun jalan di layar yang memaksanya selesai. Memilih satu perilaku
+      // lebih baik daripada menawarkan dua — jadi halaman ini kembali
+      // meninggalkan /input begitu kiriman berhasil, seperti biasa.
+      //
+      // Navigasi dengan URL lengkap, bukan router.refresh(): refresh()
+      // mengirim ulang /input TANPA searchParams, sehingga penjaga parameter di
+      // page.tsx mem-`redirect()` ke /laporan-saya tanpa periode — persis bug
+      // "dikembalikan ke periode sebelumnya" yang pernah diperbaiki. URL
+      // lengkap membuat halaman tujuan dirender segar.
       router.push(`/laporan-saya?periode=${periodeId}`);
     } else {
       setPesan("Draf disimpan.");
@@ -356,44 +401,125 @@ export function FormulirInput({
           Jenis laporan
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-          {(Object.keys(LABEL_JENIS) as JenisForm[]).map((j) => (
-            <button
-              key={j}
-              type="button"
-              onClick={() => {
-                setJenis(j);
-                setGalat({});
-                setPesan(null);
-              }}
-              aria-pressed={jenis === j}
-              className={`text-left px-3 py-2.5 rounded-xl text-xs font-semibold border transition ${
-                jenis === j
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-slate-700 border-slate-300 hover:border-blue-400"
-              }`}
-            >
-              {LABEL_JENIS[j]}
-            </button>
-          ))}
+          {(Object.keys(LABEL_JENIS) as JenisForm[]).map((j) => {
+            const s = statusPerJenis[j]?.status ?? "belum";
+            const catatan = statusPerJenis[j]?.catatanBukaKunci ?? null;
+            const terkunci = modeFormulir(s, catatan) === "lihat";
+            return (
+              <button
+                key={j}
+                type="button"
+                onClick={() => {
+                  setJenis(j);
+                  setGalat({});
+                  setPesan(null);
+                }}
+                aria-pressed={jenis === j}
+                className={`text-left px-3 py-2.5 rounded-xl text-xs font-semibold border transition ${
+                  jenis === j
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : terkunci
+                      ? "bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300"
+                      : "bg-white text-slate-700 border-slate-300 hover:border-blue-400"
+                }`}
+              >
+                <span className="flex items-center justify-between gap-2">
+                  {LABEL_JENIS[j]}
+                  {terkunci && (
+                    <span
+                      className={
+                        jenis === j
+                          ? "text-white/80"
+                          : "text-slate-400 font-bold"
+                      }
+                      title="Terkirim — hanya dapat dibaca"
+                    >
+                      🔒
+                    </span>
+                  )}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* Keterangan status jenis yang sedang dibuka. */}
+      {(bacaSaja || catatanBukaKunci) && (
+        <div
+          className={`rounded-2xl border p-4 text-sm ${
+            bacaSaja
+              ? "bg-blue-50 border-blue-200 text-blue-900"
+              : "bg-amber-50 border-amber-200 text-amber-900"
+          }`}
+        >
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <Badge warna={bacaSaja ? "blue" : "amber"}>
+              {statusJenis === "terverifikasi"
+                ? "Sudah diverifikasi"
+                : "Sudah terkirim"}
+            </Badge>
+            <span className="font-semibold">
+              {bacaSaja
+                ? "Tampilan baca-saja"
+                : "Kunci dibuka Admin — silakan perbaiki lalu kirim ulang"}
+            </span>
+          </div>
+          {bacaSaja ? (
+            <p>
+              Laporan ini sudah dikirim dan sedang menunggu verifikasi, jadi
+              isinya hanya dapat dilihat — bukan diubah. Bila ada yang perlu
+              diperbaiki, minta Admin membuka kuncinya.
+            </p>
+          ) : (
+            <p>
+              <strong>Alasan dibuka Admin:</strong> {catatanBukaKunci}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Formulir */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5">
         {jenis === "aktivitas_anak" && (
-          <FormAnak nilai={data} ubah={ubah} galat={galat} />
+          <FormAnak
+            nilai={data}
+            ubah={ubah}
+            galat={galat}
+            bacaSaja={bacaSaja}
+          />
         )}
         {jenis === "aktivitas_perempuan" && (
-          <FormPerempuan nilai={data} ubah={ubah} galat={galat} />
+          <FormPerempuan
+            nilai={data}
+            ubah={ubah}
+            galat={galat}
+            bacaSaja={bacaSaja}
+          />
         )}
         {jenis === "rekap_pengaduan" && (
-          <FormRekap nilai={data} ubah={ubah} galat={galat} />
+          <FormRekap
+            nilai={data}
+            ubah={ubah}
+            galat={galat}
+            bacaSaja={bacaSaja}
+          />
         )}
         {jenis === "tindak_lanjut_kasus" && (
-          <FormKasus nilai={data} ubah={ubah} galat={galat} />
+          <FormKasus
+            nilai={data}
+            ubah={ubah}
+            galat={galat}
+            bacaSaja={bacaSaja}
+          />
         )}
         {jenis === "publikasi" && (
-          <FormPublikasi nilai={data} ubah={ubah} galat={galat} />
+          <FormPublikasi
+            nilai={data}
+            ubah={ubah}
+            galat={galat}
+            bacaSaja={bacaSaja}
+          />
         )}
       </div>
 
@@ -410,31 +536,61 @@ export function FormulirInput({
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => kirim("terkirim")}
-          disabled={memuat}
-          className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold text-sm transition"
-        >
-          {memuat ? "Menyimpan…" : "Kirim laporan"}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => kirim("draf")}
-          disabled={memuat}
-          className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-700 font-semibold text-sm transition"
-        >
-          Simpan draf
-        </button>
-
-        {tersimpan && (
+      {bacaSaja ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href={`/laporan-saya?periode=${periodeId}`}
+            className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition no-print"
+          >
+            ← Kembali ke Laporan Saya
+          </Link>
           <span className="text-xs text-slate-500">
-            Draf lokal tersimpan {tersimpan}
+            Tidak ada yang dapat diubah di tampilan ini.
           </span>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => kirim("terkirim")}
+            disabled={memuat}
+            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold text-sm transition"
+          >
+            {memuat
+              ? "Menyimpan…"
+              : mode === "ulang"
+                ? "Kirim ulang laporan"
+                : "Kirim laporan"}
+          </button>
+
+          {/* "Simpan draf" tidak ditawarkan setelah Admin membuka kunci: draf
+              menghapus penanda buka kunci, sehingga alasan perbaikan dari Admin
+              ikut hilang tanpa jejak. */}
+          {mode === "draf" && (
+            <button
+              type="button"
+              onClick={() => kirim("draf")}
+              disabled={memuat}
+              className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-700 font-semibold text-sm transition"
+            >
+              Simpan draf
+            </button>
+          )}
+
+          {!bacaSaja && tersimpan && (
+            <span className="text-xs text-slate-500">
+              Draf lokal tersimpan {tersimpan}
+            </span>
+          )}
+
+          <Link
+            href={`/laporan-saya?periode=${periodeId}`}
+            className="text-xs font-semibold text-blue-700 hover:underline no-print"
+          >
+            Kembali ke Laporan Saya →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

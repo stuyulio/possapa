@@ -19,10 +19,13 @@ export function FormRekap({
   nilai,
   ubah,
   galat,
+  bacaSaja = false,
 }: {
   nilai: NilaiRekap;
   ubah: <K extends keyof NilaiRekap>(k: K, v: NilaiRekap[K]) => void;
   galat: Record<string, string>;
+  /** Laporan terkirim: tampilkan isinya, jangan biarkan diubah. */
+  bacaSaja?: boolean;
 }) {
   const nihil = nilai.status_bulan === "Nihil";
 
@@ -59,13 +62,14 @@ export function FormRekap({
               type="button"
               onClick={() => ubahStatus(s)}
               aria-pressed={nilai.status_bulan === s}
+              disabled={bacaSaja}
               className={`px-4 py-2 rounded-xl text-sm font-semibold border transition ${
                 nilai.status_bulan === s
                   ? s === "Nihil"
                     ? "bg-slate-700 text-white border-slate-700"
                     : "bg-rose-600 text-white border-rose-600"
                   : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
-              }`}
+              } ${bacaSaja ? "cursor-default" : ""}`}
             >
               {s}
             </button>
@@ -82,19 +86,19 @@ export function FormRekap({
 
       <div className={`grid grid-cols-2 sm:grid-cols-3 gap-4 ${nonaktif}`}>
         <Field label="Jumlah aduan masuk" galat={galat.aduan_masuk}>
-          <InputAngka nilai={nilai.aduan_masuk} ubah={(v) => ubah("aduan_masuk", v)} galat={galat.aduan_masuk} />
+          <InputAngka nilai={nilai.aduan_masuk} ubah={(v) => ubah("aduan_masuk", v)} galat={galat.aduan_masuk} bacaSaja={bacaSaja} />
         </Field>
         <Field label="Kekerasan — perempuan" galat={galat.kekerasan_perempuan}>
-          <InputAngka nilai={nilai.kekerasan_perempuan} ubah={(v) => ubah("kekerasan_perempuan", v)} galat={galat.kekerasan_perempuan} />
+          <InputAngka nilai={nilai.kekerasan_perempuan} ubah={(v) => ubah("kekerasan_perempuan", v)} galat={galat.kekerasan_perempuan} bacaSaja={bacaSaja} />
         </Field>
         <Field label="Kekerasan — anak" galat={galat.kekerasan_anak}>
-          <InputAngka nilai={nilai.kekerasan_anak} ubah={(v) => ubah("kekerasan_anak", v)} galat={galat.kekerasan_anak} />
+          <InputAngka nilai={nilai.kekerasan_anak} ubah={(v) => ubah("kekerasan_anak", v)} galat={galat.kekerasan_anak} bacaSaja={bacaSaja} />
         </Field>
         <Field label="Non-kekerasan — perempuan" galat={galat.non_kekerasan_perempuan}>
-          <InputAngka nilai={nilai.non_kekerasan_perempuan} ubah={(v) => ubah("non_kekerasan_perempuan", v)} galat={galat.non_kekerasan_perempuan} />
+          <InputAngka nilai={nilai.non_kekerasan_perempuan} ubah={(v) => ubah("non_kekerasan_perempuan", v)} galat={galat.non_kekerasan_perempuan} bacaSaja={bacaSaja} />
         </Field>
         <Field label="Non-kekerasan — anak" galat={galat.non_kekerasan_anak}>
-          <InputAngka nilai={nilai.non_kekerasan_anak} ubah={(v) => ubah("non_kekerasan_anak", v)} galat={galat.non_kekerasan_anak} />
+          <InputAngka nilai={nilai.non_kekerasan_anak} ubah={(v) => ubah("non_kekerasan_anak", v)} galat={galat.non_kekerasan_anak} bacaSaja={bacaSaja} />
         </Field>
       </div>
 
@@ -116,10 +120,10 @@ export function FormRekap({
 
       <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${nonaktif}`}>
         <Field label="Sudah ditindaklanjuti" galat={galat.sudah_ditindaklanjuti}>
-          <InputAngka nilai={nilai.sudah_ditindaklanjuti} ubah={(v) => ubah("sudah_ditindaklanjuti", v)} galat={galat.sudah_ditindaklanjuti} />
+          <InputAngka nilai={nilai.sudah_ditindaklanjuti} ubah={(v) => ubah("sudah_ditindaklanjuti", v)} galat={galat.sudah_ditindaklanjuti} bacaSaja={bacaSaja} />
         </Field>
         <Field label="Tercatat di SIMFONI PPA" galat={galat.tercatat_simfoni}>
-          <InputAngka nilai={nilai.tercatat_simfoni} ubah={(v) => ubah("tercatat_simfoni", v)} galat={galat.tercatat_simfoni} />
+          <InputAngka nilai={nilai.tercatat_simfoni} ubah={(v) => ubah("tercatat_simfoni", v)} galat={galat.tercatat_simfoni} bacaSaja={bacaSaja} />
         </Field>
       </div>
 
@@ -129,7 +133,8 @@ export function FormRekap({
             rows={2}
             value={nilai.tindak_lanjut_umum}
             onChange={(e) => ubah("tindak_lanjut_umum", e.target.value)}
-            className={kelasField(galat.tindak_lanjut_umum)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.tindak_lanjut_umum, bacaSaja)}
             placeholder="Contoh: Sudah ditangani bersama UPTD PPA"
           />
         </Field>
@@ -139,7 +144,8 @@ export function FormRekap({
             type="text"
             value={nilai.pihak_terlibat}
             onChange={(e) => ubah("pihak_terlibat", e.target.value)}
-            className={kelasField(galat.pihak_terlibat)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.pihak_terlibat, bacaSaja)}
             placeholder="Contoh: Dinas PPPA, UPTD PPA, Kepolisian"
           />
         </Field>

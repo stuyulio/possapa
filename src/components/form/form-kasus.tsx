@@ -32,10 +32,13 @@ export function FormKasus({
   nilai,
   ubah,
   galat,
+  bacaSaja = false,
 }: {
   nilai: NilaiKasus;
   ubah: <K extends keyof NilaiKasus>(k: K, v: NilaiKasus[K]) => void;
   galat: Record<string, string>;
+  /** Laporan terkirim: tampilkan isinya, jangan biarkan diubah. */
+  bacaSaja?: boolean;
 }) {
   return (
     <div className="space-y-5">
@@ -49,7 +52,8 @@ export function FormKasus({
             type="text"
             value={nilai.kode_kasus}
             onChange={(e) => ubah("kode_kasus", e.target.value)}
-            className={kelasField(galat.kode_kasus)}
+            readOnly
+            className={kelasField(galat.kode_kasus, true)}
             placeholder="ACH-01"
           />
         </Field>
@@ -59,7 +63,8 @@ export function FormKasus({
             type="date"
             value={nilai.tanggal_aduan}
             onChange={(e) => ubah("tanggal_aduan", e.target.value)}
-            className={kelasField(galat.tanggal_aduan)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.tanggal_aduan, bacaSaja)}
           />
         </Field>
 
@@ -69,7 +74,8 @@ export function FormKasus({
             onChange={(e) =>
               ubah("kategori", e.target.value as NilaiKasus["kategori"])
             }
-            className={kelasField(galat.kategori)}
+            disabled={bacaSaja}
+            className={kelasField(galat.kategori, bacaSaja)}
           >
             <option value="kekerasan">Kekerasan</option>
             <option value="non_kekerasan">Non-kekerasan</option>
@@ -82,7 +88,8 @@ export function FormKasus({
           type="text"
           value={nilai.jenis_kasus}
           onChange={(e) => ubah("jenis_kasus", e.target.value)}
-          className={kelasField(galat.jenis_kasus)}
+          readOnly={bacaSaja}
+          className={kelasField(galat.jenis_kasus, bacaSaja)}
           placeholder="Contoh: Kekerasan psikis, KDRT, penelantaran"
         />
       </Field>
@@ -99,6 +106,7 @@ export function FormKasus({
               ubah={(v) => ubah("jumlah_korban", v)}
               galat={galat.jumlah_korban}
               min={1}
+              bacaSaja={bacaSaja}
             />
           </Field>
 
@@ -106,7 +114,8 @@ export function FormKasus({
             <select
               value={nilai.jenis_kelamin}
               onChange={(e) => ubah("jenis_kelamin", e.target.value)}
-              className={kelasField(galat.jenis_kelamin)}
+              disabled={bacaSaja}
+              className={kelasField(galat.jenis_kelamin, bacaSaja)}
             >
               <option value="">Pilih…</option>
               <option value="Perempuan">Perempuan</option>
@@ -118,7 +127,8 @@ export function FormKasus({
             <select
               value={nilai.kelompok_usia}
               onChange={(e) => ubah("kelompok_usia", e.target.value)}
-              className={kelasField(galat.kelompok_usia)}
+              disabled={bacaSaja}
+              className={kelasField(galat.kelompok_usia, bacaSaja)}
             >
               <option value="">Pilih…</option>
               <option value="Anak (0-17 Tahun)">Anak (0–17 tahun)</option>
@@ -132,6 +142,7 @@ export function FormKasus({
                 type="checkbox"
                 checked={nilai.disabilitas}
                 onChange={(e) => ubah("disabilitas", e.target.checked)}
+                disabled={bacaSaja}
                 className="w-4 h-4 rounded border-slate-300"
               />
               Ya
@@ -146,7 +157,8 @@ export function FormKasus({
             rows={2}
             value={nilai.kebutuhan_korban}
             onChange={(e) => ubah("kebutuhan_korban", e.target.value)}
-            className={kelasField(galat.kebutuhan_korban)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.kebutuhan_korban, bacaSaja)}
             placeholder="Contoh: Pendampingan psikologis, visum, rumah aman"
           />
         </Field>
@@ -156,7 +168,8 @@ export function FormKasus({
             rows={2}
             value={nilai.tindak_lanjut}
             onChange={(e) => ubah("tindak_lanjut", e.target.value)}
-            className={kelasField(galat.tindak_lanjut)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.tindak_lanjut, bacaSaja)}
             placeholder="Contoh: Rujukan UPTD PPA, koordinasi kepolisian"
           />
         </Field>
@@ -170,11 +183,12 @@ export function FormKasus({
               type="button"
               onClick={() => ubah("status_penanganan", s.nilai)}
               aria-pressed={nilai.status_penanganan === s.nilai}
+              disabled={bacaSaja}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
                 nilai.status_penanganan === s.nilai
                   ? "bg-emerald-600 text-white border-emerald-600"
                   : "bg-white text-slate-600 border-slate-300 hover:border-emerald-400"
-              }`}
+              } ${bacaSaja ? "cursor-default" : ""}`}
             >
               {s.label}
             </button>
@@ -192,6 +206,7 @@ export function FormKasus({
             type="checkbox"
             checked={nilai.sudah_simfoni}
             onChange={(e) => ubah("sudah_simfoni", e.target.checked)}
+            disabled={bacaSaja}
             className="w-4 h-4 rounded border-slate-300"
           />
           Sudah dicatat di SIMFONI PPA
@@ -204,7 +219,8 @@ export function FormKasus({
                 type="text"
                 value={nilai.no_registrasi_simfoni}
                 onChange={(e) => ubah("no_registrasi_simfoni", e.target.value)}
-                className={kelasField(galat.no_registrasi_simfoni)}
+                readOnly={bacaSaja}
+                className={kelasField(galat.no_registrasi_simfoni, bacaSaja)}
                 placeholder="SIM-2026-0001-0001"
               />
             </Field>
@@ -213,7 +229,8 @@ export function FormKasus({
                 type="date"
                 value={nilai.tanggal_input_simfoni}
                 onChange={(e) => ubah("tanggal_input_simfoni", e.target.value)}
-                className={kelasField(galat.tanggal_input_simfoni)}
+                readOnly={bacaSaja}
+                className={kelasField(galat.tanggal_input_simfoni, bacaSaja)}
               />
             </Field>
             <Field label="Penginput" wajib galat={galat.penginput_simfoni}>
@@ -221,7 +238,8 @@ export function FormKasus({
                 type="text"
                 value={nilai.penginput_simfoni}
                 onChange={(e) => ubah("penginput_simfoni", e.target.value)}
-                className={kelasField(galat.penginput_simfoni)}
+                readOnly={bacaSaja}
+                className={kelasField(galat.penginput_simfoni, bacaSaja)}
                 placeholder="Petugas UPTD PPA"
               />
             </Field>
@@ -236,7 +254,8 @@ export function FormKasus({
               rows={2}
               value={nilai.alasan_belum_simfoni}
               onChange={(e) => ubah("alasan_belum_simfoni", e.target.value)}
-              className={kelasField(galat.alasan_belum_simfoni)}
+              readOnly={bacaSaja}
+              className={kelasField(galat.alasan_belum_simfoni, bacaSaja)}
               placeholder="Contoh: Menunggu kelengkapan berkas"
             />
           </Field>
@@ -248,7 +267,8 @@ export function FormKasus({
               rows={2}
               value={nilai.hambatan}
               onChange={(e) => ubah("hambatan", e.target.value)}
-              className={kelasField(galat.hambatan)}
+              readOnly={bacaSaja}
+              className={kelasField(galat.hambatan, bacaSaja)}
             />
           </Field>
         </div>

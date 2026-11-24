@@ -123,6 +123,8 @@ src/components/lokasi/         form kelola lokasi Pos SAPA (admin & petugas)
 src/app/icon.svg               favicon (salinan logo KemenPPPA)
 public/logo-kemenpppa.svg      berkas logo mentah
 src/lib/data/                  pengambilan & agregasi data
+src/lib/laporan.ts             aturan kunci laporan terkirim (dipakai UI & server)
+src/lib/periode.ts             deteksi tumpang tindih periode
 src/lib/supabase/              client, server, middleware
 supabase/                      migrasi SQL & seed
 scripts/                       skrip migrasi data
@@ -184,6 +186,40 @@ untuk Admin Pusat.
 menampilkan setiap kombinasi periode × lokasi Pos SAPA beserta status kelima
 laporan, dan tombol *Isi* di sebuah sel membuka `/input?pos=…&periode=…`.
 
+### Laporan terkirim: dapat dilihat, tidak dapat diubah
+
+Begitu laporan dikirim, isinya **terkunci** bagi petugas. Selnya di
+`/laporan-saya` menampilkan tautan *Lihat* yang membuka `/input` dalam mode
+baca-saja: seluruh isian ditampilkan apa adanya tetapi tidak dapat disunting,
+dan tidak ada tombol simpan. Ini berlaku sampai Admin **memverifikasi** atau
+**membuka kunci** laporan tersebut.
+
+Kuncinya penting karena dua hal. Laporan yang antre di `/verifikasi` tidak boleh
+berubah isi di belakang layar Admin — kalau bisa, yang diverifikasi bukan lagi
+yang dibaca. Dan perbaikan tetap mungkin, tetapi lewat jalur yang tercatat:
+`bukaKunciLaporan` mengembalikan status ke `terkirim` sambil mengisi
+`catatan_buka_kunci`, dan adanya catatan itulah yang membedakan "terkirim yang
+menunggu verifikasi" dari "terkirim yang sedang diperbaiki". Selama kunci
+terbuka, tombol "Simpan draf" tidak ditawarkan — menyimpan draf akan menghapus
+penanda buka kunci beserta alasan perbaikan dari Admin.
+
+Aturan ini hidup di satu tempat, `src/lib/laporan.ts`, dan dipakai bersama oleh
+UI serta server action. Penegak sebenarnya tetap di database: policy
+`laporan_ubah_petugas` memakai klausa `using` (yang melihat baris **lama** —
+`with check` tidak dapat dipakai untuk ini), `boleh_tulis_laporan` mengikuti
+aturan yang sama untuk kelima tabel rincian, dan trigger
+`laporan_cek_kunci_petugas` menutup satu hal yang tidak dapat dinyatakan RLS:
+petugas tidak boleh membuat atau mengubah `catatan_buka_kunci` sendiri.
+
+### Urutan penyimpanan saat kirim ulang
+
+Setelah Admin membuka kunci, petugas yang mengirim ulang harus tersimpan utuh.
+`simpanLaporan` karena itu menyimpan induk **dulu** tanpa menyentuh penanda,
+menyimpan rincian **selagi** penanda masih ada, dan baru melepas penanda pada
+langkah terakhir. Urutan ini wajib: begitu `catatan_buka_kunci` dikosongkan,
+`boleh_tulis_laporan` kembali menutup tabel rincian, sehingga upsert rincian
+akan ditolak RLS bila urutannya dibalik.
+
 Lokasi dan periode sengaja **tidak dapat diubah** di dalam formulir: keduanya
 datang dari sel yang diklik. Pemilih lokasi di dalam form akan membatalkan
 mitigasi PRD §15 ("lokasi dipilih eksplisit di setiap input"), dan pemilih
@@ -207,8 +243,10 @@ npm test        # uji unit murni (tanpa database)
 ```
 
 `src/lib/periode.test.ts` menguji deteksi tumpang tindih periode terhadap
-bentuk data historis yang nyata (§6.5). Pemeriksaan lain masih manual:
-`npm run typecheck`, `npm run build`, lalu telusuri `/verifikasi`,
+bentuk data historis yang nyata (§6.5). `src/lib/laporan.test.ts` menguji aturan
+kunci laporan terkirim — termasuk kasus `bukaKunciLaporan` dan penolakan
+`catatan_buka_kunci` kosong sebagai penanda buka kunci. Pemeriksaan lain masih
+manual: `npm run typecheck`, `npm run build`, lalu telusuri `/verifikasi`,
 `/admin/audit`, dan `/admin/periode` dengan akun berperan berbeda.
 
 ## Operasional wajib (paket Free)
