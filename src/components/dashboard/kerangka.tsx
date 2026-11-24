@@ -4,6 +4,7 @@ import { ambilMasterData } from "@/lib/data/laporan";
 import { FilterBar } from "./filter-bar";
 import { NavDashboard } from "./nav";
 import { SidebarInternal, IKON_SIDEBAR, type MenuSidebar } from "./sidebar";
+import { BarAkun } from "./menu-akun";
 import { LogoKemenPPPA } from "@/components/brand/logo";
 import { KakiHalaman } from "@/components/brand/kaki";
 
@@ -14,10 +15,17 @@ const LABEL_PERAN: Record<string, string> = {
   pimpinan: "Pimpinan",
 };
 
-/** Menu sidebar untuk Petugas Pos SAPA. */
+/**
+ * Menu sidebar untuk Petugas Pos SAPA.
+ *
+ * Tidak ada entri "Input Laporan": /input tidak lagi berdiri sendiri, ia hanya
+ * dapat dibuka dari sel di /laporan-saya yang membawa lokasi dan periode. Dua
+ * pintu masuk ke satu formulir membuat yang kedua kehilangan konteks — dulu
+ * /input punya pemilih lokasi sendiri, dan lokasi yang berpindah di tengah
+ * pengisian adalah risiko yang dicatat PRD §15.
+ */
 const MENU_PETUGAS: MenuSidebar[] = [
   { href: "/laporan-saya", label: "Laporan Saya", ikon: IKON_SIDEBAR.ringkasan },
-  { href: "/input", label: "Input Laporan", ikon: IKON_SIDEBAR.tambah },
   {
     href: "/lokasi-saya",
     label: "Lokasi Pos SAPA",
@@ -67,6 +75,16 @@ export async function KerangkaInternal({
         />
 
         <div className="flex-1 min-w-0 flex flex-col">
+          <BarAkun
+            nama={profil.nama ?? user?.email ?? "Pengguna"}
+            peran={LABEL_PERAN.petugas}
+            wilayah={
+              wilayahData
+                ? `${wilayahData.kab_kota}, ${wilayahData.provinsi}`
+                : null
+            }
+            lebar="5xl"
+          />
           <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {children}
           </main>
@@ -106,10 +124,17 @@ export async function KerangkaInternal({
       </header>
 
       <NavDashboard
-        nama={profil?.nama ?? user?.email ?? "Pengguna"}
-        peran={LABEL_PERAN[profil?.peran ?? ""] ?? "belum ditetapkan"}
         peranKode={profil?.peran ?? null}
         punyaWilayah={Boolean(profil?.wilayah_id)}
+      />
+
+      <BarAkun
+        nama={profil?.nama ?? user?.email ?? "Pengguna"}
+        peran={LABEL_PERAN[profil?.peran ?? ""] ?? "belum ditetapkan"}
+        wilayah={master?.wilayah && profil?.wilayah_id
+          ? (master.wilayah.find((w) => w.id === profil.wilayah_id)?.kab_kota ?? null)
+          : null}
+        lebar="7xl"
       />
 
       {!profil && (

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { simpanPeriode, hapusPeriode } from "./actions";
 import { Field, kelasField } from "@/components/form/field";
 import { tanggalPanjang } from "@/lib/format";
+import { cariTumpangTindih, idTerlibat } from "@/lib/periode";
 
 export type Periode = {
   id: string;
@@ -98,8 +99,54 @@ export function DaftarPeriode({ daftar }: { daftar: Periode[] }) {
       ? `${tanggalPanjang(mulai)} – ${tanggalPanjang(selesai)}`
       : null;
 
+  // PRD §6.4: periode tidak boleh tumpang tindih. Diperingatkan, bukan
+  // diblokir — data historis dari Google Form memang tumpang tindih (§6.5),
+  // dan memblokir perubahan akan membuat master data yang ada tak dapat
+  // dirapikan sama sekali.
+  const tumpangTindih = useMemo(() => cariTumpangTindih(daftar), [daftar]);
+  const idBermasalah = useMemo(() => idTerlibat(tumpangTindih), [tumpangTindih]);
+
+  // Peringatan untuk rentang yang sedang diketik.
+  const bentrokDengan = useMemo(() => {
+    if (!mulai || !selesai || mulai > selesai) return [];
+    return daftar.filter(
+      (p) =>
+        p.id !== diedit?.id &&
+        p.tanggal_mulai <= selesai &&
+        mulai <= p.tanggal_selesai
+    );
+  }, [daftar, mulai, selesai, diedit]);
+
   return (
     <div className="space-y-5">
+      {tumpangTindih.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-900">
+          <p className="font-semibold">
+            {tumpangTindih.length} pasangan periode tumpang tindih
+          </p>
+          <p className="mt-1">
+            {idBermasalah.size} periode beririsan dengan periode lain. Laporan
+            pada periode yang beririsan akan terhitung dua kali dalam tren dan
+            perbandingan. Perbaiki tanggalnya melalui tombol Ubah.
+          </p>
+          <ul className="mt-2 space-y-0.5 text-xs">
+            {tumpangTindih.slice(0, 8).map((t) => (
+              <li key={`${t.a.id}-${t.b.id}`}>
+                <strong>{t.a.label}</strong> ({t.a.tanggal_mulai} s/d{" "}
+                {t.a.tanggal_selesai}) beririsan dengan{" "}
+                <strong>{t.b.label}</strong> ({t.b.tanggal_mulai} s/d{" "}
+                {t.b.tanggal_selesai})
+              </li>
+            ))}
+            {tumpangTindih.length > 8 && (
+              <li className="text-amber-800">
+                …dan {tumpangTindih.length - 8} pasangan lainnya.
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+
       <div className="flex justify-end">
         <button
           type="button"
@@ -144,6 +191,14 @@ export function DaftarPeriode({ daftar }: { daftar: Periode[] }) {
           {pratinjau && (
             <p className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
               Label yang akan tampil: <strong>{pratinjau}</strong>
+            </p>
+          )}
+
+          {bentrokDengan.length > 0 && (
+            <p className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+              Rentang ini beririsan dengan {bentrokDengan.length} periode (
+              {bentrokDengan.map((p) => p.label).join(", ")}). Disimpan tetap
+              boleh, tetapi sebaiknya rentangnya dirapikan.
             </p>
           )}
 
@@ -215,6 +270,14 @@ export function DaftarPeriode({ daftar }: { daftar: Periode[] }) {
                   <tr key={p.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3 font-semibold text-slate-900">
                       {p.label}
+                      {idBermasalah.has(p.id) && (
+                        <span
+                          className="ml-2 align-middle inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200"
+                          title="Rentang tanggal beririsan dengan periode lain"
+                        >
+                          tumpang tindih
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-600">
                       {p.tanggal_mulai} s/d {p.tanggal_selesai}

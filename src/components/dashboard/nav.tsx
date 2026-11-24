@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { usePathname } from "next/navigation";
 
 const MENU_ANALISIS = [
   { href: "/dashboard", label: "Ringkasan" },
@@ -11,51 +10,43 @@ const MENU_ANALISIS = [
   { href: "/dashboard/pengaduan", label: "Pengaduan" },
   { href: "/dashboard/kasus", label: "Kasus" },
   { href: "/dashboard/publikasi", label: "Publikasi" },
+  { href: "/peta", label: "Peta" },
 ];
 
 export function NavDashboard({
-  nama,
-  peran,
   peranKode,
   punyaWilayah,
 }: {
-  nama: string;
-  peran: string;
   peranKode: string | null;
   punyaWilayah: boolean;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
 
-  // Menu disesuaikan dengan peran — petugas tidak perlu melihat semua tab analisis.
+  // Menu disesuaikan dengan peran — petugas tidak perlu melihat semua tab
+  // analisis. "Input Laporan" tidak ada di sini karena /input selalu dibuka
+  // dari sel di /laporan-saya, yang membawa lokasi dan periodenya.
   const menu =
     peranKode === "petugas"
-      ? [
-          { href: "/laporan-saya", label: "Laporan Saya" },
-          { href: "/input", label: "Input Laporan" },
-        ]
+      ? [{ href: "/laporan-saya", label: "Laporan Saya" }]
       : peranKode === "pimpinan"
       ? MENU_ANALISIS
       : [
           ...MENU_ANALISIS,
           { href: "/monitoring", label: "Monitoring" },
-          ...(peranKode === "admin_pusat"
-            ? [{ href: "/admin/periode", label: "Periode" }]
+          // Admin Kab/Kota memverifikasi wilayahnya; Admin Pusat semuanya.
+          ...(peranKode === "admin_kabkota" || peranKode === "admin_pusat"
+            ? [{ href: "/verifikasi", label: "Verifikasi" }]
             : []),
-          ...(punyaWilayah
+          ...(peranKode === "admin_pusat"
             ? [
-                { href: "/laporan-saya", label: "Laporan Saya" },
-                { href: "/input", label: "Input Laporan" },
+                { href: "/admin/periode", label: "Periode" },
+                { href: "/admin/audit", label: "Log Audit" },
               ]
             : []),
+          ...(punyaWilayah
+            ? [{ href: "/laporan-saya", label: "Laporan Saya" }]
+            : []),
         ];
-
-  async function keluar() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  }
 
   return (
     <>
@@ -89,20 +80,8 @@ export function NavDashboard({
         </div>
       </div>
 
-      <div className="bg-slate-800 text-slate-300 no-print">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between gap-3 text-xs">
-          <span className="truncate">
-            Masuk sebagai <strong className="text-white">{nama}</strong>{" "}
-            <span className="text-slate-400">({peran})</span>
-          </span>
-          <button
-            onClick={keluar}
-            className="font-semibold hover:text-white transition shrink-0"
-          >
-            Keluar
-          </button>
-        </div>
-      </div>
+      {/* Strip identitas tidak lagi di sini — dipindah ke bar akun kanan atas
+          oleh KerangkaInternal, agar tombol Keluar selalu di posisi tetap. */}
     </>
   );
 }

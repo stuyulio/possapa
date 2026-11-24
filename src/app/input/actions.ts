@@ -82,6 +82,10 @@ export async function simpanLaporan(masukan: {
   }
 
   // Upsert induk: satu laporan per (pos, periode, jenis).
+  //
+  // `catatan_buka_kunci` dikosongkan saat laporan dikirim: catatan itu menandai
+  // "kunci sedang dibuka, ini alasannya". Setelah petugas mengirim ulang,
+  // tanda itu tidak lagi berlaku. Riwayatnya tetap tersimpan di audit_log.
   const { data: induk, error: errInduk } = await supabase
     .from("laporan")
     .upsert(
@@ -92,6 +96,7 @@ export async function simpanLaporan(masukan: {
         status: masukan.status,
         sumber_input: "form_internal",
         submitted_by: user.id,
+        ...(masukan.status === "terkirim" ? { catatan_buka_kunci: null } : {}),
       },
       { onConflict: "pos_id,periode_id,jenis_laporan" }
     )

@@ -143,6 +143,8 @@ export type ChecklistPos = {
     jenis: JenisLaporan;
     status: "draf" | "terkirim" | "terverifikasi" | "belum";
     diperbarui: string | null;
+    /** Diisi Admin saat membuka kunci; dibaca petugas sebagai instruksi perbaikan. */
+    catatanBukaKunci: string | null;
   }[];
   selesai: number;
 };
@@ -189,7 +191,9 @@ export async function ambilChecklist(
       .order("nama_lokasi"),
     supabase
       .from("laporan")
-      .select("pos_id, jenis_laporan, status, periode_id, updated_at")
+      .select(
+        "pos_id, jenis_laporan, status, periode_id, updated_at, catatan_buka_kunci"
+      )
       .eq("periode_id", aktifId ?? "")
       .neq("status", "draf"),
   ]);
@@ -200,6 +204,7 @@ export async function ambilChecklist(
     status: string;
     periode_id: string;
     updated_at: string;
+    catatan_buka_kunci: string | null;
   }[];
 
   const pos = (posRes.data ?? []) as {
@@ -220,6 +225,7 @@ export async function ambilChecklist(
           | "terverifikasi"
           | "belum",
         diperbarui: ada?.updated_at ?? null,
+        catatanBukaKunci: ada?.catatan_buka_kunci ?? null,
       };
     });
     return {

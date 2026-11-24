@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { LogoKemenPPPA } from "@/components/brand/logo";
+import { AkunRingkas } from "./menu-akun";
 
 export type MenuSidebar = {
   href: string;
@@ -38,15 +38,7 @@ export function SidebarInternal({
   menu: MenuSidebar[];
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [terbuka, setTerbuka] = useState(false);
-
-  async function keluar() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  }
 
   const Item = ({ href, label, ikon, persis }: MenuSidebar) => {
     const aktif = persis ? pathname === href : pathname.startsWith(href);
@@ -75,22 +67,6 @@ export function SidebarInternal({
       </Link>
     );
   };
-
-  const Profil = () => (
-    <div className="px-3 py-3 border-t border-slate-700/60">
-      <p className="text-xs text-slate-300 px-2 truncate font-semibold">{nama}</p>
-      <p className="text-[11px] text-slate-500 px-2 truncate">{peran}</p>
-      {wilayah && (
-        <p className="text-[11px] text-amber-400/90 px-2 mb-2 truncate">{wilayah}</p>
-      )}
-      <button
-        onClick={keluar}
-        className="w-full text-left px-2 py-2 mt-1 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
-      >
-        Keluar
-      </button>
-    </div>
-  );
 
   return (
     <>
@@ -132,11 +108,16 @@ export function SidebarInternal({
         </div>
 
         {terbuka && (
-          <nav className="px-3 pb-3 space-y-1">
-            {menu.map((m) => (
-              <Item key={m.href} {...m} />
-            ))}
-          </nav>
+          <>
+            <nav className="px-3 pb-3 space-y-1">
+              {menu.map((m) => (
+                <Item key={m.href} {...m} />
+              ))}
+            </nav>
+            {/* Bar akun desktop disembunyikan di ponsel, jadi di sini identitas
+                dan tombol keluar tetap perlu ada. */}
+            <AkunRingkas nama={nama} peran={peran} wilayah={wilayah} />
+          </>
         )}
       </div>
 
@@ -160,7 +141,11 @@ export function SidebarInternal({
           ))}
         </nav>
 
-        <Profil />
+        {/* Identitas akun tidak lagi di sini — dipindah ke bar akun kanan atas
+            oleh KerangkaInternal, agar tombol Keluar selalu di posisi tetap. */}
+        <p className="px-5 py-3 border-t border-slate-700/60 text-[10px] leading-relaxed text-slate-500">
+          KemenPPPA RI · Pos SAPA
+        </p>
       </aside>
     </>
   );

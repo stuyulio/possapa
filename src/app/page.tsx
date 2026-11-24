@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createPublicClient } from "@/lib/supabase/public";
 import { LogoKemenPPPA } from "@/components/brand/logo";
 import { KakiHalaman } from "@/components/brand/kaki";
+import { waktuPanjang } from "@/lib/format";
 
 // Halaman publik boleh di-cache; data diperbarui tiap 5 menit.
 export const revalidate = 300;
@@ -42,6 +43,31 @@ async function ambilRingkasan(): Promise<Ringkasan[]> {
   }
 }
 
+type Pembaruan = {
+  terakhir_diperbarui: string | null;
+  jumlah_laporan: number;
+  jumlah_terverifikasi: number;
+};
+
+async function ambilPembaruan(): Promise<Pembaruan | null> {
+  try {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase
+      .from("publik_pembaruan")
+      .select("*")
+      .maybeSingle();
+
+    if (error) {
+      console.error("[publik_pembaruan]", error.message);
+      return null;
+    }
+    return (data as Pembaruan) ?? null;
+  } catch (err) {
+    console.error("[publik_pembaruan] gagal terhubung", err);
+    return null;
+  }
+}
+
 function KartuKpi({
   label,
   nilai,
@@ -67,7 +93,12 @@ function KartuKpi({
 }
 
 export default async function Beranda() {
-  const ringkasan = await ambilRingkasan();
+  const [ringkasan, pembaruan] = await Promise.all([
+    ambilRingkasan(),
+    ambilPembaruan(),
+  ]);
+
+  const waktuDiperbarui = waktuPanjang(pembaruan?.terakhir_diperbarui);
 
   const total = ringkasan.reduce(
     (acc, r) => ({
@@ -161,6 +192,14 @@ export default async function Beranda() {
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               {ringkasan.length} wilayah sasaran
+              {waktuDiperbarui && (
+                <>
+                  {" · "}
+                  <span title="Waktu ubah laporan terakhir">
+                    Data diperbarui {waktuDiperbarui}
+                  </span>
+                </>
+              )}
             </p>
           </div>
 

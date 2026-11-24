@@ -81,7 +81,12 @@ export default async function HalamanPeriode() {
       <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-sm text-blue-900 mt-5">
         <p className="font-semibold mb-1">Ketentuan</p>
         <ul className="list-disc list-inside space-y-1">
-          <li>Rentang tanggal tidak boleh tumpang tindih dengan periode lain.</li>
+          <li>
+            Rentang tanggal <strong>tidak boleh tumpang tindih</strong> dengan
+            periode lain (PRD §6.4). Pelanggaran ditandai di tabel, tidak
+            memblokir — data historis hasil migrasi Google Form memang
+            tumpang tindih, jadi master data yang ada masih perlu dirapikan.
+          </li>
           <li>
             Periode yang sudah dipakai laporan <strong>tidak dapat dihapus</strong>{" "}
             — ini menjaga integritas data. Mengubah tanggalnya tetap

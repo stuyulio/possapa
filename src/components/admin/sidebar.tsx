@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { LogoKemenPPPA } from "@/components/brand/logo";
+import { AkunRingkas } from "@/components/dashboard/menu-akun";
 
 const MENU_ADMIN = [
   { href: "/admin/akun", label: "Akun", ikon: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" },
   { href: "/admin/periode", label: "Periode", ikon: "M3 4h18v18H3zM16 2v4M8 2v4M3 10h18" },
   { href: "/admin/wilayah", label: "Wilayah & Lokasi", ikon: "M12 21s-7-5.7-7-11a7 7 0 1 1 14 0c0 5.3-7 11-7 11zM12 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" },
+  { href: "/peta", label: "Peta Sebaran", ikon: "M9 20l-6-3V4l6 3 6-3 6 3v13l-6 3-6-3zM9 7v13M15 4v13" },
+  { href: "/verifikasi", label: "Verifikasi", ikon: "M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9" },
+  { href: "/admin/audit", label: "Log Audit", ikon: "M3 12a9 9 0 1 0 3-6.7M3 4v4h4M12 8v4l3 2" },
 ];
 
 const MENU_KEMBALI = [{ href: "/dashboard", label: "Dashboard", ikon: "M3 12l9-9 9 9M5 10v10h14V10" }];
@@ -22,15 +25,7 @@ export function SidebarAdmin({
   peran: string;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [terbuka, setTerbuka] = useState(false);
-
-  async function keluar() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  }
 
   const Item = ({
     href,
@@ -106,11 +101,16 @@ export function SidebarAdmin({
         </div>
 
         {terbuka && (
-          <nav className="px-3 pb-3 space-y-1">
-            {MENU_ADMIN.map((menu) => (
-              <Item key={menu.href} {...menu} />
-            ))}
-          </nav>
+          <>
+            <nav className="px-3 pb-3 space-y-1">
+              {MENU_ADMIN.map((menu) => (
+                <Item key={menu.href} {...menu} />
+              ))}
+            </nav>
+            {/* Bar akun desktop disembunyikan di ponsel, jadi di sini identitas
+                dan tombol keluar tetap perlu ada. */}
+            <AkunRingkas nama={nama} peran={peran} />
+          </>
         )}
       </div>
 
@@ -139,15 +139,11 @@ export function SidebarAdmin({
           </div>
         </nav>
 
-        <div className="px-3 py-3 border-t border-slate-700/60">
-          <p className="text-xs text-slate-400 px-2 truncate">{nama}</p>
-          <p className="text-[11px] text-slate-500 px-2 mb-2 truncate">{peran}</p>
-          <button
-            onClick={keluar}
-            className="w-full text-left px-2 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
-          >
-            Keluar
-          </button>
+        <div className="px-5 py-3 border-t border-slate-700/60">
+          <p className="text-[11px] font-semibold text-slate-400">{peran}</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            Akun &amp; keluar ada di kanan atas
+          </p>
         </div>
       </aside>
     </>

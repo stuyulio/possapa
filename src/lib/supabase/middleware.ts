@@ -44,6 +44,7 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/dashboard") ||
     path.startsWith("/monitoring") ||
     path.startsWith("/peta") ||
+    path.startsWith("/verifikasi") ||
     path.startsWith("/input") ||
     path.startsWith("/laporan-saya") ||
     path.startsWith("/lokasi-saya") ||

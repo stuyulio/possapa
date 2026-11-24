@@ -183,26 +183,44 @@ export default async function LaporanSaya({
                   <ul className="divide-y divide-slate-100">
                     {p.status.map((s) => {
                       const meta = LABEL_STATUS[s.status] ?? LABEL_STATUS.belum;
+                      // Admin dapat membuka kunci laporan terverifikasi; statusnya
+                      // kembali "terkirim" tetapi petugas tetap harus bisa
+                      // memperbaikinya.
+                      const dibuka = Boolean(s.catatanBukaKunci);
                       const bisaDiisi =
-                        s.status === "belum" || s.status === "draf";
+                        s.status === "belum" || s.status === "draf" || dibuka;
                       return (
-                        <li
-                          key={s.jenis}
-                          className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <Badge warna={meta.warna}>{meta.teks}</Badge>
-                            <span className="text-xs sm:text-sm text-slate-800">
-                              {LABEL_JENIS[s.jenis]}
-                            </span>
+                        <li key={s.jenis} className="px-4 py-2.5">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2.5">
+                              <Badge warna={dibuka ? "rose" : meta.warna}>
+                                {dibuka ? "Perlu diperbaiki" : meta.teks}
+                              </Badge>
+                              <span className="text-xs sm:text-sm text-slate-800">
+                                {LABEL_JENIS[s.jenis]}
+                              </span>
+                            </div>
+                            {bisaDiisi && (
+                              <Link
+                                href={`/input?pos=${p.pos_id}&jenis=${s.jenis}&periode=${idPeriode}`}
+                                className="text-[11px] font-semibold text-blue-700 hover:underline no-print"
+                              >
+                                {s.status === "draf"
+                                  ? "Lanjutkan"
+                                  : dibuka
+                                    ? "Perbaiki"
+                                    : "Isi"}{" "}
+                                →
+                              </Link>
+                            )}
                           </div>
-                          {bisaDiisi && (
-                            <Link
-                              href={`/input?pos=${p.pos_id}&jenis=${s.jenis}&periode=${idPeriode}`}
-                              className="text-[11px] font-semibold text-blue-700 hover:underline no-print"
-                            >
-                              {s.status === "draf" ? "Lanjutkan" : "Isi"} →
-                            </Link>
+
+                          {dibuka && (
+                            <p className="mt-1.5 text-[11px] text-rose-800 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5">
+                              <strong>Alasan dibuka Admin:</strong>{" "}
+                              {s.catatanBukaKunci} — formulir akan terisi data
+                              yang tersimpan; ubah yang perlu lalu kirim ulang.
+                            </p>
                           )}
                         </li>
                       );
