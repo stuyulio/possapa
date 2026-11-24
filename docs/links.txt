@@ -1,0 +1,2826 @@
+Dashboard Monitoring Pos SAPA 2026
+https://sites.google.com/view/dashboardmonitoringpossapa2026/full-page-embed
+
+SCRIPT HTML
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Monitoring Pos SAPA 2026 - KemenPPPA RI</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- PapaParse untuk parsing CSV Google Sheets secara akurat -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- SheetJS (xlsx) untuk mendukung unggah file .xlsx / .xls ekspor Google Form -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            DEFAULT: '#1e293b',
+                            dark: '#0f172a',
+                            light: '#334155',
+                        },
+                        kemenGold: {
+                            DEFAULT: '#f59e0b',
+                            dark: '#d97706',
+                            light: '#fef3c7',
+                        },
+                        kemenBlue: {
+                            DEFAULT: '#2563eb',
+                            light: '#dbeafe',
+                        },
+                        kemenRose: {
+                            DEFAULT: '#e11d48',
+                            light: '#ffe4e6',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Header Gradient & Aksen Geometris */
+        .exec-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #1e3a8a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .exec-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -5%;
+            width: 340px;
+            height: 340px;
+            background: rgba(245, 158, 11, 0.14);
+            border-radius: 48px;
+            transform: rotate(32deg);
+            pointer-events: none;
+        }
+        .exec-header::after {
+            content: '';
+            position: absolute;
+            bottom: -60%;
+            right: 12%;
+            width: 240px;
+            height: 240px;
+            background: rgba(225, 29, 72, 0.12);
+            border-radius: 36px;
+            transform: rotate(45deg);
+            pointer-events: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Tab Active Indicator */
+        .tab-btn.active {
+            background-color: #0f172a;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: #ffffff !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- HEADER EKSEKUTIF -->
+    <header class="exec-header text-white shadow-lg border-b-4 border-amber-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                
+                <!-- Judul & Identitas Instansi -->
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 px-3 py-1 rounded-full mb-2.5">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span class="text-[11px] font-semibold tracking-wider uppercase text-amber-300">
+                            Kementerian Pemberdayaan Perempuan dan Perlindungan Anak RI
+                        </span>
+                    </div>
+                    <h1 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
+                        DASHBOARD MONITORING <span class="text-amber-400">POS SAPA 2026</span>
+                    </h1>
+                    <p class="text-sm sm:text-base text-slate-300 mt-1 font-medium">
+                        Sekretariat Deputi Bidang Perlindungan Khusus Anak — Sistem Integrasi Laporan Berkala
+                    </p>
+                </div>
+
+                <!-- Tombol Aksi Utama (Kanan Atas) -->
+                <div class="flex flex-wrap items-center gap-2.5 no-print">
+                    <!-- Status Sumber Data -->
+                    <div id="sync-status-badge" class="bg-slate-800/90 border border-slate-700 px-3 py-2 rounded-xl text-xs flex items-center gap-2">
+                        <span id="sync-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                        <div>
+                            <div class="text-slate-400 text-[10px] uppercase font-semibold">Sumber Data</div>
+                            <div id="sync-source-text" class="text-white font-semibold">Data Simulasi Bawaan (18 Laporan)</div>
+                        </div>
+                    </div>
+
+                    <button onclick="openSyncModal()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shadow-md transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>Sinkronisasi Google Sheets</span>
+                    </button>
+
+                    <button onclick="openInputModal()" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm shadow-md transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>Input Simulasi Form</span>
+                    </button>
+
+                    <button onclick="window.print()" title="Cetak Laporan / Simpan PDF" class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/15 transition cursor-pointer">
+                        <i class="fa-solid fa-print"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- FILTER GLOBAL BAR -->
+    <section class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 shrink-0">
+                    <i class="fa-solid fa-filter text-blue-600"></i>
+                    <span>Filter Global:</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 flex-1">
+                    <!-- Filter Kabupaten/Kota -->
+                    <select id="filter-kabkota" onchange="applyGlobalFilters()" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-600">
+                        <option value="ALL">Semua Kabupaten / Kota</option>
+                    </select>
+
+                    <!-- Filter Lokasi Pos SAPA -->
+                    <select id="filter-lokasi" onchange="applyGlobalFilters()" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-600">
+                        <option value="ALL">Semua Lokasi Pos SAPA</option>
+                    </select>
+
+                    <!-- Filter Periode Laporan -->
+                    <select id="filter-periode" onchange="applyGlobalFilters()" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-600">
+                        <option value="ALL">Semua Periode Laporan</option>
+                    </select>
+
+                    <!-- Filter Status SIMFONI PPA -->
+                    <select id="filter-simfoni" onchange="applyGlobalFilters()" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-700 focus:outline-none focus:border-blue-600">
+                        <option value="ALL">Semua Status SIMFONI PPA</option>
+                        <option value="Ya">Tercatat SIMFONI PPA (Ya)</option>
+                        <option value="Belum">Belum Tercatat SIMFONI (Belum)</option>
+                    </select>
+
+                    <!-- Tombol Reset Filter -->
+                    <button onclick="resetGlobalFilters()" class="w-full text-xs sm:text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl px-3 py-2 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>Reset Filter</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- KONTEN UTAMA -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- 4 KARTU KPI RINGKASAN EKSEKUTIF -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            
+            <!-- KPI 1: Total Anak Terjangkau -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md transition relative overflow-hidden">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Anak Terjangkau</p>
+                        <h2 id="kpi-anak-total" class="font-display text-3xl font-extrabold text-slate-900 mt-1">0</h2>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-children"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-1 text-xs">
+                    <span class="text-slate-600 font-medium">Disabilitas: <strong id="kpi-anak-disabilitas" class="text-blue-700">0</strong></span>
+                    <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-full font-semibold">
+                        Perlu TL: <span id="kpi-anak-tl">0</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- KPI 2: Total Perempuan Terberdayakan -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md transition relative overflow-hidden">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Perempuan Terberdayakan</p>
+                        <h2 id="kpi-perempuan-total" class="font-display text-3xl font-extrabold text-slate-900 mt-1">0</h2>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-person-dress"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-1 text-xs text-slate-600">
+                    <span>PEKKA: <strong id="kpi-perempuan-kk" class="text-slate-900">0</strong></span>
+                    <span>Hamil/Busui: <strong id="kpi-perempuan-hamil" class="text-rose-600">0</strong></span>
+                    <span>Lansia/Dis: <strong id="kpi-perempuan-rentan" class="text-slate-900">0</strong></span>
+                </div>
+            </div>
+
+            <!-- KPI 3: Rekap Pengaduan & SIMFONI PPA -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md transition relative overflow-hidden">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Aduan Masuk</p>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <h2 id="kpi-aduan-total" class="font-display text-3xl font-extrabold text-slate-900">0</h2>
+                            <span id="kpi-aduan-tl-pct" class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">0% TL</span>
+                        </div>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span class="text-slate-600">Ditindaklanjuti: <strong id="kpi-aduan-tl" class="text-slate-900">0</strong></span>
+                    <span class="text-blue-700 font-semibold">SIMFONI PPA: <strong id="kpi-simfoni-pct">0%</strong></span>
+                </div>
+            </div>
+
+            <!-- KPI 4: Publikasi Media Sosial & Dokumentasi -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm hover:shadow-md transition relative overflow-hidden">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Publikasi Media Sosial</p>
+                        <h2 id="kpi-medsos-total" class="font-display text-3xl font-extrabold text-slate-900 mt-1">0</h2>
+                    </div>
+                    <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span class="text-slate-600">Total Laporan Masuk: <strong id="kpi-laporan-total" class="text-slate-900">0</strong></span>
+                    <span class="text-emerald-700 font-semibold">Ada Dokumentasi: <strong id="kpi-dok-pct">0%</strong></span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- NAVIGASI TAB (SESUAI 5 PERCABANGAN FORMULIR + OVERVIEW) -->
+        <nav class="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm mb-6 overflow-x-auto no-print">
+            <div class="flex items-center gap-1.5 min-w-max">
+                <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn active px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>1. Ringkasan Eksekutif</span>
+                </button>
+
+                <button onclick="switchTab('anak')" id="tab-btn-anak" class="tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-child-reaching text-blue-600"></i>
+                    <span>2. Aktivitas Anak (Q6–17)</span>
+                    <span id="badge-count-anak" class="bg-blue-100 text-blue-800 text-[11px] font-bold px-2 py-0.5 rounded-full">0</span>
+                </button>
+
+                <button onclick="switchTab('perempuan')" id="tab-btn-perempuan" class="tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-person-dress text-rose-600"></i>
+                    <span>3. Aktivitas Perempuan (Q18–26)</span>
+                    <span id="badge-count-perempuan" class="bg-rose-100 text-rose-800 text-[11px] font-bold px-2 py-0.5 rounded-full">0</span>
+                </button>
+
+                <button onclick="switchTab('pengaduan')" id="tab-btn-pengaduan" class="tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-scale-balanced text-amber-600"></i>
+                    <span>4. Pengaduan & TL Kasus (Q27–53)</span>
+                    <span id="badge-count-pengaduan" class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2 py-0.5 rounded-full">0</span>
+                </button>
+
+                <button onclick="switchTab('medsos')" id="tab-btn-medsos" class="tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-share-nodes text-emerald-600"></i>
+                    <span>5. Publikasi Media Sosial (Q54–59)</span>
+                    <span id="badge-count-medsos" class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5 rounded-full">0</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- ========================================================= -->
+        <!-- TAB 1: RINGKASAN EKSEKUTIF (OVERVIEW)                     -->
+        <!-- ========================================================= -->
+        <div id="tab-content-overview" class="tab-panel space-y-6">
+            
+            <!-- Baris Grafik Utama -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Grafik 1: Distribusi Laporan per Kabupaten/Kota -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-display font-bold text-slate-900 text-base">Distribusi Laporan per Kabupaten / Kota</h3>
+                            <p class="text-xs text-slate-500">Akumulasi pelaporan berdasarkan 5 jenis layanan Pos SAPA</p>
+                        </div>
+                        <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg">Wilayah Kerja</span>
+                    </div>
+                    <div class="h-72 relative">
+                        <canvas id="chartOverviewWilayah"></canvas>
+                    </div>
+                </div>
+
+                <!-- Grafik 2: Proporsi 5 Jenis Laporan Google Form -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div class="mb-4">
+                        <h3 class="font-display font-bold text-slate-900 text-base">Proporsi Jenis Laporan</h3>
+                        <p class="text-xs text-slate-500">Sesuai 5 percabangan pertanyaan Google Form</p>
+                    </div>
+                    <div class="h-72 relative">
+                        <canvas id="chartOverviewJenis"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Baris Kedua: Perbandingan Aduan & Sorotan Tindak Lanjut -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Grafik 3: Perbandingan Aduan Kekerasan vs Non-Kekerasan -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-display font-bold text-slate-900 text-base">Rekapitulasi Aduan: Kekerasan vs Non-Kekerasan</h3>
+                            <p class="text-xs text-slate-500">Perbandingan korban Perempuan dan Anak dari laporan bulanan</p>
+                        </div>
+                        <span class="text-xs font-semibold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg">Layanan Pengaduan</span>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas id="chartOverviewAduan"></canvas>
+                    </div>
+                </div>
+
+                <!-- Panel Sorotan: Temuan Anak Perlu Layanan Lanjutan & Status Kasus -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+                                <span>Sorotan Prioritas & Tindak Lanjut Cepat</span>
+                            </h3>
+                            <p class="text-xs text-slate-500">Temuan anak perlu layanan lanjutan & kasus dalam proses/dirujuk</p>
+                        </div>
+                    </div>
+                    <div id="overview-alerts-list" class="space-y-2.5 overflow-y-auto max-h-64 pr-1 flex-1">
+                        <!-- Diisi via JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- TAB 2: AKTIVITAS ANAK (PERTANYAAN 6–17)                   -->
+        <!-- ========================================================= -->
+        <div id="tab-content-anak" class="tab-panel hidden space-y-6">
+            
+            <!-- Ringkasan Demografi Anak -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center">
+                    <div class="text-[11px] font-bold uppercase text-slate-400">Usia 0–5 Thn</div>
+                    <div id="stat-anak-0-5" class="font-display text-2xl font-extrabold text-blue-600 mt-1">0</div>
+                    <div class="text-[11px] text-slate-500">Balita / PAUD</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center">
+                    <div class="text-[11px] font-bold uppercase text-slate-400">Usia 6–12 Thn</div>
+                    <div id="stat-anak-6-12" class="font-display text-2xl font-extrabold text-blue-700 mt-1">0</div>
+                    <div class="text-[11px] text-slate-500">Usia SD</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center">
+                    <div class="text-[11px] font-bold uppercase text-slate-400">Usia 13–17 Thn</div>
+                    <div id="stat-anak-13-17" class="font-display text-2xl font-extrabold text-indigo-700 mt-1">0</div>
+                    <div class="text-[11px] text-slate-500">Remaja</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center">
+                    <div class="text-[11px] font-bold uppercase text-slate-400">Laki-laki / Perempuan</div>
+                    <div class="font-display text-lg font-extrabold text-slate-800 mt-1.5">
+                        <span id="stat-anak-l" class="text-blue-600">0</span> / <span id="stat-anak-p" class="text-rose-600">0</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500">Komposisi Gender</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-blue-200 bg-blue-50/40 text-center">
+                    <div class="text-[11px] font-bold uppercase text-blue-800">Anak Disabilitas</div>
+                    <div id="stat-anak-dis" class="font-display text-2xl font-extrabold text-blue-900 mt-1">0</div>
+                    <div class="text-[11px] text-blue-700">Inklusi Khusus</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-rose-200 bg-rose-50/50 text-center">
+                    <div class="text-[11px] font-bold uppercase text-rose-800">Perlu Layanan Lanjutan</div>
+                    <div id="stat-anak-layanan" class="font-display text-2xl font-extrabold text-rose-600 mt-1">0</div>
+                    <div class="text-[11px] text-rose-700">Wajib Tindak Lanjut</div>
+                </div>
+            </div>
+
+            <!-- Grafik Anak -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h3 class="font-display font-bold text-slate-900 text-base mb-1">Komposisi Kelompok Usia & Gender Anak</h3>
+                    <p class="text-xs text-slate-500 mb-4">Berdasarkan pertanyaan 9–13 formulir Pos SAPA</p>
+                    <div class="h-64 relative">
+                        <canvas id="chartAnakDemografi"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h3 class="font-display font-bold text-slate-900 text-base mb-1">Distribusi Metode / Jenis Kegiatan Anak</h3>
+                    <p class="text-xs text-slate-500 mb-4">Edukasi, Trauma Healing, Kegiatan Fisik, dan Bermain Bersama (Q8)</p>
+                    <div class="h-64 relative">
+                        <canvas id="chartAnakJenisKegiatan"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabel Rincian Kegiatan Anak -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="font-display font-bold text-slate-900 text-base">Rincian Laporan Bermain & Dukungan Psikososial Anak</h3>
+                        <p class="text-xs text-slate-500">Menyoroti temuan anak yang memerlukan rujukan / layanan lanjutan (Q16–17)</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
+                                <th class="py-3.5 px-4">Periode & Lokasi</th>
+                                <th class="py-3.5 px-4">Nama & Jenis Kegiatan</th>
+                                <th class="py-3.5 px-4 text-center">Jml Keg</th>
+                                <th class="py-3.5 px-4 text-center">Peserta (Usia & L/P)</th>
+                                <th class="py-3.5 px-4 text-center">Disabilitas / Perlu TL</th>
+                                <th class="py-3.5 px-4 bg-rose-950/90">Temuan & Tindak Lanjut (Q16–17)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body-anak" class="divide-y divide-slate-100">
+                            <!-- Diisi via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- TAB 3: AKTIVITAS PEREMPUAN (PERTANYAAN 18–26)             -->
+        <!-- ========================================================= -->
+        <div id="tab-content-perempuan" class="tab-panel hidden space-y-6">
+            
+            <!-- Kartu Kelompok Kerentanan Perempuan -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="text-xs font-bold text-slate-400 uppercase">Total Peserta</div>
+                    <div id="stat-pr-total" class="font-display text-2xl font-extrabold text-slate-900 mt-1">0</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Orang Terlibat (Q21)</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-rose-200 bg-rose-50/40 shadow-sm">
+                    <div class="text-xs font-bold text-rose-800 uppercase">Kepala Keluarga</div>
+                    <div id="stat-pr-kk" class="font-display text-2xl font-extrabold text-rose-700 mt-1">0</div>
+                    <div class="text-xs text-rose-600 mt-0.5">PEKKA (Q22)</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/40 shadow-sm">
+                    <div class="text-xs font-bold text-amber-800 uppercase">Hamil / Menyusui</div>
+                    <div id="stat-pr-hamil" class="font-display text-2xl font-extrabold text-amber-700 mt-1">0</div>
+                    <div class="text-xs text-amber-600 mt-0.5">Ibu & Baduta (Q23)</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-purple-200 bg-purple-50/40 shadow-sm">
+                    <div class="text-xs font-bold text-purple-800 uppercase">Perempuan Lansia</div>
+                    <div id="stat-pr-lansia" class="font-display text-2xl font-extrabold text-purple-700 mt-1">0</div>
+                    <div class="text-xs text-purple-600 mt-0.5">Usia Lanjut (Q24)</div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-blue-200 bg-blue-50/40 shadow-sm col-span-2 sm:col-span-1">
+                    <div class="text-xs font-bold text-blue-800 uppercase">Disabilitas</div>
+                    <div id="stat-pr-dis" class="font-display text-2xl font-extrabold text-blue-700 mt-1">0</div>
+                    <div class="text-xs text-blue-600 mt-0.5">Inklusi Khusus (Q25)</div>
+                </div>
+            </div>
+
+            <!-- Grafik Pemberdayaan Perempuan -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                <h3 class="font-display font-bold text-slate-900 text-base mb-1">Profil Kelompok Rentan Peserta Pemberdayaan Perempuan</h3>
+                <p class="text-xs text-slate-500 mb-4">Perbandingan kategori peserta berdasarkan pertanyaan 21–25</p>
+                <div class="h-64 relative">
+                    <canvas id="chartPerempuanRentan"></canvas>
+                </div>
+            </div>
+
+            <!-- Tabel Kegiatan Perempuan -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100">
+                    <h3 class="font-display font-bold text-slate-900 text-base">Daftar Kegiatan Pemberdayaan & Dukungan Psikososial Perempuan</h3>
+                    <p class="text-xs text-slate-500">Lengkap dengan jenis pelatihan/kegiatan dan manfaat langsung yang dirasakan (Q18–26)</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
+                                <th class="py-3.5 px-4">Periode & Lokasi</th>
+                                <th class="py-3.5 px-4">Nama & Jenis Kegiatan</th>
+                                <th class="py-3.5 px-4 text-center">Jml Keg</th>
+                                <th class="py-3.5 px-4 text-center">Total Peserta</th>
+                                <th class="py-3.5 px-4">Rincian Kelompok Rentan</th>
+                                <th class="py-3.5 px-4">Manfaat yang Dirasakan (Q26)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body-perempuan" class="divide-y divide-slate-100">
+                            <!-- Diisi via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- TAB 4: REKAP PENGADUAN & RINCIAN TL KASUS (Q27–53)        -->
+        <!-- ========================================================= -->
+        <div id="tab-content-pengaduan" class="tab-panel hidden space-y-8">
+            
+            <!-- BAGIAN A: REKAPITULASI LAYANAN PENGADUAN BULANAN (Q27–36) -->
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 font-display font-extrabold flex items-center justify-center text-sm">A</span>
+                        <div>
+                            <h3 class="font-display font-bold text-slate-900 text-base sm:text-lg">Rekapitulasi Layanan Pengaduan Bulanan (Q27–36)</h3>
+                            <p class="text-xs text-slate-500">Monitoring status pelaporan bulanan (Ada Aduan vs Nihil) dan capaian input SIMFONI PPA</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mini KPI Rekap Bulanan -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase">Aduan Masuk</div>
+                        <div id="rekap-masuk" class="font-display text-2xl font-extrabold text-slate-900 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-rose-200 bg-rose-50/30">
+                        <div class="text-[11px] font-bold text-rose-700 uppercase">Kekerasan Pr</div>
+                        <div id="rekap-kek-pr" class="font-display text-2xl font-extrabold text-rose-700 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-rose-200 bg-rose-50/30">
+                        <div class="text-[11px] font-bold text-rose-700 uppercase">Kekerasan Anak</div>
+                        <div id="rekap-kek-anak" class="font-display text-2xl font-extrabold text-rose-700 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-blue-200 bg-blue-50/30">
+                        <div class="text-[11px] font-bold text-blue-700 uppercase">Non-Kekerasan Pr</div>
+                        <div id="rekap-nonkek-pr" class="font-display text-2xl font-extrabold text-blue-700 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-blue-200 bg-blue-50/30">
+                        <div class="text-[11px] font-bold text-blue-700 uppercase">Non-Kekerasan Anak</div>
+                        <div id="rekap-nonkek-anak" class="font-display text-2xl font-extrabold text-blue-700 mt-0.5">0</div>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/40">
+                        <div class="text-[11px] font-bold text-emerald-800 uppercase">Tercatat SIMFONI</div>
+                        <div id="rekap-simfoni" class="font-display text-2xl font-extrabold text-emerald-700 mt-0.5">0</div>
+                    </div>
+                </div>
+
+                <!-- Tabel Rekap Bulanan -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-slate-800 text-white text-xs uppercase tracking-wider">
+                                    <th class="py-3 px-4">Periode & Wilayah Pos SAPA</th>
+                                    <th class="py-3 px-4 text-center">Status Bulan</th>
+                                    <th class="py-3 px-4 text-center">Masuk</th>
+                                    <th class="py-3 px-4 text-center">Kekerasan (Pr/Anak)</th>
+                                    <th class="py-3 px-4 text-center">Non-Kekerasan (Pr/Anak)</th>
+                                    <th class="py-3 px-4 text-center">TL / SIMFONI</th>
+                                    <th class="py-3 px-4">Tindak Lanjut Umum & Pihak Terlibat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body-rekap-pengaduan" class="divide-y divide-slate-100">
+                                <!-- Diisi via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BAGIAN B: TRACKER RINCIAN TINDAK LANJUT (TL) KASUS PENGADUAN (Q37–53) -->
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-lg bg-rose-600 text-white font-display font-extrabold flex items-center justify-center text-sm">B</span>
+                        <div>
+                            <h3 class="font-display font-bold text-slate-900 text-base sm:text-lg">Tracker Rincian Tindak Lanjut (TL) Kasus Pengaduan (Q37–53)</h3>
+                            <p class="text-xs text-slate-500">Anonimisasi berbasis Kode Kasus (tanpa nama korban), status penanganan, dan integrasi SIMFONI PPA</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-semibold">Dalam Proses</span>
+                        <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-semibold">Dirujuk</span>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-semibold">Selesai</span>
+                    </div>
+                </div>
+
+                <!-- Tabel Rincian Kasus -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
+                                    <th class="py-3.5 px-4">Kode Kasus & Tgl</th>
+                                    <th class="py-3.5 px-4">Kategori & Jenis Kasus</th>
+                                    <th class="py-3.5 px-4">Profil Korban</th>
+                                    <th class="py-3.5 px-4">Kebutuhan & Tindak Lanjut</th>
+                                    <th class="py-3.5 px-4 text-center">Status</th>
+                                    <th class="py-3.5 px-4">Integrasi SIMFONI PPA</th>
+                                    <th class="py-3.5 px-4">Hambatan Penanganan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body-rincian-kasus" class="divide-y divide-slate-100">
+                                <!-- Diisi via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- TAB 5: PUBLIKASI MEDIA SOSIAL (PERTANYAAN 54–59)          -->
+        <!-- ========================================================= -->
+        <div id="tab-content-medsos" class="tab-panel hidden space-y-6">
+            
+            <!-- Statistik per Platform & Grafik -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <h3 class="font-display font-bold text-slate-900 text-base mb-1">Distribusi Platform Publikasi</h3>
+                    <p class="text-xs text-slate-500 mb-4">Instagram, Facebook, TikTok, YouTube & Website Resmi</p>
+                    <div class="h-60 relative">
+                        <canvas id="chartMedsosPlatform"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-display font-bold text-slate-900 text-base mb-1">Rekapitulasi Kanal Diseminasi Informasi Pos SAPA</h3>
+                        <p class="text-xs text-slate-500 mb-4">Jumlah konten publikasi terverifikasi per platform media sosial</p>
+                    </div>
+                    <div id="medsos-platform-cards" class="grid grid-cols-2 sm:grid-cols-3 gap-3 my-auto">
+                        <!-- Diisi via JS -->
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+                        <span>Seluruh tautan publikasi dapat diklik langsung untuk verifikasi bukti tayang.</span>
+                        <span class="font-semibold text-emerald-700"><i class="fa-solid fa-link mr-1"></i>Tautan Aktif</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Galeri / Daftar Publikasi -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-display font-bold text-slate-900 text-base">Daftar Publikasi Kegiatan Pos SAPA (Q54–59)</h3>
+                        <p class="text-xs text-slate-500">Klik tombol "Buka Tautan" untuk meninjau langsung postingan di platform terkait</p>
+                    </div>
+                </div>
+                <div id="medsos-cards-grid" class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Diisi via JS -->
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 py-5 px-4 sm:px-6 lg:px-8 mt-10 border-t-4 border-amber-500">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2 text-white font-semibold">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                <span>Sekretariat Deputi Bidang Perlindungan Khusus Anak — KemenPPPA RI</span>
+            </div>
+            <div>
+                Dashboard Monitoring Pos SAPA 2026 &bull; Mendukung Sinkronisasi Langsung Google Forms &amp; Google Sheets
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 1: SINKRONISASI GOOGLE SHEETS (LIVE CSV / UNGGAH CSV / XLSX)    -->
+    <!-- ===================================================================== -->
+    <div id="modal-sync" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 my-8">
+            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-table"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display text-lg sm:text-xl font-bold text-slate-900">Sinkronisasi Jawaban Google Form</h3>
+                        <p class="text-xs text-slate-500">Hubungkan langsung dengan Google Sheets (CSV Publik) atau unggah file ekspor (.csv / .xlsx)</p>
+                    </div>
+                </div>
+                <button onclick="closeSyncModal()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="mt-5 space-y-5">
+                <!-- Opsi 1: URL Google Sheets CSV Publik -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        <i class="fa-solid fa-link text-blue-600 mr-1"></i> Opsi 1: URL CSV Publik Google Sheets (Live Sync)
+                    </label>
+                    <p class="text-xs text-slate-500 mb-3 leading-relaxed">
+                        Di Google Sheets hasil respons Form, klik <strong>File &rarr; Bagikan &rarr; Publikasikan ke web</strong>, pilih sheet jawaban dan format <strong>Nilai yang dipisahkan koma (.csv)</strong>, lalu tempel tautannya di bawah:
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="url" id="gsheet-csv-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" 
+                               class="flex-1 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-600">
+                        <button id="btn-fetch-csv" onclick="syncFromGoogleSheetUrl()" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm transition shrink-0 cursor-pointer">
+                            <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Tarik Data Live
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Opsi 2: Unggah File CSV atau Excel (.xlsx) -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        <i class="fa-solid fa-file-excel text-emerald-600 mr-1"></i> Opsi 2: Unggah File Ekspor Google Form (.CSV / .XLSX)
+                    </label>
+                    <p class="text-xs text-slate-500 mb-3">
+                        Unduh respons dari Google Form/Sheets ke komputer Anda (format <code>.csv</code> atau <code>.xlsx</code>), lalu pilih file tersebut di sini:
+                    </p>
+                    <input type="file" id="upload-file-input" accept=".csv,.xlsx,.xls" onchange="handleFileUpload(event)"
+                           class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                </div>
+
+                <!-- Panduan & Reset ke Simulasi -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+                    <button onclick="downloadTemplateCSV()" class="text-blue-700 hover:underline font-semibold flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Unduh Template Header CSV (59 Pertanyaan)</span>
+                    </button>
+
+                    <button onclick="restoreSampleData()" class="text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Kembalikan Data Simulasi Bawaan</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 2: INPUT SIMULASI / TAMBAH DATA CEPAT (5 PERCABANGAN FORM)      -->
+    <!-- ===================================================================== -->
+    <div id="modal-input" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 my-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4 sticky top-0 bg-white z-10">
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600">Simulasi Google Formulir</span>
+                    <h3 class="font-display text-lg sm:text-xl font-bold text-slate-900">Input Laporan Berkala Pos SAPA</h3>
+                </div>
+                <button onclick="closeInputModal()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="simulasi-form" onsubmit="submitSimulatedEntry(event)" class="mt-4 space-y-5 text-xs sm:text-sm">
+                
+                <!-- Bagian Umum (Pertanyaan 1 - 5) -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <div class="font-display font-bold text-slate-800 text-sm border-b border-slate-200 pb-2">
+                        Identitas Umum Laporan (Pertanyaan 1–5)
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">1. Periode Laporan *</label>
+                            <input type="text" id="inp-periode" required placeholder="Contoh: 19-25 Oktober 2026" value="16-22 November 2026" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">2. Lokasi Pos SAPA / Kode Pos *</label>
+                            <input type="text" id="inp-lokasi" required placeholder="Pos SAPA Desa Sukamaju / 16110" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">3. Kabupaten / Kota *</label>
+                            <input type="text" id="inp-kabkota" required placeholder="Contoh: Kab. Bogor" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">4. Jenis Laporan yang Akan Diinput *</label>
+                            <select id="inp-jenis-laporan" onchange="toggleFormBranch()" class="w-full border-2 border-blue-500 rounded-xl px-3 py-2 bg-blue-50/40 font-semibold text-slate-900">
+                                <option value="Aktivitas Anak (Bermain & Psikososial)">Aktivitas Anak (Bermain &amp; Psikososial) &rarr; Q6–17</option>
+                                <option value="Aktivitas Perempuan (Pemberdayaan & Psikososial)">Aktivitas Perempuan (Pemberdayaan &amp; Psikososial) &rarr; Q18–26</option>
+                                <option value="Rekapitulasi Layanan Pengaduan Bulanan">Rekapitulasi Layanan Pengaduan Bulanan &rarr; Q27–36</option>
+                                <option value="Rincian Tindak Lanjut (TL) Kasus Pengaduan">Rincian Tindak Lanjut (TL) Kasus Pengaduan &rarr; Q37–53</option>
+                                <option value="Publikasi Media Sosial">Publikasi Media Sosial &rarr; Q54–59</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">5. Dokumentasi Kegiatan</label>
+                            <select id="inp-dokumentasi" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                                <option value="Ada Dokumentasi">Ada Dokumentasi</option>
+                                <option value="Tidak Ada Dokumentasi">Tidak Ada Dokumentasi</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CABANG 1: AKTIVITAS ANAK (Q6-17) -->
+                <div id="branch-anak" class="form-branch bg-blue-50/50 p-4 rounded-2xl border border-blue-200 space-y-3">
+                    <div class="font-display font-bold text-blue-900 text-sm border-b border-blue-200 pb-2">
+                        Bagian 1: Bermain dan Dukungan Psikososial Anak (Q6–17)
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">6. Jumlah Kegiatan Anak *</label>
+                            <input type="number" id="inp-anak-jml-keg" value="1" min="1" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block font-semibold text-slate-700 mb-1">7. Nama Kegiatan Anak *</label>
+                            <input type="text" id="inp-anak-nama-keg" placeholder="Contoh: Kelas Dongeng & Trauma Healing Anak" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">8. Jenis Kegiatan Anak</label>
+                        <div class="flex flex-wrap gap-3 bg-white p-2.5 rounded-xl border border-slate-200">
+                            <label class="inline-flex items-center gap-1.5"><input type="checkbox" name="anak-jenis" value="Edukasi" checked> Edukasi</label>
+                            <label class="inline-flex items-center gap-1.5"><input type="checkbox" name="anak-jenis" value="Trauma Healing"> Trauma Healing</label>
+                            <label class="inline-flex items-center gap-1.5"><input type="checkbox" name="anak-jenis" value="Kegiatan Fisik"> Kegiatan Fisik</label>
+                            <label class="inline-flex items-center gap-1.5"><input type="checkbox" name="anak-jenis" value="Bermain Bersama" checked> Bermain Bersama</label>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">9. Usia 0–5 Thn</label>
+                            <input type="number" id="inp-anak-0-5" value="8" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">10. Usia 6–12 Thn</label>
+                            <input type="number" id="inp-anak-6-12" value="15" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">11. Usia 13–17 Thn</label>
+                            <input type="number" id="inp-anak-13-17" value="7" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">14. Anak Disabilitas</label>
+                            <input type="number" id="inp-anak-dis" value="1" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">12. Anak Laki-Laki</label>
+                            <input type="number" id="inp-anak-l" value="14" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">13. Anak Perempuan</label>
+                            <input type="number" id="inp-anak-p" value="16" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">15. Perlu Layanan Lanjutan</label>
+                            <input type="number" id="inp-anak-layanan" value="0" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">16. Temuan Anak yang Perlu Ditindaklanjuti</label>
+                            <input type="text" id="inp-anak-temuan" value="-" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">17. Tindak Lanjut Temuan</label>
+                            <input type="text" id="inp-anak-tl" value="-" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CABANG 2: AKTIVITAS PEREMPUAN (Q18-26) -->
+                <div id="branch-perempuan" class="form-branch hidden bg-rose-50/50 p-4 rounded-2xl border border-rose-200 space-y-3">
+                    <div class="font-display font-bold text-rose-900 text-sm border-b border-rose-200 pb-2">
+                        Bagian 2: Pemberdayaan dan Dukungan Psikososial Perempuan (Q18–26)
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">18. Jumlah Kegiatan *</label>
+                            <input type="number" id="inp-pr-jml-keg" value="1" min="1" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">19. Nama Kegiatan *</label>
+                            <input type="text" id="inp-pr-nama" placeholder="Pelatihan Olahan Pangan Lokal" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">20. Jenis Kegiatan *</label>
+                            <input type="text" id="inp-pr-jenis" placeholder="Pelatihan usaha / Hidroponik" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">21. Total Ikut</label>
+                            <input type="number" id="inp-pr-total" value="25" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">22. Kepala Keluarga</label>
+                            <input type="number" id="inp-pr-kk" value="6" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">23. Hamil/Menyusui</label>
+                            <input type="number" id="inp-pr-hamil" value="4" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">24. Lansia</label>
+                            <input type="number" id="inp-pr-lansia" value="3" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">25. Disabilitas</label>
+                            <input type="number" id="inp-pr-dis" value="1" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">26. Manfaat yang Dirasakan</label>
+                        <input type="text" id="inp-pr-manfaat" placeholder="Meningkatkan keterampilan wirausaha rumah tangga & literasi perlindungan anak" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                    </div>
+                </div>
+
+                <!-- CABANG 3: REKAPITULASI LAYANAN PENGADUAN BULANAN (Q27-36) -->
+                <div id="branch-rekap" class="form-branch hidden bg-amber-50/50 p-4 rounded-2xl border border-amber-200 space-y-3">
+                    <div class="font-display font-bold text-amber-900 text-sm border-b border-amber-200 pb-2">
+                        Bagian 3: Rekapitulasi Layanan Pengaduan Bulanan (Q27–36)
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">27. Status Pelaporan Aduan *</label>
+                            <select id="inp-rek-status" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                                <option value="Ada aduan">Ada aduan</option>
+                                <option value="Nihil (Tidak ada aduan)">Nihil (Tidak ada aduan)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">28. Jumlah Aduan Masuk</label>
+                            <input type="number" id="inp-rek-masuk" value="4" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">33. Sudah Ditindaklanjuti</label>
+                            <input type="number" id="inp-rek-tl" value="4" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">29. Kekerasan Pr</label>
+                            <input type="number" id="inp-rek-kek-pr" value="2" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">30. Kekerasan Anak</label>
+                            <input type="number" id="inp-rek-kek-anak" value="1" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">31. Non-Kek Pr</label>
+                            <input type="number" id="inp-rek-nonkek-pr" value="1" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">32. Non-Kek Anak</label>
+                            <input type="number" id="inp-rek-nonkek-anak" value="0" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">34. Tercatat SIMFONI</label>
+                            <input type="number" id="inp-rek-simfoni" value="3" min="0" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">35. Tindak Lanjut Secara Umum</label>
+                            <input type="text" id="inp-rek-tl-umum" value="Konseling awal, penjangkauan rumah, dan rujukan ke UPTD PPA" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">36. Pihak yang Terlibat</label>
+                            <input type="text" id="inp-rek-pihak" value="Dinas PPPA, UPTD PPA, Babinsa/Bhabinkamtibmas" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CABANG 4: RINCIAN TINDAK LANJUT (TL) KASUS (Q37-53) -->
+                <div id="branch-kasus" class="form-branch hidden bg-rose-50/40 p-4 rounded-2xl border border-rose-200 space-y-3">
+                    <div class="font-display font-bold text-rose-900 text-sm border-b border-rose-200 pb-2">
+                        Bagian 4: Rincian Tindak Lanjut (TL) Kasus Pengaduan — Tanpa Nama Korban (Q37–53)
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">37. Kode Kasus (Tanpa Nama) *</label>
+                            <input type="text" id="inp-kas-kode" placeholder="PDG-2026-09" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">38. Tanggal Aduan *</label>
+                            <input type="date" id="inp-kas-tgl" value="2026-11-12" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">39. Kategori Kasus *</label>
+                            <select id="inp-kas-kategori" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                                <option value="Kekerasan">Kekerasan</option>
+                                <option value="Non-Kekerasan">Non-Kekerasan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block font-semibold text-slate-700 mb-1">40. Jenis Kasus *</label>
+                            <input type="text" id="inp-kas-jenis" placeholder="KDRT / Kekerasan Psikis / Penelantaran" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">41. Jml Korban</label>
+                            <input type="number" id="inp-kas-jml" value="1" min="1" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">42. Gender Korban</label>
+                            <select id="inp-kas-gender" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                                <option value="Perempuan">Perempuan</option>
+                                <option value="Laki-Laki">Laki-Laki</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">43. Kelompok Usia</label>
+                            <select id="inp-kas-usia" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                                <option value="Anak (0-17 Tahun)">Anak (0-17 Tahun)</option>
+                                <option value="Dewasa (18+ Tahun)">Dewasa (18+ Tahun)</option>
+                                <option value="Lansia">Lansia</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">44. Penyandang Disabilitas?</label>
+                            <select id="inp-kas-dis" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                                <option value="Tidak">Tidak</option>
+                                <option value="Ya">Ya</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">47. Status Penanganan *</label>
+                            <select id="inp-kas-status" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                                <option value="Dalam Proses">Dalam Proses</option>
+                                <option value="Dirujuk">Dirujuk</option>
+                                <option value="Selesai">Selesai</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">45. Kebutuhan Korban *</label>
+                            <input type="text" id="inp-kas-kebutuhan" placeholder="Pendampingan psikologis, visum, rumah aman" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">46. Tindak Lanjut *</label>
+                            <input type="text" id="inp-kas-tl" placeholder="Rujukan ke UPTD PPA & pendampingan hukum" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">48. Sudah Dicatat SIMFONI PPA? *</label>
+                            <select id="inp-kas-simfoni" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                                <option value="Ya">Ya</option>
+                                <option value="Belum">Belum</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">49. No. Registrasi SIMFONI</label>
+                            <input type="text" id="inp-kas-noreg" placeholder="SIM-2026-3201-088" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">51. Penginput SIMFONI</label>
+                            <input type="text" id="inp-kas-penginput" placeholder="Petugas UPTD PPA" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">52. Alasan Jika Belum SIMFONI</label>
+                            <input type="text" id="inp-kas-alasan" placeholder="-" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">53. Hambatan Penanganan</label>
+                            <input type="text" id="inp-kas-hambatan" placeholder="Tidak ada hambatan berarti / Menunggu jadwal asesmen" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CABANG 5: PUBLIKASI MEDIA SOSIAL (Q54-59) -->
+                <div id="branch-medsos" class="form-branch hidden bg-emerald-50/50 p-4 rounded-2xl border border-emerald-200 space-y-3">
+                    <div class="font-display font-bold text-emerald-900 text-sm border-b border-emerald-200 pb-2">
+                        Bagian 5: Publikasi Media Sosial (Q54–59)
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">54. Tanggal Publikasi *</label>
+                            <input type="date" id="inp-med-tgl" value="2026-11-13" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">56. Platform Media Sosial *</label>
+                            <select id="inp-med-platform" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                                <option value="Instagram">Instagram</option>
+                                <option value="Facebook">Facebook</option>
+                                <option value="Tik Tok">Tik Tok</option>
+                                <option value="YouTube">YouTube</option>
+                                <option value="Website Resmi">Website Resmi</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">57. Nama Akun Publikasi *</label>
+                            <input type="text" id="inp-med-akun" placeholder="@possapa_sukamaju" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">55. Kegiatan yang Dipublikasikan *</label>
+                            <input type="text" id="inp-med-kegiatan" placeholder="Sosialisasi Pencegahan Kekerasan Anak di Pos SAPA" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">58. Link Publikasi (URL Lengkap) *</label>
+                            <input type="url" id="inp-med-url" value="https://www.instagram.com/" class="w-full border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeInputModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-blue-700 text-white font-bold shadow-md transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Simpan ke Dashboard</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. DATA SIMULASI REALISTIS TAHUN 2026 (MENCAKUP SELURUH 59 PERTANYAAN)
+        // =========================================================================
+        const SAMPLE_RECORDS = [
+            // --- AKTIVITAS ANAK (Q6-17) ---
+            {
+                id: "REC-01",
+                periode: "19-25 Oktober 2026",
+                lokasi: "Pos SAPA Desa Cijayanti / 16810",
+                kabKota: "Kab. Bogor",
+                jenisLaporan: "Aktivitas Anak (Bermain & Psikososial)",
+                dokumentasi: "Ada Dokumentasi",
+                anak: {
+                    jumlahKegiatan: 2,
+                    namaKegiatan: "Ruang Sahabat Anak & Edukasi Perlindungan Diri",
+                    jenisKegiatan: ["Edukasi", "Bermain Bersama", "Kegiatan Fisik"],
+                    usia0_5: 12,
+                    usia6_12: 24,
+                    usia13_17: 9,
+                    lakiLaki: 21,
+                    perempuan: 24,
+                    disabilitas: 2,
+                    perluLayananLanjutan: 1,
+                    temuan: "1 anak usia 10 tahun menunjukkan gejala kecemasan berat dan penarikan diri akibat perundungan di lingkungan sekolah.",
+                    tindakLanjut: "Konseling psikososial awal oleh kader Pos SAPA dan rujukan terjadwal ke psikolog UPTD PPA Kab. Bogor."
+                }
+            },
+            {
+                id: "REC-02",
+                periode: "26 Okt - 1 Nov 2026",
+                lokasi: "Pos SAPA Kel. Beji Timur / 16422",
+                kabKota: "Kota Depok",
+                jenisLaporan: "Aktivitas Anak (Bermain & Psikososial)",
+                dokumentasi: "Ada Dokumentasi",
+                anak: {
+                    jumlahKegiatan: 3,
+                    namaKegiatan: "Trauma Healing & Terapi Seni Melukis Harapan",
+                    jenisKegiatan: ["Trauma Healing", "Edukasi", "Bermain Bersama"],
+                    usia0_5: 8,
+                    usia6_12: 28,
+                    usia13_17: 14,
+                    lakiLaki: 23,
+                    perempuan: 27,
+                    disabilitas: 3,
+                    perluLayananLanjutan: 0,
+                    temuan: "-",
+                    tindakLanjut: "-"
+                }
+            },
+            {
+                id: "REC-03",
+                periode: "2-8 November 2026",
+                lokasi: "Pos SAPA Desa Cipanas / 43253",
+                kabKota: "Kab. Cianjur",
+                jenisLaporan: "Aktivitas Anak (Bermain & Psikososial)",
+                dokumentasi: "Ada Dokumentasi",
+                anak: {
+                    jumlahKegiatan: 2,
+                    namaKegiatan: "Permainan Tradisional Inklusif & Literasi Digital Aman",
+                    jenisKegiatan: ["Bermain Bersama", "Kegiatan Fisik", "Edukasi"],
+                    usia0_5: 15,
+                    usia6_12: 32,
+                    usia13_17: 18,
+                    lakiLaki: 34,
+                    perempuan: 31,
+                    disabilitas: 4,
+                    perluLayananLanjutan: 2,
+                    temuan: "2 anak putus sekolah ditemukan membantu orang tua bekerja di pasar hingga larut malam.",
+                    tindakLanjut: "Koordinasi dengan Satgas PPA Desa, Dinas Pendidikan, dan pendamping PKH untuk reintegrasi pendidikan."
+                }
+            },
+            {
+                id: "REC-04",
+                periode: "9-15 November 2026",
+                lokasi: "Pos SAPA Desa Cibadak / 43351",
+                kabKota: "Kab. Sukabumi",
+                jenisLaporan: "Aktivitas Anak (Bermain & Psikososial)",
+                dokumentasi: "Ada Dokumentasi",
+                anak: {
+                    jumlahKegiatan: 1,
+                    namaKegiatan: "Panggung Boneka Hak Anak & Pencegahan Kekerasan",
+                    jenisKegiatan: ["Edukasi", "Bermain Bersama"],
+                    usia0_5: 18,
+                    usia6_12: 22,
+                    usia13_17: 6,
+                    lakiLaki: 22,
+                    perempuan: 24,
+                    disabilitas: 1,
+                    perluLayananLanjutan: 0,
+                    temuan: "-",
+                    tindakLanjut: "-"
+                }
+            },
+
+            // --- AKTIVITAS PEREMPUAN (Q18-26) ---
+            {
+                id: "REC-05",
+                periode: "19-25 Oktober 2026",
+                lokasi: "Pos SAPA Desa Cijayanti / 16810",
+                kabKota: "Kab. Bogor",
+                jenisLaporan: "Aktivitas Perempuan (Pemberdayaan & Psikososial)",
+                dokumentasi: "Ada Dokumentasi",
+                perempuan: {
+                    jumlahKegiatan: 2,
+                    namaKegiatan: "Sekolah Perempuan Mandiri & Olahan Pangan Sehat",
+                    jenisKegiatan: "Pelatihan usaha kuliner rumahan & manajemen keuangan keluarga",
+                    totalIkut: 42,
+                    kepalaKeluarga: 11,
+                    hamilMenyusui: 8,
+                    lansia: 5,
+                    disabilitas: 2,
+                    manfaat: "Peserta mampu menyusun pembukuan usaha mikro sederhana dan membentuk kelompok usaha bersama (KUBE) Desa."
+                }
+            },
+            {
+                id: "REC-06",
+                periode: "26 Okt - 1 Nov 2026",
+                lokasi: "Pos SAPA Kel. Beji Timur / 16422",
+                kabKota: "Kota Depok",
+                jenisLaporan: "Aktivitas Perempuan (Pemberdayaan & Psikososial)",
+                dokumentasi: "Ada Dokumentasi",
+                perempuan: {
+                    jumlahKegiatan: 2,
+                    namaKegiatan: "Urban Farming Hidroponik & Konseling Keluarga Harmonis",
+                    jenisKegiatan: "Hidroponik pekarangan & dukungan psikososial ibu",
+                    totalIkut: 36,
+                    kepalaKeluarga: 9,
+                    hamilMenyusui: 7,
+                    lansia: 6,
+                    disabilitas: 1,
+                    manfaat: "Meningkatkan ketahanan pangan keluarga dan memperkuat jejaring saling dukung antar-ibu dalam pengasuhan positif."
+                }
+            },
+            {
+                id: "REC-07",
+                periode: "2-8 November 2026",
+                lokasi: "Pos SAPA Desa Cipanas / 43253",
+                kabKota: "Kab. Cianjur",
+                jenisLaporan: "Aktivitas Perempuan (Pemberdayaan & Psikososial)",
+                dokumentasi: "Ada Dokumentasi",
+                perempuan: {
+                    jumlahKegiatan: 1,
+                    namaKegiatan: "Pengajian Ibu-Ibu & Sosialisasi Anti-TPPO / Perkawinan Anak",
+                    jenisKegiatan: "Pengajian ibu-ibu & dialog interaktif perlindungan perempuan",
+                    totalIkut: 55,
+                    kepalaKeluarga: 14,
+                    hamilMenyusui: 10,
+                    lansia: 12,
+                    disabilitas: 2,
+                    manfaat: "Meningkatnya kesadaran tokoh perempuan desa dalam mendeteksi dini risiko perkawinan usia anak dan migrasi non-prosedural."
+                }
+            },
+
+            // --- REKAPITULASI LAYANAN PENGADUAN BULANAN (Q27-36) ---
+            {
+                id: "REC-08",
+                periode: "Oktober 2026 (Bulanan)",
+                lokasi: "Pos SAPA Desa Cijayanti / 16810",
+                kabKota: "Kab. Bogor",
+                jenisLaporan: "Rekapitulasi Layanan Pengaduan Bulanan",
+                dokumentasi: "Ada Dokumentasi",
+                rekapPengaduan: {
+                    statusBulan: "Ada aduan",
+                    aduanMasuk: 5,
+                    kekerasanPerempuan: 2,
+                    kekerasanAnak: 2,
+                    nonKekerasanPerempuan: 1,
+                    nonKekerasanAnak: 0,
+                    sudahDitindaklanjuti: 5,
+                    tercatatSimfoni: 4,
+                    tindakLanjutUmum: "Asesmen awal di Pos SAPA, pendampingan konseling psikologis, dan rujukan resmi ke UPTD PPA Kab. Bogor.",
+                    pihakTerlibat: "Dinas PPPA Kab. Bogor, UPTD PPA, Babinsa, Puskesmas Cijayanti"
+                }
+            },
+            {
+                id: "REC-09",
+                periode: "Oktober 2026 (Bulanan)",
+                lokasi: "Pos SAPA Kel. Beji Timur / 16422",
+                kabKota: "Kota Depok",
+                jenisLaporan: "Rekapitulasi Layanan Pengaduan Bulanan",
+                dokumentasi: "Ada Dokumentasi",
+                rekapPengaduan: {
+                    statusBulan: "Ada aduan",
+                    aduanMasuk: 3,
+                    kekerasanPerempuan: 1,
+                    kekerasanAnak: 1,
+                    nonKekerasanPerempuan: 0,
+                    nonKekerasanAnak: 1,
+                    sudahDitindaklanjuti: 3,
+                    tercatatSimfoni: 3,
+                    tindakLanjutUmum: "Mediasi kekeluargaan untuk kasus hak asuh/penelantaran ringan serta rujukan hukum bagi kasus KDRT.",
+                    pihakTerlibat: "DP3AP2KB Kota Depok, UPTD PPA, Polsek Beji"
+                }
+            },
+            {
+                id: "REC-10",
+                periode: "Oktober 2026 (Bulanan)",
+                lokasi: "Pos SAPA Desa Cibadak / 43351",
+                kabKota: "Kab. Sukabumi",
+                jenisLaporan: "Rekapitulasi Layanan Pengaduan Bulanan",
+                dokumentasi: "Ada Dokumentasi",
+                rekapPengaduan: {
+                    statusBulan: "Nihil (Tidak ada aduan)",
+                    aduanMasuk: 0,
+                    kekerasanPerempuan: 0,
+                    kekerasanAnak: 0,
+                    nonKekerasanPerempuan: 0,
+                    nonKekerasanAnak: 0,
+                    sudahDitindaklanjuti: 0,
+                    tercatatSimfoni: 0,
+                    tindakLanjutUmum: "Tetap dilaksanakan piket layanan konsultasi dan sosialisasi pencegahan keliling dusun.",
+                    pihakTerlibat: "Kader Pos SAPA, Pemerintah Desa Cibadak"
+                }
+            },
+
+            // --- RINCIAN TINDAK LANJUT (TL) KASUS PENGADUAN (Q37-53) ---
+            {
+                id: "REC-11",
+                periode: "Oktober 2026 (Bulanan)",
+                lokasi: "Pos SAPA Desa Cijayanti / 16810",
+                kabKota: "Kab. Bogor",
+                jenisLaporan: "Rincian Tindak Lanjut (TL) Kasus Pengaduan",
+                dokumentasi: "Ada Dokumentasi",
+                kasus: {
+                    kodeKasus: "PDG-BGR-01",
+                    tanggalAduan: "12 Oktober 2026",
+                    kategori: "Kekerasan",
+                    jenisKasus: "KDRT (Kekerasan Fisik & Psikis)",
+                    jumlahKorban: 1,
+                    jenisKelamin: "Perempuan",
+                    kelompokUsia: "Dewasa (18+ Tahun)",
+                    disabilitas: "Tidak",
+                    kebutuhanKorban: "Visum et Repertum, pendampingan psikologis, dan bantuan hukum",
+                    tindakLanjut: "Rujukan langsung ke UPTD PPA Kab. Bogor dan pendampingan ke Unit PPA Polres Bogor",
+                    statusPenanganan: "Dirujuk",
+                    sudahSimfoni: "Ya",
+                    noRegistrasiSimfoni: "SIM-2026-3201-0142",
+                    tanggalInputSimfoni: "13 Oktober 2026",
+                    penginputSimfoni: "Petugas UPTD PPA Kab. Bogor",
+                    alasanBelumSimfoni: "-",
+                    hambatan: "Korban sempat ragu melapor karena ketergantungan ekonomi terhadap pelaku."
+                }
+            },
+            {
+                id: "REC-12",
+                periode: "Oktober 2026 (Bulanan)",
+                lokasi: "Pos SAPA Kel. Beji Timur / 16422",
+                kabKota: "Kota Depok",
+                jenisLaporan: "Rincian Tindak Lanjut (TL) Kasus Pengaduan",
+                dokumentasi: "Ada Dokumentasi",
+                kasus: {
+                    kodeKasus: "PDG-DPK-04",
+                    tanggalAduan: "21 Oktober 2026",
+                    kategori: "Kekerasan",
+                    jenisKasus: "Perundungan (Bullying) & Kekerasan Verbal Anak",
+                    jumlahKorban: 1,
+                    jenisKelamin: "Laki-Laki",
+                    kelompokUsia: "Anak (0-17 Tahun)",
+                    disabilitas: "Ya",
+                    kebutuhanKorban: "Pemulihan trauma psikologis & perlindungan lingkungan sekolah inklusif",
+                    tindakLanjut: "Konseling psikolog UPTD PPA dan konferensi kasus bersama pihak sekolah serta orang tua",
+                    statusPenanganan: "Selesai",
+                    sudahSimfoni: "Ya",
+                    noRegistrasiSimfoni: "SIM-2026-3276-0089",
+                    tanggalInputSimfoni: "22 Oktober 2026",
+                    penginputSimfoni: "Konselor UPTD PPA Depok",
+                    alasanBelumSimfoni: "-",
+                    hambatan: "Tidak ada hambatan signifikan; pihak sekolah kooperatif."
+                }
+            },
+            {
+                id: "REC-13",
+                periode: "2-8 November 2026",
+                lokasi: "Pos SAPA Desa Cipanas / 43253",
+                kabKota: "Kab. Cianjur",
+                jenisLaporan: "Rincian Tindak Lanjut (TL) Kasus Pengaduan",
+                dokumentasi: "Ada Dokumentasi",
+                kasus: {
+                    kodeKasus: "PDG-CJR-02",
+                    tanggalAduan: "5 November 2026",
+                    kategori: "Non-Kekerasan",
+                    jenisKasus: "Penelantaran & Pengurusan Akta Kelahiran Anak",
+                    jumlahKorban: 2,
+                    jenisKelamin: "Perempuan",
+                    kelompokUsia: "Anak (0-17 Tahun)",
+                    disabilitas: "Tidak",
+                    kebutuhanKorban: "Penerbitan dokumen kependudukan (NIK/Akta) & jaminan akses sekolah",
+                    tindakLanjut: "Koordinasi lintas sektor dengan Disdukcapil dan Dinsos Kab. Cianjur",
+                    statusPenanganan: "Dalam Proses",
+                    sudahSimfoni: "Belum",
+                    noRegistrasiSimfoni: "",
+                    tanggalInputSimfoni: "",
+                    penginputSimfoni: "",
+                    alasanBelumSimfoni: "Menunggu kelengkapan berkas surat keterangan domisili desa sebelum verifikasi input UPTD.",
+                    hambatan: "Keluarga korban berpindah-pindah tempat tinggal sehingga pelacakan dokumen lama memerlukan waktu."
+                }
+            },
+            {
+                id: "REC-14",
+                periode: "9-15 November 2026",
+                lokasi: "Pos SAPA Desa Cijayanti / 16810",
+                kabKota: "Kab. Bogor",
+                jenisLaporan: "Rincian Tindak Lanjut (TL) Kasus Pengaduan",
+                dokumentasi: "Ada Dokumentasi",
+                kasus: {
+                    kodeKasus: "PDG-BGR-02",
+                    tanggalAduan: "11 November 2026",
+                    kategori: "Kekerasan",
+                    jenisKasus: "Kekerasan Psikis & Ancaman Terhadap Perempuan",
+                    jumlahKorban: 1,
+                    jenisKelamin: "Perempuan",
+                    kelompokUsia: "Dewasa (18+ Tahun)",
+                    disabilitas: "Tidak",
+                    kebutuhanKorban: "Rumah aman sementara (shelter) & pendampingan psikologis",
+                    tindakLanjut: "Penempatan sementara di rumah aman bekerja sama dengan Dinas PPPA",
+                    statusPenanganan: "Dalam Proses",
+                    sudahSimfoni: "Ya",
+                    noRegistrasiSimfoni: "SIM-2026-3201-0167",
+                    tanggalInputSimfoni: "12 November 2026",
+                    penginputSimfoni: "Petugas UPTD PPA Kab. Bogor",
+                    alasanBelumSimfoni: "-",
+                    hambatan: "Pelaku masih berupaya menghubungi keluarga dekat korban."
+                }
+            },
+
+            // --- PUBLIKASI MEDIA SOSIAL (Q54-59) ---
+            {
+                id: "REC-15",
+                periode: "19-25 Oktober 2026",
+                lokasi: "Pos SAPA Desa Cijayanti / 16810",
+                kabKota: "Kab. Bogor",
+                jenisLaporan: "Publikasi Media Sosial",
+                dokumentasi: "Ada Dokumentasi",
+                medsos: {
+                    tanggalPublikasi: "24 Oktober 2026",
+                    kegiatan: "Dokumentasi Ruang Sahabat Anak & Edukasi Pencegahan Kekerasan di Pos SAPA Cijayanti",
+                    platform: "Instagram",
+                    namaAkun: "@possapa_cijayanti",
+                    linkPublikasi: "https://www.instagram.com/",
+                    filePublikasi: "Reels_PosSAPA_Okt2026.mp4"
+                }
+            },
+            {
+                id: "REC-16",
+                periode: "26 Okt - 1 Nov 2026",
+                lokasi: "Pos SAPA Kel. Beji Timur / 16422",
+                kabKota: "Kota Depok",
+                jenisLaporan: "Publikasi Media Sosial",
+                dokumentasi: "Ada Dokumentasi",
+                medsos: {
+                    tanggalPublikasi: "30 Oktober 2026",
+                    kegiatan: "Pelatihan Urban Farming Hidroponik Kelompok Perempuan Berdaya Beji Timur",
+                    platform: "YouTube",
+                    namaAkun: "DP3AP2KB Kota Depok Official",
+                    linkPublikasi: "https://www.youtube.com/",
+                    filePublikasi: "Liputan_PosSAPA_Depok.mp4"
+                }
+            },
+            {
+                id: "REC-17",
+                periode: "2-8 November 2026",
+                lokasi: "Pos SAPA Desa Cipanas / 43253",
+                kabKota: "Kab. Cianjur",
+                jenisLaporan: "Publikasi Media Sosial",
+                dokumentasi: "Ada Dokumentasi",
+                medsos: {
+                    tanggalPublikasi: "7 November 2026",
+                    kegiatan: "Gerakan Bersama Pencegahan Perkawinan Anak & Permainan Tradisional Inklusif",
+                    platform: "Tik Tok",
+                    namaAkun: "@dinaspppa_cianjur",
+                    linkPublikasi: "https://www.tiktok.com/",
+                    filePublikasi: "TikTok_Cipanas_PosSAPA.mp4"
+                }
+            },
+            {
+                id: "REC-18",
+                periode: "9-15 November 2026",
+                lokasi: "Pos SAPA Desa Cibadak / 43351",
+                kabKota: "Kab. Sukabumi",
+                jenisLaporan: "Publikasi Media Sosial",
+                dokumentasi: "Ada Dokumentasi",
+                medsos: {
+                    tanggalPublikasi: "12 November 2026",
+                    kegiatan: "Berita Kegiatan Panggung Boneka Hak Anak Desa Cibadak",
+                    platform: "Website Resmi",
+                    namaAkun: "Website Pemdes Cibadak Kab. Sukabumi",
+                    linkPublikasi: "https://kemenpppa.go.id/",
+                    filePublikasi: "Artikel_Web_Cibadak.pdf"
+                }
+            }
+        ];
+
+        // State Global Aplikasi
+        let allRecords = [];
+        let filteredRecords = [];
+        let charts = {};
+
+        const STORAGE_KEY = "pos_sapa_2026_dashboard_records_v1";
+        const SOURCE_META_KEY = "pos_sapa_2026_source_meta_v1";
+
+        // =========================================================================
+        // 2. INISIALISASI & PENYIMPANAN DATA
+        // =========================================================================
+        function initApp() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            const savedMeta = localStorage.getItem(SOURCE_META_KEY);
+
+            if (savedData) {
+                try {
+                    allRecords = JSON.parse(savedData);
+                    if (savedMeta) {
+                        const meta = JSON.parse(savedMeta);
+                        updateSourceBadge(meta.label, meta.isLive);
+                    }
+                } catch (e) {
+                    allRecords = JSON.parse(JSON.stringify(SAMPLE_RECORDS));
+                }
+            } else {
+                allRecords = JSON.parse(JSON.stringify(SAMPLE_RECORDS));
+                updateSourceBadge(`Data Simulasi Bawaan (${allRecords.length} Laporan)`, false);
+            }
+
+            populateFilterDropdowns();
+            applyGlobalFilters();
+        }
+
+        function persistRecords(sourceLabel, isLive = false) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(allRecords));
+            localStorage.setItem(SOURCE_META_KEY, JSON.stringify({ label: sourceLabel, isLive }));
+            updateSourceBadge(sourceLabel, isLive);
+        }
+
+        function updateSourceBadge(label, isLive) {
+            document.getElementById('sync-source-text').textContent = label;
+            const dot = document.getElementById('sync-dot');
+            if (isLive) {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping";
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+            }
+        }
+
+        // =========================================================================
+        // 3. FILTER GLOBAL & PEMBARUAN TAMPILAN
+        // =========================================================================
+        function populateFilterDropdowns() {
+            const kabSet = new Set();
+            const lokSet = new Set();
+            const perSet = new Set();
+
+            allRecords.forEach(r => {
+                if (r.kabKota) kabSet.add(r.kabKota.trim());
+                if (r.lokasi) lokSet.add(r.lokasi.trim());
+                if (r.periode) perSet.add(r.periode.trim());
+            });
+
+            fillSelectOptions('filter-kabkota', 'Semua Kabupaten / Kota', Array.from(kabSet).sort());
+            fillSelectOptions('filter-lokasi', 'Semua Lokasi Pos SAPA', Array.from(lokSet).sort());
+            fillSelectOptions('filter-periode', 'Semua Periode Laporan', Array.from(perSet));
+        }
+
+        function fillSelectOptions(selectId, defaultText, items) {
+            const el = document.getElementById(selectId);
+            const currentVal = el.value;
+            el.innerHTML = `<option value="ALL">${defaultText}</option>`;
+            items.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item;
+                opt.textContent = item;
+                el.appendChild(opt);
+            });
+            if (items.includes(currentVal)) {
+                el.value = currentVal;
+            }
+        }
+
+        function applyGlobalFilters() {
+            const kab = document.getElementById('filter-kabkota').value;
+            const lok = document.getElementById('filter-lokasi').value;
+            const per = document.getElementById('filter-periode').value;
+            const sim = document.getElementById('filter-simfoni').value;
+
+            filteredRecords = allRecords.filter(r => {
+                if (kab !== 'ALL' && r.kabKota !== kab) return false;
+                if (lok !== 'ALL' && r.lokasi !== lok) return false;
+                if (per !== 'ALL' && r.periode !== per) return false;
+
+                if (sim !== 'ALL') {
+                    // Filter SIMFONI berlaku untuk data pengaduan & rincian kasus
+                    if (r.kasus) {
+                        if (r.kasus.sudahSimfoni !== sim) return false;
+                    } else if (r.rekapPengaduan) {
+                        const hasSimfoni = (r.rekapPengaduan.tercatatSimfoni || 0) > 0 ? 'Ya' : 'Belum';
+                        if (hasSimfoni !== sim) return false;
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            renderAllSections();
+        }
+
+        function resetGlobalFilters() {
+            document.getElementById('filter-kabkota').value = 'ALL';
+            document.getElementById('filter-lokasi').value = 'ALL';
+            document.getElementById('filter-periode').value = 'ALL';
+            document.getElementById('filter-simfoni').value = 'ALL';
+            applyGlobalFilters();
+            showToast("Semua filter telah direset.", "info");
+        }
+
+        function switchTab(tabKey) {
+            document.querySelectorAll('.tab-panel').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-slate-600');
+            });
+
+            document.getElementById(`tab-content-${tabKey}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabKey}`);
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('text-slate-600');
+        }
+
+        // =========================================================================
+        // 4. KALKULASI KPI & RENDER SELURUH KOMPONEN
+        // =========================================================================
+        function renderAllSections() {
+            const anakList = filteredRecords.filter(r => r.anak);
+            const perempuanList = filteredRecords.filter(r => r.perempuan);
+            const rekapList = filteredRecords.filter(r => r.rekapPengaduan);
+            const kasusList = filteredRecords.filter(r => r.kasus);
+            const medsosList = filteredRecords.filter(r => r.medsos);
+
+            // Update Badge Hitungan pada Tab
+            document.getElementById('badge-count-anak').textContent = anakList.length;
+            document.getElementById('badge-count-perempuan').textContent = perempuanList.length;
+            document.getElementById('badge-count-pengaduan').textContent = rekapList.length + kasusList.length;
+            document.getElementById('badge-count-medsos').textContent = medsosList.length;
+
+            // --- KALKULASI KPI 1: ANAK ---
+            let anakTotal = 0, anakUsia0_5 = 0, anakUsia6_12 = 0, anakUsia13_17 = 0;
+            let anakL = 0, anakP = 0, anakDis = 0, anakTL = 0;
+
+            anakList.forEach(r => {
+                const a = r.anak;
+                const sumUsia = (Number(a.usia0_5) || 0) + (Number(a.usia6_12) || 0) + (Number(a.usia13_17) || 0);
+                const sumGender = (Number(a.lakiLaki) || 0) + (Number(a.perempuan) || 0);
+                anakTotal += Math.max(sumUsia, sumGender);
+                anakUsia0_5 += Number(a.usia0_5) || 0;
+                anakUsia6_12 += Number(a.usia6_12) || 0;
+                anakUsia13_17 += Number(a.usia13_17) || 0;
+                anakL += Number(a.lakiLaki) || 0;
+                anakP += Number(a.perempuan) || 0;
+                anakDis += Number(a.disabilitas) || 0;
+                anakTL += Number(a.perluLayananLanjutan) || 0;
+            });
+
+            document.getElementById('kpi-anak-total').textContent = anakTotal.toLocaleString('id-ID');
+            document.getElementById('kpi-anak-disabilitas').textContent = anakDis;
+            document.getElementById('kpi-anak-tl').textContent = anakTL;
+
+            // --- KALKULASI KPI 2: PEREMPUAN ---
+            let prTotal = 0, prKK = 0, prHamil = 0, prLansia = 0, prDis = 0;
+            perempuanList.forEach(r => {
+                const p = r.perempuan;
+                prTotal += Number(p.totalIkut) || 0;
+                prKK += Number(p.kepalaKeluarga) || 0;
+                prHamil += Number(p.hamilMenyusui) || 0;
+                prLansia += Number(p.lansia) || 0;
+                prDis += Number(p.disabilitas) || 0;
+            });
+
+            document.getElementById('kpi-perempuan-total').textContent = prTotal.toLocaleString('id-ID');
+            document.getElementById('kpi-perempuan-kk').textContent = prKK;
+            document.getElementById('kpi-perempuan-hamil').textContent = prHamil;
+            document.getElementById('kpi-perempuan-rentan').textContent = prLansia + prDis;
+
+            // --- KALKULASI KPI 3: PENGADUAN & SIMFONI ---
+            let aduanMasuk = 0, aduanTL = 0, simfoniRekap = 0;
+            rekapList.forEach(r => {
+                aduanMasuk += Number(r.rekapPengaduan.aduanMasuk) || 0;
+                aduanTL += Number(r.rekapPengaduan.sudahDitindaklanjuti) || 0;
+                simfoniRekap += Number(r.rekapPengaduan.tercatatSimfoni) || 0;
+            });
+
+            // Jika rekap bulanan kosong tapi ada rincian kasus, gunakan rincian kasus sebagai cadangan hitungan
+            const kasusSimfoniYa = kasusList.filter(r => r.kasus.sudahSimfoni === 'Ya').length;
+            const simfoniPct = kasusList.length > 0
+                ? Math.round((kasusSimfoniYa / kasusList.length) * 100)
+                : (aduanMasuk > 0 ? Math.round((simfoniRekap / aduanMasuk) * 100) : 0);
+
+            const displayAduanTotal = aduanMasuk > 0 ? aduanMasuk : kasusList.length;
+            const displayAduanTL = aduanMasuk > 0 ? aduanTL : kasusList.filter(r => r.kasus.statusPenanganan !== '').length;
+            const tlPct = displayAduanTotal > 0 ? Math.round((displayAduanTL / displayAduanTotal) * 100) : 0;
+
+            document.getElementById('kpi-aduan-total').textContent = displayAduanTotal;
+            document.getElementById('kpi-aduan-tl').textContent = displayAduanTL;
+            document.getElementById('kpi-aduan-tl-pct').textContent = `${tlPct}% TL`;
+            document.getElementById('kpi-simfoni-pct').textContent = `${simfoniPct}%`;
+
+            // --- KALKULASI KPI 4: MEDSOS & DOKUMENTASI ---
+            const dokCount = filteredRecords.filter(r => (r.dokumentasi || '').toLowerCase().includes('ada dokumentasi') && !(r.dokumentasi || '').toLowerCase().includes('tidak')).length;
+            const dokPct = filteredRecords.length > 0 ? Math.round((dokCount / filteredRecords.length) * 100) : 0;
+
+            document.getElementById('kpi-medsos-total').textContent = medsosList.length;
+            document.getElementById('kpi-laporan-total').textContent = filteredRecords.length;
+            document.getElementById('kpi-dok-pct').textContent = `${dokPct}%`;
+
+            // Render detail masing-masing tab
+            renderOverviewTab(filteredRecords, rekapList, anakList, kasusList);
+            renderAnakTab(anakList, { anakUsia0_5, anakUsia6_12, anakUsia13_17, anakL, anakP, anakDis, anakTL });
+            renderPerempuanTab(perempuanList, { prTotal, prKK, prHamil, prLansia, prDis });
+            renderPengaduanTab(rekapList, kasusList);
+            renderMedsosTab(medsosList);
+        }
+
+        // =========================================================================
+        // 5. RENDER TAB 1: RINGKASAN EKSEKUTIF (OVERVIEW)
+        // =========================================================================
+        function renderOverviewTab(records, rekapList, anakList, kasusList) {
+            // 1. Chart Wilayah (Kab/Kota)
+            const kabMap = {};
+            records.forEach(r => {
+                const k = r.kabKota || 'Tidak Diketahui';
+                kabMap[k] = (kabMap[k] || 0) + 1;
+            });
+
+            renderChart('chartOverviewWilayah', 'bar', {
+                labels: Object.keys(kabMap),
+                datasets: [{
+                    label: 'Jumlah Laporan Masuk',
+                    data: Object.values(kabMap),
+                    backgroundColor: ['#1e293b', '#2563eb', '#f59e0b', '#e11d48', '#10b981', '#6366f1'],
+                    borderRadius: 8,
+                    maxBarThickness: 48
+                }]
+            }, {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            });
+
+            // 2. Chart Proporsi 5 Jenis Laporan
+            const jenisLabels = [
+                'Aktivitas Anak',
+                'Aktivitas Perempuan',
+                'Rekap Pengaduan',
+                'Rincian TL Kasus',
+                'Publikasi Medsos'
+            ];
+            const jenisCounts = [
+                records.filter(r => r.anak).length,
+                records.filter(r => r.perempuan).length,
+                records.filter(r => r.rekapPengaduan).length,
+                records.filter(r => r.kasus).length,
+                records.filter(r => r.medsos).length
+            ];
+
+            renderChart('chartOverviewJenis', 'doughnut', {
+                labels: jenisLabels,
+                datasets: [{
+                    data: jenisCounts,
+                    backgroundColor: ['#2563eb', '#e11d48', '#f59e0b', '#7c3aed', '#10b981'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            }, {
+                cutout: '62%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                }
+            });
+
+            // 3. Chart Aduan Kekerasan vs Non-Kekerasan
+            let kekPr = 0, kekAnak = 0, nonKekPr = 0, nonKekAnak = 0;
+            rekapList.forEach(r => {
+                kekPr += Number(r.rekapPengaduan.kekerasanPerempuan) || 0;
+                kekAnak += Number(r.rekapPengaduan.kekerasanAnak) || 0;
+                nonKekPr += Number(r.rekapPengaduan.nonKekerasanPerempuan) || 0;
+                nonKekAnak += Number(r.rekapPengaduan.nonKekerasanAnak) || 0;
+            });
+
+            renderChart('chartOverviewAduan', 'bar', {
+                labels: ['Korban Perempuan', 'Korban Anak'],
+                datasets: [
+                    {
+                        label: 'Kasus Kekerasan',
+                        data: [kekPr, kekAnak],
+                        backgroundColor: '#e11d48',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Kasus Non-Kekerasan',
+                        data: [nonKekPr, nonKekAnak],
+                        backgroundColor: '#2563eb',
+                        borderRadius: 6
+                    }
+                ]
+            }, {
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            });
+
+            // 4. Daftar Sorotan Prioritas (Temuan Anak & Kasus Aktif)
+            const alertContainer = document.getElementById('overview-alerts-list');
+            alertContainer.innerHTML = '';
+
+            const alerts = [];
+            anakList.forEach(r => {
+                if ((Number(r.anak.perluLayananLanjutan) || 0) > 0 || (r.anak.temuan && r.anak.temuan !== '-')) {
+                    alerts.push({
+                        type: 'anak',
+                        badge: `Temuan Anak (${r.anak.perluLayananLanjutan} Anak)`,
+                        title: `${r.kabKota} — ${r.lokasi}`,
+                        desc: r.anak.temuan,
+                        action: `TL: ${r.anak.tindakLanjut}`
+                    });
+                }
+            });
+
+            kasusList.forEach(r => {
+                if (r.kasus.statusPenanganan !== 'Selesai') {
+                    alerts.push({
+                        type: 'kasus',
+                        badge: `Kasus ${r.kasus.kodeKasus} (${r.kasus.statusPenanganan})`,
+                        title: `${r.kasus.jenisKasus} — ${r.kabKota}`,
+                        desc: `Kebutuhan: ${r.kasus.kebutuhanKorban}`,
+                        action: `SIMFONI PPA: ${r.kasus.sudahSimfoni === 'Ya' ? 'Tercatat (' + r.kasus.noRegistrasiSimfoni + ')' : 'Belum Tercatat'}`
+                    });
+                }
+            });
+
+            if (alerts.length === 0) {
+                alertContainer.innerHTML = `
+                    <div class="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        Tidak ada temuan mendesak atau kasus tertunda pada filter saat ini.
+                    </div>
+                `;
+            } else {
+                alerts.forEach(al => {
+                    const isAnak = al.type === 'anak';
+                    const card = `
+                        <div class="p-3.5 rounded-xl border ${isAnak ? 'bg-blue-50/50 border-blue-200' : 'bg-rose-50/50 border-rose-200'}">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${isAnak ? 'bg-blue-600 text-white' : 'bg-rose-600 text-white'}">
+                                    ${al.badge}
+                                </span>
+                                <span class="text-[11px] font-semibold text-slate-500">${al.title}</span>
+                            </div>
+                            <p class="text-xs font-medium text-slate-800 leading-relaxed">${al.desc}</p>
+                            <p class="text-[11px] font-semibold ${isAnak ? 'text-blue-800' : 'text-rose-800'} mt-1">${al.action}</p>
+                        </div>
+                    `;
+                    alertContainer.insertAdjacentHTML('beforeend', card);
+                });
+            }
+        }
+
+        // =========================================================================
+        // 6. RENDER TAB 2: AKTIVITAS ANAK (PERTANYAAN 6–17)
+        // =========================================================================
+        function renderAnakTab(anakList, stats) {
+            document.getElementById('stat-anak-0-5').textContent = stats.anakUsia0_5;
+            document.getElementById('stat-anak-6-12').textContent = stats.anakUsia6_12;
+            document.getElementById('stat-anak-13-17').textContent = stats.anakUsia13_17;
+            document.getElementById('stat-anak-l').textContent = stats.anakL;
+            document.getElementById('stat-anak-p').textContent = stats.anakP;
+            document.getElementById('stat-anak-dis').textContent = stats.anakDis;
+            document.getElementById('stat-anak-layanan').textContent = stats.anakTL;
+
+            // Chart Demografi Usia
+            renderChart('chartAnakDemografi', 'bar', {
+                labels: ['Usia 0–5 Thn', 'Usia 6–12 Thn', 'Usia 13–17 Thn', 'Laki-Laki', 'Perempuan', 'Disabilitas'],
+                datasets: [{
+                    label: 'Jumlah Anak (Orang)',
+                    data: [stats.anakUsia0_5, stats.anakUsia6_12, stats.anakUsia13_17, stats.anakL, stats.anakP, stats.anakDis],
+                    backgroundColor: ['#3b82f6', '#2563eb', '#1d4ed8', '#0ea5e9', '#e11d48', '#f59e0b'],
+                    borderRadius: 8
+                }]
+            }, {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            });
+
+            // Chart Jenis Kegiatan Anak (Q8)
+            const jenisMap = { 'Edukasi': 0, 'Trauma Healing': 0, 'Kegiatan Fisik': 0, 'Bermain Bersama': 0, 'Lainnya': 0 };
+            anakList.forEach(r => {
+                const list = Array.isArray(r.anak.jenisKegiatan) ? r.anak.jenisKegiatan : String(r.anak.jenisKegiatan || '').split(',').map(s => s.trim());
+                list.forEach(j => {
+                    if (!j) return;
+                    if (jenisMap[j] !== undefined) jenisMap[j]++;
+                    else jenisMap['Lainnya']++;
+                });
+            });
+
+            renderChart('chartAnakJenisKegiatan', 'doughnut', {
+                labels: Object.keys(jenisMap),
+                datasets: [{
+                    data: Object.values(jenisMap),
+                    backgroundColor: ['#2563eb', '#e11d48', '#f59e0b', '#10b981', '#64748b'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            }, {
+                cutout: '58%',
+                plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } } }
+            });
+
+            // Tabel Rincian Anak
+            const tbody = document.getElementById('table-body-anak');
+            tbody.innerHTML = '';
+
+            if (anakList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Belum ada data aktivitas anak pada filter ini.</td></tr>`;
+                return;
+            }
+
+            anakList.forEach(r => {
+                const a = r.anak;
+                const jenisBadges = (Array.isArray(a.jenisKegiatan) ? a.jenisKegiatan : String(a.jenisKegiatan || '').split(','))
+                    .filter(Boolean)
+                    .map(j => `<span class="inline-block bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-semibold px-2 py-0.5 rounded-full mr-1 mb-1">${j.trim()}</span>`)
+                    .join('');
+
+                const hasTemuan = (Number(a.perluLayananLanjutan) || 0) > 0 || (a.temuan && a.temuan !== '-');
+
+                const row = `
+                    <tr class="hover:bg-slate-50/80 transition align-top">
+                        <td class="py-3.5 px-4">
+                            <div class="font-bold text-slate-900">${r.kabKota}</div>
+                            <div class="text-xs text-slate-600">${r.lokasi}</div>
+                            <div class="text-[11px] text-blue-600 font-semibold mt-1">${r.periode}</div>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <div class="font-semibold text-slate-900 mb-1.5">${a.namaKegiatan}</div>
+                            <div>${jenisBadges}</div>
+                        </td>
+                        <td class="py-3.5 px-4 text-center font-display font-bold text-slate-800">${a.jumlahKegiatan}</td>
+                        <td class="py-3.5 px-4 text-center text-xs">
+                            <div class="font-semibold text-slate-800">0-5: ${a.usia0_5} | 6-12: ${a.usia6_12} | 13-17: ${a.usia13_17}</div>
+                            <div class="text-slate-500 mt-0.5">L: <strong class="text-blue-600">${a.lakiLaki}</strong> &bull; P: <strong class="text-rose-600">${a.perempuan}</strong></div>
+                        </td>
+                        <td class="py-3.5 px-4 text-center text-xs">
+                            <div class="text-slate-700">Disabilitas: <strong>${a.disabilitas}</strong></div>
+                            <div class="mt-1">
+                                <span class="px-2 py-0.5 rounded-full font-bold ${Number(a.perluLayananLanjutan) > 0 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'}">
+                                    Perlu TL: ${a.perluLayananLanjutan}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4 ${hasTemuan ? 'bg-rose-50/50' : ''} text-xs">
+                            ${hasTemuan ? `
+                                <div class="font-semibold text-rose-800 mb-1"><i class="fa-solid fa-circle-exclamation mr-1"></i>${a.temuan}</div>
+                                <div class="text-slate-700 bg-white p-2 rounded-lg border border-rose-200"><strong>Tindak Lanjut:</strong> ${a.tindakLanjut || '-'}</div>
+                            ` : `<span class="text-slate-400 italic">Tidak ada temuan khusus (-)</span>`}
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // =========================================================================
+        // 7. RENDER TAB 3: AKTIVITAS PEREMPUAN (PERTANYAAN 18–26)
+        // =========================================================================
+        function renderPerempuanTab(perempuanList, stats) {
+            document.getElementById('stat-pr-total').textContent = stats.prTotal;
+            document.getElementById('stat-pr-kk').textContent = stats.prKK;
+            document.getElementById('stat-pr-hamil').textContent = stats.prHamil;
+            document.getElementById('stat-pr-lansia').textContent = stats.prLansia;
+            document.getElementById('stat-pr-dis').textContent = stats.prDis;
+
+            renderChart('chartPerempuanRentan', 'bar', {
+                labels: ['Total Peserta Perempuan', 'Perempuan Kepala Keluarga', 'Ibu Hamil / Menyusui', 'Perempuan Lansia', 'Perempuan Disabilitas'],
+                datasets: [{
+                    label: 'Jumlah Peserta (Orang)',
+                    data: [stats.prTotal, stats.prKK, stats.prHamil, stats.prLansia, stats.prDis],
+                    backgroundColor: ['#1e293b', '#e11d48', '#f59e0b', '#8b5cf6', '#2563eb'],
+                    borderRadius: 8,
+                    maxBarThickness: 56
+                }]
+            }, {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            });
+
+            const tbody = document.getElementById('table-body-perempuan');
+            tbody.innerHTML = '';
+
+            if (perempuanList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Belum ada data aktivitas perempuan pada filter ini.</td></tr>`;
+                return;
+            }
+
+            perempuanList.forEach(r => {
+                const p = r.perempuan;
+                const row = `
+                    <tr class="hover:bg-slate-50/80 transition align-top">
+                        <td class="py-3.5 px-4">
+                            <div class="font-bold text-slate-900">${r.kabKota}</div>
+                            <div class="text-xs text-slate-600">${r.lokasi}</div>
+                            <div class="text-[11px] text-rose-600 font-semibold mt-1">${r.periode}</div>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <div class="font-semibold text-slate-900">${p.namaKegiatan}</div>
+                            <div class="text-xs text-slate-500 mt-0.5">${p.jenisKegiatan}</div>
+                        </td>
+                        <td class="py-3.5 px-4 text-center font-display font-bold text-slate-800">${p.jumlahKegiatan}</td>
+                        <td class="py-3.5 px-4 text-center">
+                            <span class="font-display font-extrabold text-base text-rose-700">${p.totalIkut}</span>
+                            <span class="text-xs text-slate-500 block">Orang</span>
+                        </td>
+                        <td class="py-3.5 px-4 text-xs space-y-1">
+                            <div>Kepala Keluarga: <strong>${p.kepalaKeluarga}</strong></div>
+                            <div>Hamil/Menyusui: <strong>${p.hamilMenyusui}</strong></div>
+                            <div>Lansia: <strong>${p.lansia}</strong> &bull; Disabilitas: <strong>${p.disabilitas}</strong></div>
+                        </td>
+                        <td class="py-3.5 px-4 text-xs text-slate-700 leading-relaxed">
+                            <div class="bg-emerald-50/60 border border-emerald-200/80 p-2.5 rounded-xl">
+                                ${p.manfaat || '-'}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // =========================================================================
+        // 8. RENDER TAB 4: REKAP PENGADUAN & RINCIAN TL KASUS (Q27–53)
+        // =========================================================================
+        function renderPengaduanTab(rekapList, kasusList) {
+            // Bagian A: Rekap Bulanan
+            let m = 0, kp = 0, ka = 0, nkp = 0, nka = 0, sim = 0;
+            rekapList.forEach(r => {
+                const rp = r.rekapPengaduan;
+                m += Number(rp.aduanMasuk) || 0;
+                kp += Number(rp.kekerasanPerempuan) || 0;
+                ka += Number(rp.kekerasanAnak) || 0;
+                nkp += Number(rp.nonKekerasanPerempuan) || 0;
+                nka += Number(rp.nonKekerasanAnak) || 0;
+                sim += Number(rp.tercatatSimfoni) || 0;
+            });
+
+            document.getElementById('rekap-masuk').textContent = m;
+            document.getElementById('rekap-kek-pr').textContent = kp;
+            document.getElementById('rekap-kek-anak').textContent = ka;
+            document.getElementById('rekap-nonkek-pr').textContent = nkp;
+            document.getElementById('rekap-nonkek-anak').textContent = nka;
+            document.getElementById('rekap-simfoni').textContent = sim;
+
+            const tbodyRekap = document.getElementById('table-body-rekap-pengaduan');
+            tbodyRekap.innerHTML = '';
+
+            if (rekapList.length === 0) {
+                tbodyRekap.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">Belum ada laporan rekapitulasi bulanan pada filter ini.</td></tr>`;
+            } else {
+                rekapList.forEach(r => {
+                    const rp = r.rekapPengaduan;
+                    const isNihil = (rp.statusBulan || '').toLowerCase().includes('nihil');
+                    const row = `
+                        <tr class="hover:bg-slate-50/80 transition align-top">
+                            <td class="py-3 px-4">
+                                <div class="font-bold text-slate-900">${r.kabKota}</div>
+                                <div class="text-xs text-slate-600">${r.lokasi}</div>
+                                <div class="text-[11px] text-amber-700 font-semibold mt-0.5">${r.periode}</div>
+                            </td>
+                            <td class="py-3 px-4 text-center">
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${isNihil ? 'bg-slate-100 text-slate-600' : 'bg-rose-100 text-rose-700'}">
+                                    ${rp.statusBulan}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 text-center font-display font-extrabold text-base text-slate-900">${rp.aduanMasuk}</td>
+                            <td class="py-3 px-4 text-center text-xs">
+                                <span class="text-rose-700 font-bold">Pr: ${rp.kekerasanPerempuan}</span> &bull; <span class="text-rose-700 font-bold">Anak: ${rp.kekerasanAnak}</span>
+                            </td>
+                            <td class="py-3 px-4 text-center text-xs">
+                                <span class="text-blue-700 font-bold">Pr: ${rp.nonKekerasanPerempuan}</span> &bull; <span class="text-blue-700 font-bold">Anak: ${rp.nonKekerasanAnak}</span>
+                            </td>
+                            <td class="py-3 px-4 text-center text-xs">
+                                <div>TL: <strong>${rp.sudahDitindaklanjuti}</strong></div>
+                                <div class="text-emerald-700 font-semibold">SIMFONI: ${rp.tercatatSimfoni}</div>
+                            </td>
+                            <td class="py-3 px-4 text-xs">
+                                <div class="text-slate-800">${rp.tindakLanjutUmum || '-'}</div>
+                                <div class="text-slate-500 mt-1"><strong>Pihak Terlibat:</strong> ${rp.pihakTerlibat || '-'}</div>
+                            </td>
+                        </tr>
+                    `;
+                    tbodyRekap.insertAdjacentHTML('beforeend', row);
+                });
+            }
+
+            // Bagian B: Rincian Tindak Lanjut Kasus
+            const tbodyKasus = document.getElementById('table-body-rincian-kasus');
+            tbodyKasus.innerHTML = '';
+
+            if (kasusList.length === 0) {
+                tbodyKasus.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">Belum ada rincian tindak lanjut kasus pada filter ini.</td></tr>`;
+            } else {
+                kasusList.forEach(r => {
+                    const k = r.kasus;
+                    let statusBadge = 'bg-amber-100 text-amber-800 border-amber-200';
+                    if (k.statusPenanganan === 'Selesai') statusBadge = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                    else if (k.statusPenanganan === 'Dirujuk') statusBadge = 'bg-blue-100 text-blue-800 border-blue-200';
+
+                    const isSimfoni = k.sudahSimfoni === 'Ya';
+
+                    const row = `
+                        <tr class="hover:bg-slate-50/80 transition align-top">
+                            <td class="py-3.5 px-4">
+                                <span class="inline-block bg-slate-900 text-amber-400 font-display font-bold text-xs px-2.5 py-1 rounded-lg">
+                                    ${k.kodeKasus}
+                                </span>
+                                <div class="text-xs font-semibold text-slate-700 mt-1">${k.tanggalAduan}</div>
+                                <div class="text-[11px] text-slate-500">${r.kabKota}</div>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded ${k.kategori === 'Kekerasan' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}">
+                                    ${k.kategori}
+                                </span>
+                                <div class="font-semibold text-slate-900 text-xs mt-1">${k.jenisKasus}</div>
+                            </td>
+                            <td class="py-3.5 px-4 text-xs space-y-0.5">
+                                <div><strong>${k.jumlahKorban} Korban</strong> (${k.jenisKelamin})</div>
+                                <div class="text-slate-600">${k.kelompokUsia}</div>
+                                <div>Disabilitas: <strong class="${k.disabilitas === 'Ya' ? 'text-rose-600' : 'text-slate-700'}">${k.disabilitas}</strong></div>
+                            </td>
+                            <td class="py-3.5 px-4 text-xs space-y-1.5 max-w-xs">
+                                <div><span class="font-bold text-slate-700">Kebutuhan:</span> ${k.kebutuhanKorban}</div>
+                                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200"><span class="font-bold text-blue-800">Tindak Lanjut:</span> ${k.tindakLanjut}</div>
+                            </td>
+                            <td class="py-3.5 px-4 text-center">
+                                <span class="inline-block px-3 py-1 rounded-full text-xs font-bold border ${statusBadge}">
+                                    ${k.statusPenanganan}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4 text-xs">
+                                ${isSimfoni ? `
+                                    <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full">
+                                        <i class="fa-solid fa-check-circle"></i> Tercatat (Ya)
+                                    </span>
+                                    <div class="font-mono text-[11px] font-bold text-slate-800 mt-1">${k.noRegistrasiSimfoni || '-'}</div>
+                                    <div class="text-[11px] text-slate-500">${k.tanggalInputSimfoni || ''} &bull; ${k.penginputSimfoni || ''}</div>
+                                ` : `
+                                    <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full">
+                                        <i class="fa-solid fa-clock"></i> Belum Tercatat
+                                    </span>
+                                    <div class="text-[11px] text-slate-600 mt-1"><strong>Alasan:</strong> ${k.alasanBelumSimfoni || '-'}</div>
+                                `}
+                            </td>
+                            <td class="py-3.5 px-4 text-xs text-slate-600 max-w-[200px]">
+                                ${k.hambatan || '-'}
+                            </td>
+                        </tr>
+                    `;
+                    tbodyKasus.insertAdjacentHTML('beforeend', row);
+                });
+            }
+        }
+
+        // =========================================================================
+        // 9. RENDER TAB 5: PUBLIKASI MEDIA SOSIAL (PERTANYAAN 54–59)
+        // =========================================================================
+        function renderMedsosTab(medsosList) {
+            const platformCounts = {
+                'Instagram': 0,
+                'Facebook': 0,
+                'Tik Tok': 0,
+                'YouTube': 0,
+                'Website Resmi': 0,
+                'Lainnya': 0
+            };
+
+            medsosList.forEach(r => {
+                const p = r.medsos.platform || 'Lainnya';
+                if (platformCounts[p] !== undefined) platformCounts[p]++;
+                else platformCounts['Lainnya']++;
+            });
+
+            renderChart('chartMedsosPlatform', 'doughnut', {
+                labels: Object.keys(platformCounts),
+                datasets: [{
+                    data: Object.values(platformCounts),
+                    backgroundColor: ['#e11d48', '#2563eb', '#0f172a', '#dc2626', '#10b981', '#94a3b8'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            }, {
+                cutout: '58%',
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 11 } } } }
+            });
+
+            // Kartu Statistik Platform
+            const platformMeta = [
+                { name: 'Instagram', icon: 'fa-brands fa-instagram', color: 'text-rose-600 bg-rose-50 border-rose-200' },
+                { name: 'Facebook', icon: 'fa-brands fa-facebook', color: 'text-blue-600 bg-blue-50 border-blue-200' },
+                { name: 'Tik Tok', icon: 'fa-brands fa-tiktok', color: 'text-slate-900 bg-slate-100 border-slate-300' },
+                { name: 'YouTube', icon: 'fa-brands fa-youtube', color: 'text-red-600 bg-red-50 border-red-200' },
+                { name: 'Website Resmi', icon: 'fa-solid fa-globe', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+                { name: 'Lainnya', icon: 'fa-solid fa-share-nodes', color: 'text-amber-600 bg-amber-50 border-amber-200' }
+            ];
+
+            const pCardsContainer = document.getElementById('medsos-platform-cards');
+            pCardsContainer.innerHTML = '';
+            platformMeta.forEach(pm => {
+                pCardsContainer.insertAdjacentHTML('beforeend', `
+                    <div class="p-3.5 rounded-xl border ${pm.color} flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <i class="${pm.icon} text-lg"></i>
+                            <span class="text-xs font-bold">${pm.name}</span>
+                        </div>
+                        <span class="font-display text-xl font-extrabold">${platformCounts[pm.name]}</span>
+                    </div>
+                `);
+            });
+
+            // Galeri Kartu Publikasi
+            const grid = document.getElementById('medsos-cards-grid');
+            grid.innerHTML = '';
+
+            if (medsosList.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-8 text-center text-slate-400 text-sm">Belum ada publikasi media sosial pada filter ini.</div>`;
+                return;
+            }
+
+            medsosList.forEach(r => {
+                const m = r.medsos;
+                const card = `
+                    <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2.5">
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px] font-bold">
+                                    ${m.platform}
+                                </span>
+                                <span class="text-[11px] font-semibold text-slate-500">${m.tanggalPublikasi}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-900 text-sm leading-snug mb-2">${m.kegiatan}</h4>
+                            <div class="text-xs text-slate-600 space-y-1">
+                                <div><i class="fa-solid fa-at text-blue-600 mr-1"></i><strong>Akun:</strong> ${m.namaAkun}</div>
+                                <div><i class="fa-solid fa-location-dot text-rose-600 mr-1"></i>${r.kabKota} (${r.lokasi})</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
+                            <span class="text-[11px] text-slate-400 truncate max-w-[140px]">${m.filePublikasi || 'Tautan Eksternal'}</span>
+                            <a href="${m.linkPublikasi}" target="_blank" rel="noopener noreferrer"
+                               class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition inline-flex items-center gap-1.5">
+                                <span>Buka Tautan</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', card);
+            });
+        }
+
+        // =========================================================================
+        // 10. HELPER CHART.JS (DESTROY & RE-CREATE SECARA BERSIH)
+        // =========================================================================
+        function renderChart(canvasId, type, data, extraOptions = {}) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+
+            charts[canvasId] = new Chart(ctx.getContext('2d'), {
+                type: type,
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    },
+                    ...extraOptions
+                }
+            });
+        }
+
+        // =========================================================================
+        // 11. SINKRONISASI GOOGLE SHEETS (CSV URL & UNGGAH CSV / XLSX)
+        // =========================================================================
+        function openSyncModal() {
+            document.getElementById('modal-sync').classList.remove('hidden');
+            document.getElementById('modal-sync').classList.add('flex');
+        }
+
+        function closeSyncModal() {
+            document.getElementById('modal-sync').classList.add('hidden');
+            document.getElementById('modal-sync').classList.remove('flex');
+        }
+
+        async function syncFromGoogleSheetUrl() {
+            const url = document.getElementById('gsheet-csv-url').value.trim();
+            if (!url) {
+                showToast("Harap masukkan URL CSV publik Google Sheets terlebih dahulu.", "error");
+                return;
+            }
+
+            const btn = document.getElementById('btn-fetch-csv');
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mengambil...`;
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Gagal mengakses URL CSV.");
+                const csvText = await response.text();
+                parseAndLoadCSVText(csvText, "Google Sheets Live CSV");
+                closeSyncModal();
+            } catch (err) {
+                console.error(err);
+                showToast("Gagal menarik CSV dari URL. Pastikan sheet sudah 'Dipublikasikan ke web' sebagai CSV atau gunakan fitur Unggah File.", "error");
+            } finally {
+                btn.innerHTML = origHTML;
+                btn.disabled = false;
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileName = file.name.toLowerCase();
+            if (fileName.endsWith('.csv')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    parseAndLoadCSVText(e.target.result, `File CSV: ${file.name}`);
+                    closeSyncModal();
+                };
+                reader.readAsText(file);
+            } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const csvText = XLSX.utils.sheet_to_csv(workbook.Sheets[firstSheetName]);
+                    parseAndLoadCSVText(csvText, `File Excel: ${file.name}`);
+                    closeSyncModal();
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                showToast("Format file tidak didukung. Gunakan .csv atau .xlsx.", "error");
+            }
+        }
+
+        // Pemetaan cerdas kolom Google Form (59 Pertanyaan) ke struktur dashboard
+        function parseAndLoadCSVText(csvText, sourceLabel) {
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    const rows = results.data;
+                    if (!rows || rows.length === 0) {
+                        showToast("File CSV kosong atau tidak memiliki baris data.", "error");
+                        return;
+                    }
+
+                    const mapped = rows.map((row, idx) => mapGoogleFormRowToRecord(row, idx)).filter(Boolean);
+                    if (mapped.length === 0) {
+                        showToast("Tidak ditemukan kolom yang sesuai dengan format Google Form Pos SAPA.", "error");
+                        return;
+                    }
+
+                    allRecords = mapped;
+                    persistRecords(`${sourceLabel} (${allRecords.length} Baris)`, true);
+                    populateFilterDropdowns();
+                    applyGlobalFilters();
+                    showToast(`Berhasil menyinkronkan ${allRecords.length} laporan dari ${sourceLabel}!`, "success");
+                },
+                error: function(err) {
+                    console.error(err);
+                    showToast("Terjadi kesalahan saat membaca file CSV.", "error");
+                }
+            });
+        }
+
+        function findColValue(row, keywords) {
+            const keys = Object.keys(row);
+            for (const kw of keywords) {
+                const foundKey = keys.find(k => k.toLowerCase().includes(kw.toLowerCase()));
+                if (foundKey && row[foundKey] !== undefined && String(row[foundKey]).trim() !== '') {
+                    return String(row[foundKey]).trim();
+                }
+            }
+            return '';
+        }
+
+        function mapGoogleFormRowToRecord(row, idx) {
+            const periode = findColValue(row, ['Periode Laporan']) || 'Periode 2026';
+            const lokasi = findColValue(row, ['Lokasi Pos SAPA', 'Kode Pos']) || 'Pos SAPA';
+            const kabKota = findColValue(row, ['Kabupaten / Kota', 'Kabupaten']) || 'Wilayah Tidak Tercantum';
+            const jenisLaporan = findColValue(row, ['Jenis Laporan yang Akan Diinput', 'Jenis Laporan']);
+            const dokumentasi = findColValue(row, ['Link Pengumpulan Dokumentasi', 'Dokumentasi']) || 'Ada Dokumentasi';
+
+            if (!jenisLaporan && !findColValue(row, ['Lokasi Pos SAPA'])) return null;
+
+            const base = {
+                id: `GS-${idx + 1}`,
+                periode,
+                lokasi,
+                kabKota,
+                jenisLaporan,
+                dokumentasi
+            };
+
+            const jlLower = jenisLaporan.toLowerCase();
+
+            if (jlLower.includes('aktivitas anak')) {
+                base.anak = {
+                    jumlahKegiatan: Number(findColValue(row, ['Jumlah Kegiatan Anak'])) || 1,
+                    namaKegiatan: findColValue(row, ['Nama Kegiatan Anak']) || 'Kegiatan Anak Pos SAPA',
+                    jenisKegiatan: findColValue(row, ['Jenis Kegiatan Anak']).split(',').map(s => s.trim()).filter(Boolean),
+                    usia0_5: Number(findColValue(row, ['0-5 Tahun'])) || 0,
+                    usia6_12: Number(findColValue(row, ['6-12 Tahun'])) || 0,
+                    usia13_17: Number(findColValue(row, ['13-17 Tahun'])) || 0,
+                    lakiLaki: Number(findColValue(row, ['Anak Laki-Laki'])) || 0,
+                    perempuan: Number(findColValue(row, ['Anak Perempuan'])) || 0,
+                    disabilitas: Number(findColValue(row, ['Anak Disabilitas'])) || 0,
+                    perluLayananLanjutan: Number(findColValue(row, ['Perlu Layanan Lanjutan'])) || 0,
+                    temuan: findColValue(row, ['Temuan Anak yang Perlu Ditindaklanjuti']) || '-',
+                    tindakLanjut: findColValue(row, ['Tindak Lanjut Temuan Anak']) || '-'
+                };
+            } else if (jlLower.includes('aktivitas perempuan')) {
+                base.perempuan = {
+                    jumlahKegiatan: Number(findColValue(row, ['Jumlah Kegiatan Perempuan'])) || 1,
+                    namaKegiatan: findColValue(row, ['Nama Kegiatan Perempuan']) || 'Kegiatan Pemberdayaan Perempuan',
+                    jenisKegiatan: findColValue(row, ['Jenis Kegiatan Perempuan']) || '-',
+                    totalIkut: Number(findColValue(row, ['Total Perempuan yang Ikut'])) || 0,
+                    kepalaKeluarga: Number(findColValue(row, ['Kepala Keluarga'])) || 0,
+                    hamilMenyusui: Number(findColValue(row, ['Hamil/Menyusui'])) || 0,
+                    lansia: Number(findColValue(row, ['Perempuan Lansia'])) || 0,
+                    disabilitas: Number(findColValue(row, ['Perempuan Disabilitas'])) || 0,
+                    manfaat: findColValue(row, ['Manfaat yang Dirasakan']) || '-'
+                };
+            } else if (jlLower.includes('rekapitulasi layanan pengaduan')) {
+                base.rekapPengaduan = {
+                    statusBulan: findColValue(row, ['Status Pelaporan Aduan']) || 'Ada aduan',
+                    aduanMasuk: Number(findColValue(row, ['Jumlah Aduan Masuk'])) || 0,
+                    kekerasanPerempuan: Number(findColValue(row, ['Aduan Kekerasan Perempuan'])) || 0,
+                    kekerasanAnak: Number(findColValue(row, ['Aduan Kekerasan Anak'])) || 0,
+                    nonKekerasanPerempuan: Number(findColValue(row, ['Aduan Non-Kekerasan Perempuan'])) || 0,
+                    nonKekerasanAnak: Number(findColValue(row, ['Aduan Non-Kekerasan Anak'])) || 0,
+                    sudahDitindaklanjuti: Number(findColValue(row, ['Sudah Ditindaklanjuti'])) || 0,
+                    tercatatSimfoni: Number(findColValue(row, ['Tercatat di SIMFONI'])) || 0,
+                    tindakLanjutUmum: findColValue(row, ['Tindak Lanjut Penanganan Kasus Secara Umum']) || '-',
+                    pihakTerlibat: findColValue(row, ['Pihak yang Terlibat']) || '-'
+                };
+            } else if (jlLower.includes('rincian tindak lanjut')) {
+                base.kasus = {
+                    kodeKasus: findColValue(row, ['Kode Kasus']) || `PDG-${idx + 1}`,
+                    tanggalAduan: findColValue(row, ['Tanggal Aduan']) || '-',
+                    kategori: findColValue(row, ['Kategori Kasus']) || 'Kekerasan',
+                    jenisKasus: findColValue(row, ['Jenis Kasus']) || '-',
+                    jumlahKorban: Number(findColValue(row, ['Jumlah Korban'])) || 1,
+                    jenisKelamin: findColValue(row, ['Jenis Kelamin Korban']) || 'Perempuan',
+                    kelompokUsia: findColValue(row, ['Kelompok Usia Korban']) || 'Anak (0-17 Tahun)',
+                    disabilitas: findColValue(row, ['Penyandang Disabilitas']) || 'Tidak',
+                    kebutuhanKorban: findColValue(row, ['Kebutuhan Korban']) || '-',
+                    tindakLanjut: findColValue(row, ['Tindak Lanjut (Pendampingan', 'Tindak Lanjut']) || '-',
+                    statusPenanganan: findColValue(row, ['Status Penanganan']) || 'Dalam Proses',
+                    sudahSimfoni: findColValue(row, ['Sudah Dicatat di SIMFONI']) || 'Belum',
+                    noRegistrasiSimfoni: findColValue(row, ['No. Registrasi SIMFONI']) || '',
+                    tanggalInputSimfoni: findColValue(row, ['Tanggal Input SIMFONI']) || '',
+                    penginputSimfoni: findColValue(row, ['Penginput SIMFONI']) || '',
+                    alasanBelumSimfoni: findColValue(row, ['Jika Belum Masuk SIMFONI']) || '-',
+                    hambatan: findColValue(row, ['Hambatan Penanganan']) || '-'
+                };
+            } else if (jlLower.includes('publikasi media sosial')) {
+                base.medsos = {
+                    tanggalPublikasi: findColValue(row, ['Tanggal Publikasi']) || '-',
+                    kegiatan: findColValue(row, ['Kegiatan yang Dipublikasikan']) || '-',
+                    platform: findColValue(row, ['Platform Media Sosial']) || 'Instagram',
+                    namaAkun: findColValue(row, ['Nama Akun yang Mempublikasikan']) || '-',
+                    linkPublikasi: findColValue(row, ['Link Publikasi']) || 'https://kemenpppa.go.id',
+                    filePublikasi: findColValue(row, ['File Publikasi']) || ''
+                };
+            }
+
+            return base;
+        }
+
+        function downloadTemplateCSV() {
+            const headers = [
+                "Timestamp",
+                "1. Periode Laporan",
+                "2. Lokasi Pos SAPA / Kode Pos",
+                "3. Kabupaten / Kota",
+                "4. Jenis Laporan yang Akan Diinput",
+                "5. Link Pengumpulan Dokumentasi Kegiatan",
+                "6. Jumlah Kegiatan Anak",
+                "7. Nama Kegiatan Anak",
+                "8. Jenis Kegiatan Anak",
+                "9. Jumlah Usia Anak 0-5 Tahun",
+                "10. Jumlah Usia Anak 6-12 Tahun",
+                "11. Jumlah Usia Anak 13-17 Tahun",
+                "12. Jumlah Anak Laki-Laki",
+                "13. Jumlah Anak Perempuan",
+                "14. Jumlah Anak Disabilitas yang Ikut",
+                "15. Jumlah Anak Perlu Layanan Lanjutan",
+                "16. Temuan Anak yang Perlu Ditindaklanjuti",
+                "17. Tindak Lanjut Temuan Anak yang Perlu Layanan Lanjutan",
+                "18. Jumlah Kegiatan Perempuan",
+                "19. Nama Kegiatan Perempuan",
+                "20. Jenis Kegiatan Perempuan",
+                "21. Total Perempuan yang Ikut (Orang)",
+                "22. Di antaranya Kepala Keluarga (Orang)",
+                "23. Perempuan Hamil/Menyusui yang Ikut (Orang)",
+                "24. Perempuan Lansia yang Ikut (Orang)",
+                "25. Perempuan Disabilitas yang Ikut (Orang)",
+                "26. Manfaat yang Dirasakan",
+                "27. Status Pelaporan Aduan Bulan Ini",
+                "28. Jumlah Aduan Masuk",
+                "29. Jumlah Aduan Kekerasan Perempuan",
+                "30. Jumlah Aduan Kekerasan Anak",
+                "31. Jumlah Aduan Non-Kekerasan Perempuan",
+                "32. Jumlah Aduan Non-Kekerasan Anak",
+                "33. Jumlah Aduan Sudah Ditindaklanjuti",
+                "34. Jumlah Aduan Tercatat di SIMFONI PPA",
+                "35. Tindak Lanjut Penanganan Kasus Secara Umum",
+                "36. Pihak yang Terlibat",
+                "37. Kode Kasus (Tanpa Nama)",
+                "38. Tanggal Aduan",
+                "39. Kategori Kasus",
+                "40. Jenis Kasus",
+                "41. Jumlah Korban / Pelapor",
+                "42. Jenis Kelamin Korban",
+                "43. Kelompok Usia Korban",
+                "44. Apakah Korban Penyandang Disabilitas?",
+                "45. Kebutuhan Korban",
+                "46. Tindak Lanjut",
+                "47. Status Penanganan",
+                "48. Sudah Dicatat di SIMFONI PPA?",
+                "49. No. Registrasi SIMFONI",
+                "50. Tanggal Input SIMFONI",
+                "51. Penginput SIMFONI",
+                "52. Jika Belum Masuk SIMFONI, Apa Alasannya?",
+                "53. Hambatan Penanganan",
+                "54. Tanggal Publikasi",
+                "55. Kegiatan yang Dipublikasikan",
+                "56. Platform Media Sosial",
+                "57. Nama Akun yang Mempublikasikan",
+                "58. Link Publikasi",
+                "59. File Publikasi"
+            ];
+
+            const csvContent = "data:text/csv;charset=utf-8," + headers.map(h => `"${h}"`).join(",");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Template_Header_Laporan_Pos_SAPA_2026.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Template header CSV 59 pertanyaan berhasil diunduh!", "success");
+        }
+
+        function restoreSampleData() {
+            allRecords = JSON.parse(JSON.stringify(SAMPLE_RECORDS));
+            persistRecords(`Data Simulasi Bawaan (${allRecords.length} Laporan)`, false);
+            populateFilterDropdowns();
+            applyGlobalFilters();
+            closeSyncModal();
+            showToast("Data simulasi bawaan telah dipulihkan.", "info");
+        }
+
+        // =========================================================================
+        // 12. MODAL INPUT SIMULASI (5 PERCABANGAN FORMULIR)
+        // =========================================================================
+        function openInputModal() {
+            document.getElementById('modal-input').classList.remove('hidden');
+            document.getElementById('modal-input').classList.add('flex');
+            toggleFormBranch();
+        }
+
+        function closeInputModal() {
+            document.getElementById('modal-input').classList.add('hidden');
+            document.getElementById('modal-input').classList.remove('flex');
+        }
+
+        function toggleFormBranch() {
+            const val = document.getElementById('inp-jenis-laporan').value;
+            document.querySelectorAll('.form-branch').forEach(el => el.classList.add('hidden'));
+
+            if (val.includes('Aktivitas Anak')) {
+                document.getElementById('branch-anak').classList.remove('hidden');
+            } else if (val.includes('Aktivitas Perempuan')) {
+                document.getElementById('branch-perempuan').classList.remove('hidden');
+            } else if (val.includes('Rekapitulasi Layanan Pengaduan')) {
+                document.getElementById('branch-rekap').classList.remove('hidden');
+            } else if (val.includes('Rincian Tindak Lanjut')) {
+                document.getElementById('branch-kasus').classList.remove('hidden');
+            } else if (val.includes('Publikasi Media Sosial')) {
+                document.getElementById('branch-medsos').classList.remove('hidden');
+            }
+        }
+
+        function submitSimulatedEntry(event) {
+            event.preventDefault();
+            const jenisLaporan = document.getElementById('inp-jenis-laporan').value;
+
+            const newRecord = {
+                id: `SIM-${Date.now()}`,
+                periode: document.getElementById('inp-periode').value.trim(),
+                lokasi: document.getElementById('inp-lokasi').value.trim(),
+                kabKota: document.getElementById('inp-kabkota').value.trim(),
+                jenisLaporan: jenisLaporan,
+                dokumentasi: document.getElementById('inp-dokumentasi').value
+            };
+
+            if (jenisLaporan.includes('Aktivitas Anak')) {
+                const checkedJenis = Array.from(document.querySelectorAll('input[name="anak-jenis"]:checked')).map(cb => cb.value);
+                newRecord.anak = {
+                    jumlahKegiatan: Number(document.getElementById('inp-anak-jml-keg').value) || 1,
+                    namaKegiatan: document.getElementById('inp-anak-nama-keg').value || 'Kegiatan Bermain & Psikososial',
+                    jenisKegiatan: checkedJenis.length ? checkedJenis : ['Bermain Bersama'],
+                    usia0_5: Number(document.getElementById('inp-anak-0-5').value) || 0,
+                    usia6_12: Number(document.getElementById('inp-anak-6-12').value) || 0,
+                    usia13_17: Number(document.getElementById('inp-anak-13-17').value) || 0,
+                    lakiLaki: Number(document.getElementById('inp-anak-l').value) || 0,
+                    perempuan: Number(document.getElementById('inp-anak-p').value) || 0,
+                    disabilitas: Number(document.getElementById('inp-anak-dis').value) || 0,
+                    perluLayananLanjutan: Number(document.getElementById('inp-anak-layanan').value) || 0,
+                    temuan: document.getElementById('inp-anak-temuan').value || '-',
+                    tindakLanjut: document.getElementById('inp-anak-tl').value || '-'
+                };
+            } else if (jenisLaporan.includes('Aktivitas Perempuan')) {
+                newRecord.perempuan = {
+                    jumlahKegiatan: Number(document.getElementById('inp-pr-jml-keg').value) || 1,
+                    namaKegiatan: document.getElementById('inp-pr-nama').value || 'Pemberdayaan Perempuan Pos SAPA',
+                    jenisKegiatan: document.getElementById('inp-pr-jenis').value || 'Pelatihan Usaha',
+                    totalIkut: Number(document.getElementById('inp-pr-total').value) || 0,
+                    kepalaKeluarga: Number(document.getElementById('inp-pr-kk').value) || 0,
+                    hamilMenyusui: Number(document.getElementById('inp-pr-hamil').value) || 0,
+                    lansia: Number(document.getElementById('inp-pr-lansia').value) || 0,
+                    disabilitas: Number(document.getElementById('inp-pr-dis').value) || 0,
+                    manfaat: document.getElementById('inp-pr-manfaat').value || '-'
+                };
+            } else if (jenisLaporan.includes('Rekapitulasi Layanan Pengaduan')) {
+                newRecord.rekapPengaduan = {
+                    statusBulan: document.getElementById('inp-rek-status').value,
+                    aduanMasuk: Number(document.getElementById('inp-rek-masuk').value) || 0,
+                    kekerasanPerempuan: Number(document.getElementById('inp-rek-kek-pr').value) || 0,
+                    kekerasanAnak: Number(document.getElementById('inp-rek-kek-anak').value) || 0,
+                    nonKekerasanPerempuan: Number(document.getElementById('inp-rek-nonkek-pr').value) || 0,
+                    nonKekerasanAnak: Number(document.getElementById('inp-rek-nonkek-anak').value) || 0,
+                    sudahDitindaklanjuti: Number(document.getElementById('inp-rek-tl').value) || 0,
+                    tercatatSimfoni: Number(document.getElementById('inp-rek-simfoni').value) || 0,
+                    tindakLanjutUmum: document.getElementById('inp-rek-tl-umum').value || '-',
+                    pihakTerlibat: document.getElementById('inp-rek-pihak').value || '-'
+                };
+            } else if (jenisLaporan.includes('Rincian Tindak Lanjut')) {
+                newRecord.kasus = {
+                    kodeKasus: document.getElementById('inp-kas-kode').value || `PDG-${Math.floor(Math.random()*90+10)}`,
+                    tanggalAduan: document.getElementById('inp-kas-tgl').value,
+                    kategori: document.getElementById('inp-kas-kategori').value,
+                    jenisKasus: document.getElementById('inp-kas-jenis').value || 'Kekerasan Psikis',
+                    jumlahKorban: Number(document.getElementById('inp-kas-jml').value) || 1,
+                    jenisKelamin: document.getElementById('inp-kas-gender').value,
+                    kelompokUsia: document.getElementById('inp-kas-usia').value,
+                    disabilitas: document.getElementById('inp-kas-dis').value,
+                    kebutuhanKorban: document.getElementById('inp-kas-kebutuhan').value || '-',
+                    tindakLanjut: document.getElementById('inp-kas-tl').value || '-',
+                    statusPenanganan: document.getElementById('inp-kas-status').value,
+                    sudahSimfoni: document.getElementById('inp-kas-simfoni').value,
+                    noRegistrasiSimfoni: document.getElementById('inp-kas-noreg').value,
+                    tanggalInputSimfoni: document.getElementById('inp-kas-tgl').value,
+                    penginputSimfoni: document.getElementById('inp-kas-penginput').value,
+                    alasanBelumSimfoni: document.getElementById('inp-kas-alasan').value || '-',
+                    hambatan: document.getElementById('inp-kas-hambatan').value || '-'
+                };
+            } else if (jenisLaporan.includes('Publikasi Media Sosial')) {
+                newRecord.medsos = {
+                    tanggalPublikasi: document.getElementById('inp-med-tgl').value,
+                    kegiatan: document.getElementById('inp-med-kegiatan').value || 'Publikasi Kegiatan Pos SAPA',
+                    platform: document.getElementById('inp-med-platform').value,
+                    namaAkun: document.getElementById('inp-med-akun').value || '@possapa_official',
+                    linkPublikasi: document.getElementById('inp-med-url').value || 'https://kemenpppa.go.id',
+                    filePublikasi: 'Dokumentasi_PosSAPA.jpg'
+                };
+            }
+
+            allRecords.unshift(newRecord);
+            persistRecords(`Data Aktif (${allRecords.length} Laporan)`, false);
+            populateFilterDropdowns();
+            applyGlobalFilters();
+            closeInputModal();
+            showToast("Laporan baru berhasil ditambahkan ke dashboard!", "success");
+        }
+
+        // =========================================================================
+        // 13. NOTIFIKASI TOAST
+        // =========================================================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bg = 'bg-slate-900 text-white border-slate-700';
+            let icon = 'fa-circle-info text-amber-400';
+
+            if (type === 'success') {
+                bg = 'bg-emerald-800 text-white border-emerald-600';
+                icon = 'fa-circle-check text-emerald-300';
+            } else if (type === 'error') {
+                bg = 'bg-rose-800 text-white border-rose-600';
+                icon = 'fa-circle-exclamation text-rose-300';
+            }
+
+            toast.className = `${bg} border px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-xs sm:text-sm font-medium transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto max-w-md`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base shrink-0"></i><span>${message}</span>`;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Jalankan inisialisasi saat DOM siap
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

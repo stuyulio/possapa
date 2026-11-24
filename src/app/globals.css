@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy: #1e293b;
+  --navy-dark: #0f172a;
+  --amber: #f59e0b;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Header eksekutif */
+.exec-header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #1e3a8a 100%);
+}
+
+/* Kartu KPI */
+.kpi-card {
+  @apply bg-white rounded-2xl border border-slate-200 p-5 shadow-sm transition;
+}
+.kpi-card:hover {
+  @apply shadow-md;
+}
+
+/* Cetak — sembunyikan kontrol, tampilkan konten */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .exec-header {
+    background: #fff !important;
+    color: #000 !important;
+    border-bottom: 2px solid #000;
+  }
+  .kpi-card {
+    border: 1px solid #999;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+}
