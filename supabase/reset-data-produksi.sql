@@ -4,14 +4,18 @@
 -- Menghapus SELURUH data transaksional dan seluruh lokasi Pos SAPA.
 --
 -- DIPERTAHANKAN:
---   * akun: auth.users + public.pengguna  (dijaga oleh verifikasi di bagian 4)
+--   * akun: auth.users + public.pengguna  (dijaga oleh verifikasi di bagian 5)
 --   * wilayah (18 kabupaten/kota)
---   * periode (6 periode mingguan)
+--   * periode: hanya 6 periode resmi (lihat bagian 3). Dua periode tambahan
+--     yang tumpang tindih DIHAPUS.
 --
 -- DIHAPUS:
 --   * laporan + kelima tabel rinciannya
---   * pos_sapa (termasuk 36 lokasi uji berkode 'UJI-')
+--   * pos_sapa SELURUHNYA — termasuk 4 lokasi non-UJI yang berisi laporan
+--     sungguhan (3 impor Google Form, 1 kirim lewat aplikasi). Keputusan
+--     pemilik produk; backup 20261125 sudah memuat keempatnya.
 --     -> Admin Pusat menginput ulang lokasi resmi lewat /admin/wilayah
+--   * 2 periode tumpang tindih (1-7 Nov dan 8-14 Nov 2026)
 --   * audit_log
 --
 -- CARA PAKAI
@@ -32,10 +36,16 @@
 
 begin;
 
+-- Tabel sementara sengaja TIDAK memakai "on commit drop": bila editor SQL
+-- menyisipkan commit, penjaga di bagian 4 kehilangan snapshot-nya justru
+-- setelah penghapusan berjalan. Dibersihkan eksplisit agar aman diulang.
+drop table if exists _sebelum;
+drop table if exists _sesudah;
+
 -- -----------------------------------------------------------------------------
 -- 0. Snapshot jumlah baris SEBELUM
 -- -----------------------------------------------------------------------------
-create temporary table _sebelum (tabel text primary key, n bigint) on commit drop;
+create temporary table _sebelum (tabel text primary key, n bigint);
 insert into _sebelum (tabel, n) values
   ('laporan',                 (select count(*) from laporan)),
   ('laporan_anak',            (select count(*) from laporan_anak)),
@@ -65,8 +75,12 @@ delete from laporan;
 
 -- -----------------------------------------------------------------------------
 -- 2. pos_sapa
---    Keputusan pemilik produk: HAPUS SEMUA, termasuk 36 lokasi uji 'UJI-%',
---    lalu Admin Pusat menginput ulang lokasi resmi lewat /admin/wilayah.
+--    Keputusan pemilik produk: HAPUS SEMUA. Basis data berisi 40 lokasi:
+--    36 berkode 'UJI-' dari seed-data-uji.sql, dan 4 lokasi non-UJI yang
+--    dibuat manual pada 18-23 Nov 2026 dan memuat laporan sungguhan
+--    (3 impor Google Form, 1 dikirim lewat aplikasi). Keempatnya ikut terhapus
+--    — keputusan sadar pemilik produk, dan backup 20261125 sudah memuatnya.
+--    -> Admin Pusat menginput ulang lokasi resmi lewat /admin/wilayah
 --
 --    RESTRICT pada laporan.pos_id aman di sini karena laporan sudah kosong
 --    pada langkah 1.
@@ -74,20 +88,44 @@ delete from laporan;
 --    Efek samping: pengguna.pos_id -> pos_sapa ON DELETE SET NULL, sehingga
 --    kolom itu disetel NULL. Kolom tersebut memang sudah NULL untuk semua
 --    baris sejak migrasi 20261118000003_petugas_wilayah.sql, jadi tidak ada
---    data akun yang hilang — dan penjaga di langkah 4 hanya membatalkan
+--    data akun yang hilang — dan penjaga di langkah 5 hanya membatalkan
 --    penghapusan baris pengguna, bukan pembaruannya.
 -- -----------------------------------------------------------------------------
 delete from pos_sapa;
 
 -- -----------------------------------------------------------------------------
--- 3. audit_log TERAKHIR (trigger di atas sudah menulis entri hapus ke sini;
+-- 3. periode TUMPANG TINDIH
+--    Basis data berisi 8 periode, bukan 6: selain 6 periode resmi dari
+--    seed-periode.sql (10-23, 10-30, 11-06, 11-13, 11-20, 11-27 Nov 2026),
+--    ada dua periode tambahan yang rentangnya beririsan:
+--        '2026-11-01' s/d '2026-11-07'   (beririsan dengan 11-06 s/d 11-12)
+--        '2026-11-08' s/d '2026-11-14'   (beririsan dengan 11-13 s/d 11-19)
+--    Akibatnya petugas melihat DUA sel periode untuk minggu yang sama di
+--    /laporan-saya. Dihapus di sini agar tinggal 6 periode resmi.
+--
+--    Disasar lewat rentang tanggal, bukan id, supaya idempoten dan tidak
+--    bergantung pada uuid tertentu. UNIQUE(tanggal_mulai, tanggal_selesai)
+--    menjamin sasaran ini tidak ambigu.
+--
+--    RESTRICT pada laporan.periode_id aman: laporan sudah kosong di langkah 1.
+--    periode tidak punya trigger audit, jadi tidak ada entri baru di audit_log.
+-- -----------------------------------------------------------------------------
+delete from periode
+where (tanggal_mulai, tanggal_selesai) in (
+  (date '2026-11-01', date '2026-11-07'),
+  (date '2026-11-08', date '2026-11-14')
+);
+
+-- -----------------------------------------------------------------------------
+-- 4. audit_log TERAKHIR (trigger di atas sudah menulis entri hapus ke sini;
 --    entri itu memang dibuang). Lalu ulangi penomoran dari 1.
 -- -----------------------------------------------------------------------------
 delete from audit_log;
 select setval('audit_log_id_seq', 1, false);
 
 -- -----------------------------------------------------------------------------
--- 4. VERIFIKASI — abort (rollback) bila akun berubah atau masih ada sisa data
+-- 5. VERIFIKASI — abort (rollback) bila data yang wajib lestari berubah,
+--    atau masih ada sisa data transaksional
 -- -----------------------------------------------------------------------------
 do $$
 declare
@@ -95,12 +133,18 @@ declare
   v_pengguna_after  bigint;
   v_auth_before     bigint;
   v_auth_after      bigint;
+  v_wilayah_before  bigint;
+  v_wilayah_after   bigint;
+  v_periode_after   bigint;
   v_sisa            bigint;
 begin
   select n into v_pengguna_before from _sebelum where tabel = 'pengguna';
   select n into v_auth_before     from _sebelum where tabel = 'auth.users';
+  select n into v_wilayah_before  from _sebelum where tabel = 'wilayah';
   select count(*) into v_pengguna_after from pengguna;
   select count(*) into v_auth_after     from auth.users;
+  select count(*) into v_wilayah_after  from wilayah;
+  select count(*) into v_periode_after  from periode;
 
   if v_pengguna_after <> v_pengguna_before then
     raise exception 'BATAL: jumlah baris pengguna berubah (% -> %)',
@@ -109,6 +153,46 @@ begin
   if v_auth_after <> v_auth_before then
     raise exception 'BATAL: jumlah baris auth.users berubah (% -> %)',
       v_auth_before, v_auth_after;
+  end if;
+  if v_wilayah_after <> v_wilayah_before then
+    raise exception 'BATAL: jumlah baris wilayah berubah (% -> %)',
+      v_wilayah_before, v_wilayah_after;
+  end if;
+  -- periode: jumlahnya MEMANG sengaja berubah (8 -> 6), jadi yang diperiksa
+  -- bukan jumlahnya melainkan hasil akhirnya: dua periode tumpang tindih harus
+  -- benar-benar hilang, dan keenam periode resmi harus lengkap. Pemeriksaan
+  -- atas daftar resmi ini lebih kuat daripada sekadar menghitung jumlah,
+  -- karena menghapus periode yang salah tetap akan lolos hitungan jumlah.
+  if exists (
+    select 1 from periode
+    where (tanggal_mulai, tanggal_selesai) in (
+      (date '2026-11-01', date '2026-11-07'),
+      (date '2026-11-08', date '2026-11-14')
+    )
+  ) then
+    raise exception 'BATAL: periode tumpang tindih masih ada setelah penghapusan';
+  end if;
+
+  if v_periode_after <> 6 then
+    raise exception 'BATAL: periode resmi tidak genap 6, tersisa %', v_periode_after;
+  end if;
+
+  if exists (
+    select 1 from (
+      values
+        (date '2026-10-23', date '2026-10-29'),
+        (date '2026-10-30', date '2026-11-05'),
+        (date '2026-11-06', date '2026-11-12'),
+        (date '2026-11-13', date '2026-11-19'),
+        (date '2026-11-20', date '2026-11-26'),
+        (date '2026-11-27', date '2026-12-03')
+    ) as resmi(mulai, selesai)
+    where not exists (
+      select 1 from periode p
+      where p.tanggal_mulai = resmi.mulai and p.tanggal_selesai = resmi.selesai
+    )
+  ) then
+    raise exception 'BATAL: ada periode resmi yang hilang';
   end if;
 
   select count(*) into v_sisa from (
@@ -126,9 +210,9 @@ begin
 end $$;
 
 -- -----------------------------------------------------------------------------
--- 5. Laporan SEBELUM/SESUDAH untuk diperiksa operator
+-- 6. Laporan SEBELUM/SESUDAH untuk diperiksa operator
 -- -----------------------------------------------------------------------------
-create temporary table _sesudah (tabel text primary key, n bigint) on commit drop;
+create temporary table _sesudah (tabel text primary key, n bigint);
 insert into _sesudah (tabel, n) values
   ('laporan',                 (select count(*) from laporan)),
   ('laporan_anak',            (select count(*) from laporan_anak)),
