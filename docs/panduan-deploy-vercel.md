@@ -61,10 +61,33 @@ npx supabase db dump --remote --data-only -f "C:/Users/Restu/backup-possapa-${ST
 # 5. Verifikasi kedua berkas benar-benar berisi:
 Get-ChildItem "C:/Users/Restu/backup-possapa-${STAMP}-*.sql" | Select-Object Name, Length
 
+# Hitung BARIS DATA, bukan jumlah perintah.
+# Supabase memakai pg_dump versi 17, dan keluarannya BUKAN blok COPY:
+# satu pernyataan INSERT untuk SETIAP tabel, lalu baris-baris datanya, dan
+# SETIAP baris data diawali karakter TAB. Jadi satu tabel = satu INSERT
+# dengan ratusan baris di bawahnya.
 $data = "C:/Users/Restu/backup-possapa-${STAMP}-data.sql"
-"baris data : " + @(Select-String -Path $data -Pattern '^(INSERT INTO|COPY )').Count
-"auth.users : " + @(Select-String -Path $data -Pattern 'auth\.users').Count
+$isi  = Get-Content $data
+
+"baris data  : " + @($isi | Where-Object { $_ -match "^\t" }).Count
+"pernyataan  : " + @($isi | Where-Object { $_ -match "^INSERT INTO " }).Count
+
+# Nama tabel selalu berkutip: INSERT INTO "auth"."users" (...)
+$tabel = $isi | ForEach-Object {
+  if ($_ -match '^INSERT INTO "([^"]+)"\."([^"]+)"') { "$($Matches[1]).$($Matches[2])" }
+} | Sort-Object -Unique
+"tabel       : " + @($tabel).Count
+$tabel
+
+if ($isi -match '^INSERT INTO "auth"\."users"') { "auth.users  : ADA" } else { "auth.users  : TIDAK ADA" }
 ```
+
+> **Jangan pakai pola `'^(INSERT INTO|COPY )'` atau `'auth\.users'`.** Keduanya
+> menghasilkan angka palsu di berkas ini: baris data dimulai TAB (bukan
+> `INSERT`), sehingga pola pertama hanya mencacah *pernyataan* INSERT — 16,
+> bukan 2.002 baris. Dan `auth.users` selalu ditulis berkutip
+> (`"auth"."users"`), sehingga pola kedua mengembalikan **0** meski akunnya ada.
+> Backup yang sah melaporkan **2.002 baris data** dengan `auth.users : ADA`.
 
 **Git Bash:**
 
@@ -75,8 +98,21 @@ npx supabase db dump --remote -f "C:/Users/Restu/backup-possapa-$STAMP-schema.sq
 npx supabase db dump --remote --data-only -f "C:/Users/Restu/backup-possapa-$STAMP-data.sql"
 
 ls -lh "C:/Users/Restu/backup-possapa-$STAMP-"*.sql
-grep -c "^INSERT INTO\|^COPY " "C:/Users/Restu/backup-possapa-$STAMP-data.sql"
+
+# Hitung BARIS DATA, bukan jumlah perintah.
+# Keluaran bukan blok COPY: satu INSERT untuk SETIAP tabel, lalu baris-baris
+# datanya, dan setiap baris data diawali karakter TAB.
+data="C:/Users/Restu/backup-possapa-$STAMP-data.sql"
+echo "baris data  : $(awk '/^\t/{n++} END{print n+0}' "$data")"
+echo "pernyataan  : $(grep -c '^INSERT INTO ' "$data")"
+echo "tabel       :"
+grep -o '^INSERT INTO "[^"]*"\."[^"]*"' "$data" | sed 's/^INSERT INTO //' | sort -u
+grep -q '^INSERT INTO "auth"\."users"' "$data" && echo "auth.users  : ADA" || echo "auth.users  : TIDAK ADA"
 ```
+
+> **Jangan pakai `grep -c "^INSERT INTO\|^COPY "`.** Pola itu hanya mencacah
+> *pernyataan* INSERT (16), bukan baris data (2.002) — setiap baris data
+> diawali TAB, bukan `INSERT`.
 
 Langkah 5 harus menunjukkan **angka besar** (ratusan/ribuan) pada hitungan baris
 data. Kalau hasilnya `0`, berkas data itu kosong dan backup-nya tidak berguna —
@@ -101,17 +137,20 @@ sehingga bisa dibangkitkan ulang. **Anggapan itu terbukti salah** setelah backup
 |---|---|---|
 | 36 lokasi Pos SAPA berkode `UJI-` | `supabase/seed-data-uji.sql` | Ya |
 | ~917 laporan berkode `UJI-` | `supabase/seed-data-uji.sql` | Ya |
-| 4 lokasi Pos SAPA **non-uji** | **input manual, tidak ada di seed mana pun** | **Tidak** |
-| 4 laporan pada lokasi non-uji itu | **input manual / impor Google Form** | **Tidak** |
-| 2 periode tumpang tindih | **input manual** | **Tidak** |
+| 4 lokasi Pos SAPA **non-uji** | data nyata Google Form, diimpor skrip ad-hoc | **Tidak** |
+| 4 laporan pada lokasi non-uji itu | 3 impor Google Form, 1 input lewat aplikasi | **Tidak** |
+| 2 periode tumpang tindih | dibuat skrip ad-hoc yang sama, agar kiriman bisa masuk | **Tidak** |
 | 18 kab/kota | `supabase/seed.sql` | Ya |
 | 6 periode resmi | `supabase/seed-periode.sql` | Ya |
-| 18 akun petugas + 7 akun lain | seed + manual | Sebagian |
+| 18 akun petugas | `supabase/seed-akun-petugas.sql` | Ya |
+| 5 akun uji | `supabase/seed-data-uji.sql` | Ya |
+| 2 akun dibuat satu per satu | tidak ada di seed mana pun | **Tidak** |
 
-Ada data yang **tidak** bisa dibangkitkan dari repo — termasuk 4 laporan
-sungguhan (3 di antaranya impor Google Form) dan 4 lokasi yang dibuat manual
-pada 18–23 Nov 2026. Karena itu Jalur B **tidak boleh** diandalkan, dan Jalur A
-menjadi wajib. Backup 2026-11-25 sudah diambil dan memuat semuanya.
+Ada data yang **tidak** bisa dibangkitkan dari repo. Yang paling penting: 4
+laporan sungguhan — 3 di antaranya salinan kiriman Google Form — dan 4 lokasi
+yang mewakili Pos SAPA nyata (nama-namanya terdokumentasi di `PRD.md` §6.5).
+Karena itu Jalur B **tidak boleh** diandalkan, dan Jalur A menjadi wajib.
+Backup 2026-11-25 sudah diambil dan memuat semuanya.
 
 Catatan: JANGAN memakai `npm run db:reset` (`supabase db reset`) sebagai upaya
 pemulihan. Perintah itu menjatuhkan seluruh database, termasuk akun `auth.users`
@@ -193,14 +232,22 @@ backup 2026-11-25); `sesudah` adalah hasil yang diharapkan.
 Dua baris **memang** turun, sesuai keputusan Anda:
 
 - **`pos_sapa` 40 → 0.** Keempat puluh lokasi dihapus, bukan hanya yang berkode
-  `UJI-`. Empat di antaranya bukan data uji melainkan lokasi yang dibuat manual
-  pada 18–23 Nov 2026, dan memuat 4 laporan sungguhan (3 impor Google Form,
+  `UJI-`. Empat di antaranya bukan data uji melainkan lokasi yang mewakili
+  **data nyata Google Form** — nama-namanya terdokumentasi di `PRD.md` §6.5,
+  termasuk kasus satu Pos SAPA yang tercatat dengan dua nama berbeda. Keempatnya
+  dibuat pada 18–23 Nov 2026 dan memuat 4 laporan sungguhan (3 impor Google Form,
   1 dikirim lewat aplikasi). Semuanya ikut terhapus dan hanya bisa dipulihkan
   dari backup.
-- **`periode` 8 → 6.** Dua periode tumpang tindih dihapus karena beririsan
-  dengan periode resmi, sehingga petugas sempat melihat dua sel untuk minggu
-  yang sama. Yang tersisa keenam periode resmi dari `seed-periode.sql`,
-  berakhir `2026-12-03`.
+- **`periode` 8 → 6.** Dua periode tumpang tindih dihapus. Keduanya berasal dari
+  peristiwa yang sama: label periode pada Google Form tidak seragam (PRD §6.5),
+  sehingga dibuat periode yang sesuai agar kiriman nyata itu bisa masuk. Yang
+  tersisa keenam periode resmi dari `seed-periode.sql`, berakhir `2026-12-03`.
+
+  Catatan operasional: aplikasi **sengaja hanya memperingatkan**, tidak memblokir
+  periode tumpang tindih (`src/app/admin/periode/form-periode.tsx`), justru
+  supaya data historis Google Form bisa dirapikan. Selama Google Form masih
+  dipakai berdampingan (PRD §15.2), periode tumpang tindih bisa muncul lagi —
+  jadi peringatan di `/admin/periode` perlu diperiksa berkala.
 
 Kalau muncul galat berawalan `BATAL:` — bagus, itu penjaganya bekerja. Artinya
 ada yang tidak sesuai harapan (mis. akun akan ikut terhapus), dan **seluruh
@@ -309,8 +356,13 @@ select auth_peran(), auth_wilayah_id();  -- harus 'petugas' + uuid wilayah
    `github.com/stuyulio/possapa`. Vercel mengenali Next.js otomatis — jangan
    ubah Build Command atau Output Directory.
 
-2. **Set Node.js Version ke 22.x** (Project Settings → General). Repo ini
-   memakai Next.js 15.5.29; `package.json` sudah menyatakan `engines.node: 22.x`.
+2. **Node.js Version.** Default Vercel untuk project baru sekarang **26.x**.
+   Anda **tidak perlu** mengubahnya: `package.json` sudah menyatakan
+   `engines.node: 22.x`, dan menurut dokumentasi Vercel field itu **menimpa**
+   pilihan di dashboard. Jadi deploy akan memakai 22.x dengan sendirinya.
+
+   Bila ingin memastikan/mengubahnya secara eksplisit: Settings → **Build and
+   Deployment** → Node.js Version (bukan di halaman *General*).
 
 3. **Environment Variables** (Project Settings → Environment Variables):
 
@@ -324,6 +376,17 @@ select auth_peran(), auth_wilayah_id();  -- harus 'petugas' + uuid wilayah
    terbaru kadang berlabel *API Keys*). Tandai `SUPABASE_SERVICE_ROLE_KEY`
    sebagai **Sensitive**.
 
+   **Isi ketiga variabel ini di layar import, bukan sesudahnya.** Kalau lupa,
+   deploy tidak gagal — halaman publik justru **tayang dengan semua angka 0**
+   dan pesan "Belum ada data", karena `src/app/page.tsx` menangkap galat
+   koneksi dan mengembalikan daftar kosong. Ini sudah dibuktikan: build dengan
+   env var kosong tetap **exit 0** di mesin lokal, dan HTML hasilnya memang
+   memuat kalimat fallback itu. Jadi jangan mengandalkan "berhasil deploy"
+   sebagai tanda env var-nya benar.
+
+   Mengubah `NEXT_PUBLIC_*` setelahnya wajib **redeploy**, bukan sekadar
+   restart, karena nilainya disisipkan saat build.
+
    **Jangan** menyetel `NEXT_DIST_DIR` di Vercel — variabel itu hanya untuk
    pemakaian lokal, dan menyetelnya akan membuat Vercel mencari hasil build di
    folder yang salah.
@@ -333,12 +396,44 @@ select auth_peran(), auth_wilayah_id();  -- harus 'petugas' + uuid wilayah
    di preview, `/admin/akun` hanya menampilkan pesan "belum dikonfigurasi"
    alih-alih bisa membuat atau menghapus akun sungguhan.
 
-4. **Deploy.** Setelah selesai, Vercel memberi domain seperti
-   `https://possapa.vercel.app`. Kembali ke langkah 2.1 dan isi *Site URL*
-   dengan domain itu (kalau tadi diisi placeholder).
+4. **Deploy.** Vercel memberi domain berdasarkan nama project. **Catat domain
+   persisnya** — nama itu mudah tertukar satu huruf (project ini menjadi
+   `posapa.vercel.app`, perhatikan hanya **satu** huruf `s` setelah `po`).
+   Setelah tahu domainnya, kembali ke langkah 2.1 dan isi *Site URL* dengan
+   domain itu (kalau tadi diisi placeholder).
 
 Catatan: dua variabel `NEXT_PUBLIC_*` disisipkan saat build. Kalau nilainya
 diubah, harus **redeploy**, bukan sekadar restart.
+
+### Kalau situs balas 500 pada SEMUA halaman
+
+Ciri khasnya: respons berisi `X-Vercel-Error: MIDDLEWARE_INVOCATION_FAILED`,
+dan bahkan `/api/ping` ikut 500.
+
+Penyebabnya hampir selalu **env var Supabase tidak terisi saat middleware
+dijalankan** — untuk `NEXT_PUBLIC_*` artinya **tidak ada saat build**.
+`src/lib/supabase/middleware.ts` memanggil `createServerClient` dengan env var
+**tanpa `try/catch`** — berbeda dari `src/app/page.tsx` yang menangkap galat.
+Middleware berjalan untuk setiap request, jadi satu galat itu mematikan seluruh
+situs. Kalau env var-nya kosong, `createServerClient` melempar
+`Your project's URL and Key are required to create a Supabase client!`
+
+Perhatikan: `/api/ping` **juga lewat middleware**. Jadi route keep-alive ini
+tidak bisa dipakai sebagai kanari mandiri kalau middleware-nya sendiri rusak —
+gejalanya menyerupai Supabase tak terjangkau, padahal bukan.
+
+Urutan memeriksa:
+
+1. Vercel → Settings → **Environment Variables**. Ketiga variabel harus ada,
+   dengan environment yang benar (lihat tabel di langkah 3).
+2. **Redeploy tanpa cache.** Deployment Vercel bersifat *immutable*: menambah
+   env var **tidak** mengubah deployment yang sudah jadi. Deployments →
+   deployment teratas → ⋯ → Redeploy → hilangkan centang **Use existing Build
+   Cache**.
+3. Ulangi `curl` ke `/api/ping` sampai statusnya 200.
+
+Kalau `/api/ping` sudah 200 tapi halaman lain masih 500, penyebabnya berbeda —
+laporkan pesan galatnya, jangan mengulang langkah yang sama.
 
 ---
 
@@ -346,8 +441,28 @@ diubah, harus **redeploy**, bukan sekadar restart.
 
 Uji berurutan dari yang paling murah:
 
+**Mulai dari langkah 0, bukan langkah 1.** Setelah pengosongan, halaman publik
+memang menampilkan semua angka 0 — dan itu **gejala yang sama persis** dengan
+env var yang salah isi. Kalau Anda mulai dari langkah 1, "semua nol" tidak
+membuktikan apa pun: bisa jadi benar, bisa jadi database tak pernah tersentuh.
+
+0. **`/api/ping` — kanari env var.** Buka `https://<domain>/api/ping` di
+   browser. Harus mengembalikan `{"ok":true,"waktu":"..."}`.
+
+   Ini satu-satunya pemeriksaan yang memisahkan dua keadaan itu, karena route
+   ini **tidak** membungkam galat: `src/lib/supabase/public.ts` memanggil
+   `createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, ...)`, dan bila nilainya
+   kosong `createClient` melempar `supabaseUrl is required.` Route menangkapnya
+   dan mengembalikan **HTTP 500**.
+
+   Jadi: `{"ok":true}` = env var benar dan database terjangkau. HTTP 500 dengan
+   pesan `supabaseUrl is required` = env var salah → perbaiki di Settings →
+   Environment Variables, lalu **redeploy** (bukan restart). Selama langkah ini
+   belum hijau, jangan percaya pemeriksaan mana pun di bawahnya.
+
 1. **`/` (halaman publik)** — muat tanpa galat, semua kartu bernilai 0, label
-   "data diperbarui" kosong. Kosong di sini **benar**, bukan bug.
+   "data diperbarui" kosong. Kosong di sini **benar**, bukan bug — tetapi baru
+   bermakna setelah langkah 0 hijau.
 2. **Buka `/dashboard` sebagai tamu** — harus dialihkan ke
    `/masuk?lanjut=/dashboard`. Ini membuktikan middleware bekerja.
 3. **`/masuk`** — masuk dengan akun yang dipertahankan. Arahannya sesuai peran:
@@ -376,10 +491,22 @@ Uji berurutan dari yang paling murah:
    tengah operasional.
 
 2. **Cron keep-alive sudah otomatis.** `vercel.json` memanggil `/api/ping`
-   sekali sehari untuk mencegah project Supabase Free di-pause setelah 7 hari
-   tanpa aktivitas. Verifikasi di Vercel → Project → Cron Jobs. Cek juga hasil
-   panggilannya: `https://<domain>/api/ping` harus mengembalikan
+   sekali sehari (`0 1 * * *`) untuk mencegah project Supabase Free di-pause
+   setelah 7 hari tanpa aktivitas. Verifikasi di Vercel → Project → **Cron Jobs**.
+   Cek juga hasil panggilannya: `https://<domain>/api/ping` harus mengembalikan
    `{"ok":true,...}`.
+
+   Dua batasan paket Hobby yang perlu diketahui (terverifikasi di dokumentasi
+   Vercel "Usage & Pricing for Cron Jobs"):
+
+   - **Minimum interval = sekali per hari.** Ekspresi yang lebih sering
+     (mis. `0 * * * *` per jam) **akan menggagalkan deploy**, bukan sekadar
+     diabaikan. Jadi `0 1 * * *` ini tepat di batas yang diizinkan — jangan
+     dirapatkan, dan jangan tergoda menambah cron kedua yang lebih sering.
+   - **Ketepatan waktu per jam (±59 menit).** `0 1 * * *` bisa menyala kapan
+     saja antara 01:00 dan 01:59. Untuk keep-alive ini tidak masalah.
+
+   Batas jumlah cron adalah 100 per project, jadi satu job jauh dari batas.
 
 3. **Jadwalkan `pg_dump` mingguan.** Paket Free tidak punya backup, jadi ini
    wajib (README "Operasional wajib"). Ulangi perintah di bagian 1 Jalur A
