@@ -27,6 +27,151 @@ body {
   @apply shadow-md;
 }
 
+/* Ring fokus global. Amber-700 (#b45309) dipakai untuk outline — lolos
+   kontras di atas putih; amber-500 tidak dipakai sebagai warna teks. */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #b45309;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* =============================================================================
+   LANDING PUBLIK — pola tata letak Kebun Pangan Perempuan, palet KemenPPPA.
+
+   Semua kelas berawalan `publik-` agar tidak bertabrakan dengan `.exec-header`
+   dan `.kpi-card` yang dipakai halaman internal. Tidak ada token baru di
+   tailwind.config.ts: navy/amber/blue/slate sudah cukup.
+
+   Aturan warna PRD §8.1: amber hanya aksen, garis, atau outline — TIDAK
+   PERNAH sebagai warna teks di atas latar putih (kontras gagal).
+   ============================================================================= */
+@layer components {
+  /* ---------- pembungkus & ritme bagian ---------- */
+  .publik-wrap {
+    @apply mx-auto w-full max-w-[1180px] px-4 sm:px-6;
+  }
+  .publik-bagian {
+    @apply py-14 sm:py-20 lg:py-24;
+  }
+  /* Judul kiri, keterangan kanan, rata bawah — pola `.sec-head` referensi. */
+  .publik-kepala {
+    @apply mb-8 grid items-end gap-5 sm:mb-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-12;
+  }
+
+  /* ---------- tipografi ---------- */
+  .publik-eyebrow {
+    @apply font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-blue-700;
+  }
+  .publik-lead {
+    @apply max-w-[60ch] text-base text-slate-600 sm:text-lg;
+  }
+  .publik-judul {
+    @apply font-display font-extrabold tracking-tight text-slate-900;
+    text-wrap: balance;
+  }
+
+  /* Penekanan frasa kunci tanpa mewarnai teks amber.
+     Memakai text-decoration (bukan ::after + z-index:-1) supaya tidak
+     tersembunyi di belakang stacking context induk. */
+  .publik-tekan {
+    text-decoration: underline;
+    text-decoration-color: #f59e0b;
+    text-decoration-thickness: 0.14em;
+    text-underline-offset: 0.1em;
+    text-decoration-skip-ink: none;
+  }
+
+  /* ---------- tombol ---------- */
+  .publik-btn {
+    @apply inline-flex items-center gap-2 rounded-full border-[1.5px] border-slate-900 bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-px hover:bg-slate-800;
+  }
+  .publik-btn-hantu {
+    @apply inline-flex items-center gap-2 rounded-full border-[1.5px] border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-500;
+  }
+
+  /* ---------- tile indeks ---------- */
+  .publik-tile {
+    @apply flex flex-col overflow-hidden rounded-2xl border-[1.5px] border-slate-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg;
+  }
+  .publik-tile b {
+    @apply font-display text-base font-bold leading-snug text-slate-900;
+  }
+  .publik-tile-lebar {
+    @apply flex-row items-center gap-3 border-slate-900 bg-slate-900 p-4 text-white hover:bg-slate-800;
+  }
+  .publik-tile-lebar b {
+    @apply text-white;
+  }
+
+  /* ---------- grid angka bergaris rambut ----------
+     Garis dibuat dengan gap-px di atas latar slate-200, sel berlatar putih.
+     Dengan begitu hairline tetap rapi di semua breakpoint tanpa aturan
+     nth-child. Kolom dipilih 2→4 karena ada tepat 8 angka: tiap baris penuh,
+     tidak ada sel kosong yang menampakkan latar abu-abu. */
+  .publik-angka {
+    @apply grid grid-cols-2 gap-px border-t-2 border-slate-900 bg-slate-200 sm:grid-cols-4;
+  }
+  .publik-angka > div {
+    @apply bg-white px-3 py-4;
+  }
+  .publik-angka b {
+    @apply block font-display text-2xl font-extrabold leading-none text-slate-900 tabular-nums sm:text-3xl;
+  }
+  .publik-angka span {
+    @apply mt-1.5 block text-xs leading-snug text-slate-600;
+  }
+  .publik-angka i {
+    @apply mt-1 block text-[11px] font-semibold not-italic text-slate-400;
+  }
+
+  /* ---------- kartu pintu (jalur audiens) ---------- */
+  .publik-pintu {
+    @apply flex flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-white transition hover:-translate-y-1 hover:shadow-xl;
+  }
+  .publik-pintu:hover img {
+    transform: scale(1.04);
+  }
+
+  /* ---------- anchor di bawah header lengket ---------- */
+  /* Header punya dua tinggi: satu baris di layar lebar, dua baris (brand +
+     nav + Masuk) di bawah 1000px. Nilai di bawah dihitung dari tinggi
+     sebenarnya ditambah jarak napas, supaya judul bagian tidak tertutup
+     saat tautan nav diklik. */
+  .publik-anchor {
+    scroll-margin-top: 84px;
+  }
+  @media (max-width: 1023px) {
+    .publik-anchor {
+      scroll-margin-top: 132px;
+    }
+  }
+
+  /* ---------- scroll-reveal ---------- */
+  /* Animasi hanya aktif setelah JS menandai <html data-rv="on">, sehingga
+     konten tetap terlihat penuh bila JS gagal dimuat. */
+  [data-rv="on"] .publik-rv {
+    opacity: 0;
+    transform: translateY(26px);
+    transition:
+      opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+    transition-delay: var(--d, 0s);
+  }
+  [data-rv="on"] .publik-rv.in {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-rv="on"] .publik-rv,
+    [data-rv="on"] .publik-rv.in {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
 /* Cetak — sembunyikan kontrol, tampilkan konten */
 @media print {
   .no-print {
@@ -43,6 +188,30 @@ body {
   .kpi-card {
     border: 1px solid #999;
     box-shadow: none;
+    break-inside: avoid;
+  }
+
+  /* Landing publik: header lengket jadi statis, kontrol disembunyikan,
+     dan bagian yang belum ter-reveal tetap tercetak penuh. */
+  .publik-header {
+    position: static !important;
+    background: #fff !important;
+    backdrop-filter: none !important;
+    border-bottom: 2px solid #000;
+  }
+  .publik-header nav,
+  .publik-header .publik-btn,
+  .publik-tanpa-cetak {
+    display: none !important;
+  }
+  .publik-rv,
+  .publik-rv.in {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .publik-tile,
+  .publik-pintu,
+  .publik-angka > div {
     break-inside: avoid;
   }
 }
