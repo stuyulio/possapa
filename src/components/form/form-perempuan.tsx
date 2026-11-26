@@ -8,7 +8,8 @@ export type NilaiPerempuan = {
   jenis_kegiatan: string;
   total_ikut: number;
   kepala_keluarga: number;
-  hamil_menyusui: number;
+  hamil: number;
+  menyusui: number;
   lansia: number;
   disabilitas: number;
   manfaat: string;
@@ -79,10 +80,11 @@ export function FormPerempuan({
         </legend>
         <p className="text-[11px] text-slate-500 mb-3">
           Isi jumlah peserta pada masing-masing kelompok. Tidak boleh melebihi
-          total peserta.
+          total peserta. Satu peserta boleh dihitung di beberapa kelompok — ibu
+          hamil dapat sekaligus menyusui.
         </p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <Field label="Kepala keluarga" galat={galat.kepala_keluarga}>
             <InputAngka
               nilai={nilai.kepala_keluarga}
@@ -91,11 +93,19 @@ export function FormPerempuan({
               bacaSaja={bacaSaja}
             />
           </Field>
-          <Field label="Hamil / menyusui" galat={galat.hamil_menyusui}>
+          <Field label="Hamil" galat={galat.hamil}>
             <InputAngka
-              nilai={nilai.hamil_menyusui}
-              ubah={(v) => ubah("hamil_menyusui", v)}
-              galat={galat.hamil_menyusui}
+              nilai={nilai.hamil}
+              ubah={(v) => ubah("hamil", v)}
+              galat={galat.hamil}
+              bacaSaja={bacaSaja}
+            />
+          </Field>
+          <Field label="Menyusui" galat={galat.menyusui}>
+            <InputAngka
+              nilai={nilai.menyusui}
+              ubah={(v) => ubah("menyusui", v)}
+              galat={galat.menyusui}
               bacaSaja={bacaSaja}
             />
           </Field>

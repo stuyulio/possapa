@@ -16,6 +16,71 @@ const ANAK_DASAR = {
   tindak_lanjut: "",
 };
 
+const PEREMPUAN_DASAR = {
+  jumlah_kegiatan: 1,
+  nama_kegiatan: "Sekolah Perempuan Mandiri",
+  jenis_kegiatan: "Pelatihan usaha",
+  total_ikut: 10,
+  kepala_keluarga: 4,
+  hamil: 2,
+  menyusui: 3,
+  lansia: 1,
+  disabilitas: 1,
+  manfaat: "",
+};
+
+describe("skemaPerempuan — hamil dan menyusui dipisah", () => {
+  it("menerima angka yang saling tumpang tindih", () => {
+    // Seorang perempuan dapat hamil sekaligus menyusui, jadi 2 + 3 = 5
+    // peserta bukan berarti total harus 5; total tetap 10.
+    const hasil = validasi("aktivitas_perempuan", PEREMPUAN_DASAR);
+    expect(hasil.sukses).toBe(true);
+  });
+
+  it("menolak peserta hamil yang melebihi total", () => {
+    const hasil = validasi("aktivitas_perempuan", {
+      ...PEREMPUAN_DASAR,
+      hamil: 11,
+    });
+    expect(hasil.sukses).toBe(false);
+    if (!hasil.sukses) {
+      expect(hasil.galat.hamil).toMatch(/melebihi total/);
+    }
+  });
+
+  it("menolak peserta menyusui yang melebihi total", () => {
+    const hasil = validasi("aktivitas_perempuan", {
+      ...PEREMPUAN_DASAR,
+      menyusui: 11,
+    });
+    expect(hasil.sukses).toBe(false);
+    if (!hasil.sukses) {
+      expect(hasil.galat.menyusui).toMatch(/melebihi total/);
+    }
+  });
+
+  it("menolak isian berbentuk lama yang masih memakai hamil_menyusui", () => {
+    // Bentuk isian pra-pemisahan tidak boleh lolos diam-diam: kolom gabungan
+    // tidak dikenal, dan hamil/menyusui yang wajib menjadi kosong.
+    const hasil = validasi("aktivitas_perempuan", {
+      jumlah_kegiatan: 1,
+      nama_kegiatan: "Sekolah Perempuan Mandiri",
+      jenis_kegiatan: "Pelatihan usaha",
+      total_ikut: 10,
+      kepala_keluarga: 4,
+      hamil_menyusui: 5,
+      lansia: 1,
+      disabilitas: 1,
+      manfaat: "",
+    });
+    expect(hasil.sukses).toBe(false);
+    if (!hasil.sukses) {
+      expect(hasil.galat.hamil).toBeDefined();
+      expect(hasil.galat.menyusui).toBeDefined();
+    }
+  });
+});
+
 describe("galatPenerimaManfaat", () => {
   it("mewajibkan minimal satu penerima manfaat", () => {
     // Kegiatan tanpa peserta membuat rasio penerima manfaat per kegiatan

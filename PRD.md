@@ -121,7 +121,7 @@ Visualisasi: tren capaian per periode, perbandingan antarprovinsi/kab/kota, komp
 - Total kegiatan perempuan per wilayah dan jenis kegiatan terbanyak.
 - Total penerima manfaat perempuan per wilayah dan periode.
 - Jumlah dan proporsi perempuan kepala keluarga (PEKKA).
-- Komposisi perempuan hamil/menyusui dan perempuan lansia.
+- Komposisi perempuan hamil, perempuan menyusui, dan perempuan lansia.
 - Jumlah dan proporsi perempuan penyandang disabilitas.
 - Rekapitulasi manfaat yang dirasakan (naratif, dapat dicari).
 
@@ -187,7 +187,7 @@ Pengganti Google Formulir. Lima percabangan sesuai jenis laporan.
 | `Status Pelaporan Aduan = Nihil` | Seluruh hitungan aduan dikunci ke 0 |
 | Jumlah aduan masuk | Harus sama dengan jumlah keempat kategori aduan |
 | Total anak | Harus ≥ jumlah subkelompok usia dan ≥ jumlah per jenis kelamin |
-| Total perempuan | Harus ≥ jumlah PEKKA/hamil/lansia/disabilitas |
+| Total perempuan | Harus ≥ jumlah PEKKA/hamil/menyusui/lansia/disabilitas (masing-masing, boleh tumpang tindih) |
 | Link publikasi | Harus URL valid berawalan `https://` |
 | Kode kasus | Unik per wilayah |
 | Periode | Satu laporan per lokasi per periode per jenis laporan |
@@ -239,7 +239,7 @@ laporan(id, pos_id, periode_id, jenis_laporan, status[DRAT|TERKIRIM|TERVERIFIKAS
   │               usia_0_5, usia_6_12, usia_13_17, laki_laki, perempuan,
   │               disabilitas, perlu_layanan_lanjutan, temuan, tindak_lanjut)
   ├─ laporan_perempuan(laporan_id, jumlah_kegiatan, nama_kegiatan, jenis_kegiatan,
-  │                   total_ikut, kepala_keluarga, hamil_menyusui, lansia,
+  │                   total_ikut, kepala_keluarga, hamil, menyusui, lansia,
   │                   disabilitas, manfaat)
   ├─ laporan_rekap_pengaduan(laporan_id, status_bulan, aduan_masuk, kekerasan_perempuan,
   │                          kekerasan_anak, non_kekerasan_perempuan, non_kekerasan_anak,

@@ -45,7 +45,7 @@ const NILAI_AWAL: Record<JenisForm, unknown> = {
     nama_kegiatan: "",
     jenis_kegiatan: "",
     total_ikut: 0, kepala_keluarga: 0,
-    hamil_menyusui: 0, lansia: 0, disabilitas: 0,
+    hamil: 0, menyusui: 0, lansia: 0, disabilitas: 0,
     manfaat: "",
   } satisfies NilaiPerempuan,
   rekap_pengaduan: {
@@ -102,6 +102,33 @@ type DrafLokal = {
   periodeId?: string;
   data?: Partial<Record<JenisForm, unknown>>;
 };
+
+/**
+ * Draf lama — ditulis sebelum "Hamil / Menyusui" dipisah — menyimpan satu
+ * kolom gabungan `hamil_menyusui`. Tanpa pemindahan, angka itu hilang saat
+ * draf dipulihkan karena kolom tersebut tidak lagi ada di formulir. Angkanya
+ * dipindahkan utuh ke `hamil`, sama seperti perlakuan data historis di
+ * database, dan kolom lamanya dibuang. Draf berbentuk baru tidak berubah.
+ */
+function pindahkanDrafLama(draf: DrafLokal): DrafLokal {
+  const lama = draf.data?.aktivitas_perempuan as
+    | Record<string, unknown>
+    | undefined;
+  if (!lama || !("hamil_menyusui" in lama)) return draf;
+
+  const { hamil_menyusui, ...sisa } = lama;
+  return {
+    ...draf,
+    data: {
+      ...draf.data,
+      aktivitas_perempuan: {
+        ...sisa,
+        hamil: sisa.hamil ?? hamil_menyusui,
+        menyusui: sisa.menyusui ?? 0,
+      },
+    },
+  };
+}
 
 export function FormulirInput({
   pos,
@@ -218,7 +245,8 @@ export function FormulirInput({
   // Urutan prioritasnya: isian tersimpan di server, lalu draf lokal di atasnya
   // (draf lokal adalah suntingan yang belum terkirim).
   useEffect(() => {
-    const draf = bacaDraf();
+    const tersimpan = bacaDraf();
+    const draf = tersimpan ? pindahkanDrafLama(tersimpan) : null;
 
     setNilai(() => {
       const gabung = {} as Record<JenisForm, unknown>;

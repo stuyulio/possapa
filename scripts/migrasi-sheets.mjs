@@ -378,7 +378,12 @@ function petakanBaris(row, nomorBaris) {
       jenis_kegiatan: teks(row[k.jenis_kegiatan]),
       total_ikut: angka(row[k.total_ikut]),
       kepala_keluarga: angka(row[k.kepala_keluarga]),
-      hamil_menyusui: angka(row[k.hamil_menyusui]),
+      // Google Form hanya punya SATU pertanyaan gabungan "Hamil/Menyusui"
+      // (kolom 23). Angka gabungan itu masuk ke `hamil`; `menyusui` diisi 0
+      // karena tidak dapat dipilah dari data lama. Indeks kolom tidak berubah,
+      // jadi template dan form lama tetap terbaca.
+      hamil: angka(row[k.hamil_menyusui]),
+      menyusui: 0,
       lansia: angka(row[k.lansia]),
       disabilitas: angka(row[k.disabilitas]),
       manfaat: teks(row[k.manfaat]),

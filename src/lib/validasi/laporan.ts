@@ -106,7 +106,11 @@ export const skemaPerempuan = z
     jenis_kegiatan: teksOpsional,
     total_ikut: angka(),
     kepala_keluarga: angka(),
-    hamil_menyusui: angka(),
+    // Hamil dan menyusui diisi terpisah. Seorang perempuan dapat hamil
+    // sekaligus menyusui, jadi angkanya boleh tumpang tindih — yang diperiksa
+    // masing-masing terhadap total, bukan jumlah keduanya.
+    hamil: angka(),
+    menyusui: angka(),
     lansia: angka(),
     disabilitas: angka(),
     manfaat: teksOpsional,
@@ -115,9 +119,13 @@ export const skemaPerempuan = z
     message: "Kepala keluarga tidak boleh melebihi total peserta",
     path: ["kepala_keluarga"],
   })
-  .refine((d) => d.total_ikut >= d.hamil_menyusui, {
-    message: "Peserta hamil/menyusui tidak boleh melebihi total",
-    path: ["hamil_menyusui"],
+  .refine((d) => d.total_ikut >= d.hamil, {
+    message: "Peserta hamil tidak boleh melebihi total",
+    path: ["hamil"],
+  })
+  .refine((d) => d.total_ikut >= d.menyusui, {
+    message: "Peserta menyusui tidak boleh melebihi total",
+    path: ["menyusui"],
   })
   .refine((d) => d.total_ikut >= d.lansia, {
     message: "Peserta lansia tidak boleh melebihi total",

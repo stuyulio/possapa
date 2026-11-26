@@ -104,7 +104,7 @@ export function agregatAnak(laporan: Laporan[]) {
 
 export function agregatPerempuan(laporan: Laporan[]) {
   let totalKegiatan = 0, totalIkut = 0, kepalaKeluarga = 0;
-  let hamil = 0, lansia = 0, disabilitas = 0;
+  let hamil = 0, menyusui = 0, lansia = 0, disabilitas = 0;
   const jenis = new Map<string, number>();
 
   for (const l of laporan) {
@@ -113,7 +113,8 @@ export function agregatPerempuan(laporan: Laporan[]) {
     totalKegiatan += p.jumlah_kegiatan;
     totalIkut += p.total_ikut;
     kepalaKeluarga += p.kepala_keluarga;
-    hamil += p.hamil_menyusui;
+    hamil += p.hamil;
+    menyusui += p.menyusui;
     lansia += p.lansia;
     disabilitas += p.disabilitas;
     if (p.jenis_kegiatan) {
@@ -128,6 +129,7 @@ export function agregatPerempuan(laporan: Laporan[]) {
     totalIkut,
     kepalaKeluarga,
     hamil,
+    menyusui,
     lansia,
     disabilitas,
     jenisTerbanyak: [...jenis.entries()]

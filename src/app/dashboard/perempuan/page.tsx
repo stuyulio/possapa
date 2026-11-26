@@ -18,7 +18,8 @@ export default async function HalamanPerempuan({
 
   const dataRentan = [
     { nama: "Kepala keluarga", jumlah: p.kepalaKeluarga },
-    { nama: "Hamil/menyusui", jumlah: p.hamil },
+    { nama: "Hamil", jumlah: p.hamil },
+    { nama: "Menyusui", jumlah: p.menyusui },
     { nama: "Lansia", jumlah: p.lansia },
     { nama: "Disabilitas", jumlah: p.disabilitas },
   ];
@@ -74,6 +75,7 @@ export default async function HalamanPerempuan({
                 <th className="text-center font-semibold py-2.5 px-3">Total</th>
                 <th className="text-center font-semibold py-2.5 px-3">KK</th>
                 <th className="text-center font-semibold py-2.5 px-3">Hamil</th>
+                <th className="text-center font-semibold py-2.5 px-3">Menyusui</th>
                 <th className="text-center font-semibold py-2.5 px-3">Lansia</th>
                 <th className="text-center font-semibold py-2.5 px-3">Dis.</th>
                 <th className="text-left font-semibold py-2.5 px-3">Manfaat</th>
@@ -81,7 +83,7 @@ export default async function HalamanPerempuan({
             </thead>
             <tbody className="divide-y divide-slate-100">
               {daftar.length === 0 ? (
-                <TabelKosong kolom={8} pesan="Belum ada laporan aktivitas perempuan pada filter ini." />
+                <TabelKosong kolom={9} pesan="Belum ada laporan aktivitas perempuan pada filter ini." />
               ) : (
                 daftar.map((l) => {
                   const x = l.laporan_perempuan!;
@@ -98,7 +100,8 @@ export default async function HalamanPerempuan({
                       </td>
                       <td className="py-3 px-3 text-center font-bold text-rose-700">{x.total_ikut}</td>
                       <td className="py-3 px-3 text-center">{x.kepala_keluarga}</td>
-                      <td className="py-3 px-3 text-center">{x.hamil_menyusui}</td>
+                      <td className="py-3 px-3 text-center">{x.hamil}</td>
+                      <td className="py-3 px-3 text-center">{x.menyusui}</td>
                       <td className="py-3 px-3 text-center">{x.lansia}</td>
                       <td className="py-3 px-3 text-center">{x.disabilitas}</td>
                       <td className="py-3 px-3 text-xs text-slate-700 max-w-xs">{x.manfaat ?? "—"}</td>

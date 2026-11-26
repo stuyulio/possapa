@@ -30,7 +30,8 @@ export type Perempuan = {
   jenis_kegiatan: string | null;
   total_ikut: number;
   kepala_keluarga: number;
-  hamil_menyusui: number;
+  hamil: number;
+  menyusui: number;
   lansia: number;
   disabilitas: number;
   manfaat: string | null;

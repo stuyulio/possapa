@@ -314,7 +314,7 @@ hitung as (
 )
 insert into laporan_perempuan (
   laporan_id, jumlah_kegiatan, nama_kegiatan, jenis_kegiatan,
-  total_ikut, kepala_keluarga, hamil_menyusui, lansia, disabilitas, manfaat
+  total_ikut, kepala_keluarga, hamil, menyusui, lansia, disabilitas, manfaat
 )
 select
   id,
@@ -332,6 +332,7 @@ select
   total_ikut,
   total_ikut / 2,
   (n % 4)::int,
+  (n % 3)::int,
   (n % 5)::int,
   (n % 3)::int,
   'Peserta memperoleh pengetahuan dan dukungan sosial'

@@ -51,7 +51,8 @@ export async function GET(request: NextRequest) {
       baris = [
         { Keterangan: "Total peserta perempuan", Nilai: p.totalIkut },
         { Keterangan: "Kepala keluarga", Nilai: p.kepalaKeluarga },
-        { Keterangan: "Hamil/menyusui", Nilai: p.hamil },
+        { Keterangan: "Hamil", Nilai: p.hamil },
+        { Keterangan: "Menyusui", Nilai: p.menyusui },
         { Keterangan: "Lansia", Nilai: p.lansia },
         { Keterangan: "Disabilitas", Nilai: p.disabilitas },
         { Keterangan: "Total kegiatan", Nilai: p.totalKegiatan },
