@@ -11,7 +11,6 @@ import { Alur } from "@/components/landing/alur";
 import { Aktivitas } from "@/components/landing/aktivitas";
 import { Pintu } from "@/components/landing/pintu";
 import { Sebaran } from "@/components/landing/sebaran";
-import { Capaian } from "@/components/landing/capaian";
 import {
   DataPublik,
   type Ringkasan,
@@ -121,7 +120,6 @@ export default async function Beranda() {
           <Aktivitas />
           <Pintu />
           <Sebaran />
-          <Capaian />
           <DataPublik
             ringkasan={ringkasan}
             total={total}

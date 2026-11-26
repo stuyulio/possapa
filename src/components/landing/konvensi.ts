@@ -39,6 +39,5 @@ export const NAV = [
   { id: "konsep", label: "Konsep" },
   { id: "aktivitas", label: "Aktivitas" },
   { id: "sebaran", label: "Sebaran" },
-  { id: "capaian", label: "Capaian" },
   { id: "data", label: "Data" },
 ] as const;

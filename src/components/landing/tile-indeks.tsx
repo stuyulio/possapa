@@ -34,11 +34,6 @@ const TILE = [
     judul: "18 titik layanan",
     ringkas: "Sebaran Pos SAPA di Aceh, Sumatera Utara, dan Sumatera Barat.",
   },
-  {
-    id: "capaian",
-    judul: "Capaian s.d. November 2026",
-    ringkas: "Angka penerima manfaat, kegiatan, dan penanganan pengaduan.",
-  },
 ] as const;
 
 export function TileIndeks() {
