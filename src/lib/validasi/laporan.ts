@@ -35,22 +35,69 @@ export const PLATFORM = [
   "Lainnya",
 ] as const;
 
-export const skemaAnak = z.object({
-  jumlah_kegiatan: angka(1000).min(1, "Minimal 1 kegiatan"),
-  nama_kegiatan: teksWajib("Nama kegiatan"),
-  jenis_kegiatan: z
-    .array(z.string())
-    .min(1, "Pilih minimal satu jenis kegiatan"),
-  usia_0_5: angka(),
-  usia_6_12: angka(),
-  usia_13_17: angka(),
-  laki_laki: angka(),
-  perempuan: angka(),
-  disabilitas: angka(),
-  perlu_layanan_lanjutan: angka(),
-  temuan: teksOpsional,
-  tindak_lanjut: teksOpsional,
-});
+/**
+ * Aturan Penerima Manfaat Aktivitas Anak — satu sumber untuk skema (server
+ * menolak) dan formulir (tombol kirim dinonaktifkan).
+ *
+ * Dua aturan, keduanya tentang TOTAL, bukan tiap kolom:
+ *  1. Minimal satu penerima manfaat. Kegiatan tanpa peserta membuat rasio
+ *     penerima manfaat per kegiatan menyesatkan.
+ *  2. Total per usia harus sama dengan total per jenis kelamin — keduanya
+ *     menghitung orang yang sama. Sebelumnya selisih ini baru tampak sebagai
+ *     anomali A1 setelah laporan terkirim; sekarang laporan ditolak lebih dulu.
+ *
+ * Angka 0 tetap sah untuk kelompok yang memang tidak ada (mis. tidak ada
+ * peserta usia 13–17 tahun atau tidak ada penyandang disabilitas).
+ */
+export function galatPenerimaManfaat(d: {
+  usia_0_5: number;
+  usia_6_12: number;
+  usia_13_17: number;
+  laki_laki: number;
+  perempuan: number;
+}): string | null {
+  const totalUsia = d.usia_0_5 + d.usia_6_12 + d.usia_13_17;
+  const totalGender = d.laki_laki + d.perempuan;
+
+  if (totalUsia === 0 && totalGender === 0) {
+    return "Penerima manfaat wajib diisi — isi minimal satu angka pada kelompok usia atau jenis kelamin";
+  }
+  if (totalUsia === 0) {
+    return `Penerima manfaat wajib diisi — total per jenis kelamin (${totalGender}) belum punya rincian usia`;
+  }
+  if (totalUsia !== totalGender) {
+    return `Total per usia (${totalUsia}) harus sama dengan total per jenis kelamin (${totalGender})`;
+  }
+  return null;
+}
+
+export const skemaAnak = z
+  .object({
+    jumlah_kegiatan: angka(1000).min(1, "Minimal 1 kegiatan"),
+    nama_kegiatan: teksWajib("Nama kegiatan"),
+    jenis_kegiatan: z
+      .array(z.string())
+      .min(1, "Pilih minimal satu jenis kegiatan"),
+    usia_0_5: angka(),
+    usia_6_12: angka(),
+    usia_13_17: angka(),
+    laki_laki: angka(),
+    perempuan: angka(),
+    disabilitas: angka(),
+    perlu_layanan_lanjutan: angka(),
+    temuan: teksOpsional,
+    tindak_lanjut: teksOpsional,
+  })
+  .superRefine((d, ctx) => {
+    const pesan = galatPenerimaManfaat(d);
+    if (pesan) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["penerima_manfaat"],
+        message: pesan,
+      });
+    }
+  });
 
 export const skemaPerempuan = z
   .object({
@@ -238,5 +285,9 @@ export function validasi(
     const kunci = isu.path.join(".");
     if (!galat[kunci]) galat[kunci] = isu.message;
   }
+  // Catatan: galat tingkat bagian memakai kunci yang BUKAN nama kolom, mis.
+  // `penerima_manfaat` pada Aktivitas Anak. Formulir menampilkannya di kepala
+  // bagian; jangan disalin ke salah satu kolom, karena itu menuduh kolom yang
+  // belum tentu salah.
   return { sukses: false, galat };
 }

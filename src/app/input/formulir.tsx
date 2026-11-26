@@ -4,7 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { simpanLaporan } from "./actions";
-import { LABEL_JENIS, type JenisForm } from "@/lib/validasi/laporan";
+import {
+  galatPenerimaManfaat,
+  LABEL_JENIS,
+  type JenisForm,
+} from "@/lib/validasi/laporan";
 import {
   bacaSaja as hitungBacaSaja,
   modeFormulir,
@@ -350,6 +354,22 @@ export function FormulirInput({
 
   const data = nilai[jenis] as never;
 
+  // Penerima manfaat wajib dan kedua totalnya harus cocok. Aturan yang sama
+  // sudah ada di skema Zod (server tetap penentu akhir); di sini ia dipakai
+  // untuk menahan tombol simpan sebelum permintaan dikirim — petugas tidak
+  // perlu menunggu jawaban server untuk tahu laporannya belum lengkap.
+  //
+  // Kedua tombol ditahan, termasuk "Simpan draf": server memvalidasi draf
+  // dengan skema yang sama (begitu pula `nama_kegiatan` dan jenis kegiatan),
+  // jadi membiarkannya tetap bisa diklik hanya akan memunculkan galat server.
+  // Suntingan yang belum lengkap tetap aman — penyimpan draf otomatis di
+  // perangkat ini berjalan terpisah dari tombol tersebut.
+  const galatAnak =
+    jenis === "aktivitas_anak" && !bacaSaja
+      ? galatPenerimaManfaat(nilai[jenis] as NilaiAnak)
+      : null;
+  const tertahan = !bacaSaja && galatAnak !== null;
+
   return (
     <div className="space-y-5">
       {/* Identitas — terkunci. Berasal dari sel yang diklik di /laporan-saya. */}
@@ -553,7 +573,8 @@ export function FormulirInput({
           <button
             type="button"
             onClick={() => kirim("terkirim")}
-            disabled={memuat}
+            disabled={memuat || tertahan}
+            title={tertahan ? galatAnak : undefined}
             className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold text-sm transition"
           >
             {memuat
@@ -563,6 +584,13 @@ export function FormulirInput({
                 : "Kirim laporan"}
           </button>
 
+          {tertahan && (
+            <p role="status" className="text-xs font-semibold text-amber-700">
+              Lengkapi bagian <strong>Penerima manfaat</strong> untuk menyimpan
+              laporan ini.
+            </p>
+          )}
+
           {/* "Simpan draf" tidak ditawarkan setelah Admin membuka kunci: draf
               menghapus penanda buka kunci, sehingga alasan perbaikan dari Admin
               ikut hilang tanpa jejak. */}
@@ -570,7 +598,8 @@ export function FormulirInput({
             <button
               type="button"
               onClick={() => kirim("draf")}
-              disabled={memuat}
+              disabled={memuat || tertahan}
+              title={tertahan ? galatAnak : undefined}
               className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-700 font-semibold text-sm transition"
             >
               Simpan draf

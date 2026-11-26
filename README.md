@@ -172,6 +172,15 @@ master data lain, jadi pemeriksaannya kini ada di `/admin/periode` sebagai
 peringatan yang tidak memblokir. Lihat migrasi
 `20261124000004_fase4_perbaikan.sql`.
 
+Sebagian dari pemeriksaan itu kini sudah tertutup di hulu: formulir **Aktivitas
+Anak** mewajibkan penerima manfaat terisi (total minimal 1) dan menolak kiriman
+bila total per usia tidak sama dengan total per jenis kelamin. Akibatnya anomali
+*A1 distribusi usia* tidak lagi muncul untuk laporan baru — ia tinggal sebagai
+penanda bagi data lama yang dibuat sebelum aturan ini. Aturannya ada di satu
+fungsi, `galatPenerimaManfaat()` di `src/lib/validasi/laporan.ts`, dipakai
+skema Zod (server menolak) dan formulir (tombol simpan ditahan); angka 0 tetap
+sah untuk kelompok yang memang tidak ada.
+
 **Audit log.** Ditulis oleh trigger database pada `laporan` dan kelima tabel
 rinciannya, `pos_sapa`, serta `pengguna` — sehingga perubahan lewat SQL Editor
 atau skrip migrasi pun terekam. Hanya kolom yang benar-benar berubah yang
