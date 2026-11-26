@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ambilChecklist, SEMUA_JENIS } from "@/lib/data/kepatuhan";
 import { LABEL_JENIS } from "@/lib/validasi/laporan";
 import { terkunciUntukPetugas } from "@/lib/laporan";
+import { labelJenisHunian } from "@/lib/lokasi/jenis-hunian";
 import { Badge } from "@/components/dashboard/panel";
 
 export const metadata = { title: "Laporan Saya — Pos SAPA" };
@@ -145,7 +146,8 @@ export default async function LaporanSaya({
                 Belum ada lokasi Pos SAPA aktif
               </h3>
               <p className="text-sm text-slate-600 mt-2">
-                Tambahkan lokasi Pos SAPA (Huntap/Huntara) di{" "}
+                Tambahkan lokasi Pos SAPA (Huntap, Huntara, Dinas/UPTD PPPA,
+                atau lainnya) di{" "}
                 <strong>{wilayah?.kab_kota}</strong> terlebih dahulu, lalu
                 checklist laporan akan muncul di sini.
               </p>
@@ -169,7 +171,11 @@ export default async function LaporanSaya({
                         {p.nama_lokasi}
                       </h3>
                       <p className="text-[11px] text-slate-500">
-                        {p.jenis_hunian ?? "jenis hunian belum diisi"} ·{" "}
+                        {labelJenisHunian(
+                          p.jenis_hunian,
+                          p.jenis_hunian_lainnya
+                        ) ?? "jenis hunian belum diisi"}{" "}
+                        ·{" "}
                         {p.selesai} dari 5 laporan
                       </p>
                     </div>

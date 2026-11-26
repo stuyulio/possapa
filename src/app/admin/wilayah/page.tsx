@@ -14,7 +14,7 @@ export default async function HalamanWilayah() {
     supabase
       .from("pos_sapa")
       .select(
-        "id, wilayah_id, nama_lokasi, kode_pos, jenis_hunian, lat, lng, penanggung_jawab, status_aktif"
+        "id, wilayah_id, nama_lokasi, kode_pos, jenis_hunian, jenis_hunian_lainnya, lat, lng, penanggung_jawab, status_aktif"
       )
       .order("nama_lokasi"),
     hitungLaporanPerPos(),
@@ -32,7 +32,8 @@ export default async function HalamanWilayah() {
         </h2>
         <p className="text-sm text-slate-500">
           18 kabupaten/kota sasaran bersifat tetap. Lokasi Pos SAPA diisi manual —
-          satu wilayah boleh punya beberapa lokasi Huntap/Huntara.
+          satu wilayah boleh punya beberapa lokasi (Huntap, Huntara, Dinas/UPTD
+          PPPA, atau lainnya).
         </p>
       </div>
 

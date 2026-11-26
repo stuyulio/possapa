@@ -139,6 +139,7 @@ export type ChecklistPos = {
   pos_id: string;
   nama_lokasi: string;
   jenis_hunian: string | null;
+  jenis_hunian_lainnya: string | null;
   status: {
     jenis: JenisLaporan;
     status: "draf" | "terkirim" | "terverifikasi" | "belum";
@@ -185,7 +186,7 @@ export async function ambilChecklist(
   const [posRes, laporanRes] = await Promise.all([
     supabase
       .from("pos_sapa")
-      .select("id, nama_lokasi, jenis_hunian")
+      .select("id, nama_lokasi, jenis_hunian, jenis_hunian_lainnya")
       .eq("wilayah_id", wilayahId)
       .eq("status_aktif", true)
       .order("nama_lokasi"),
@@ -211,6 +212,7 @@ export async function ambilChecklist(
     id: string;
     nama_lokasi: string;
     jenis_hunian: string | null;
+    jenis_hunian_lainnya: string | null;
   }[];
 
   const daftar: ChecklistPos[] = pos.map((p) => {
@@ -232,6 +234,7 @@ export async function ambilChecklist(
       pos_id: p.id,
       nama_lokasi: p.nama_lokasi,
       jenis_hunian: p.jenis_hunian,
+      jenis_hunian_lainnya: p.jenis_hunian_lainnya,
       status,
       selesai: status.filter(
         (s) => s.status === "terkirim" || s.status === "terverifikasi"

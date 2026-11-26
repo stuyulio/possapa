@@ -9,6 +9,7 @@ import {
   LABEL_JENIS,
   type JenisForm,
 } from "@/lib/validasi/laporan";
+import { labelJenisHunian } from "@/lib/lokasi/jenis-hunian";
 import {
   bacaSaja as hitungBacaSaja,
   modeFormulir,
@@ -22,7 +23,12 @@ import { FormRekap, type NilaiRekap } from "@/components/form/form-rekap";
 import { FormKasus, type NilaiKasus } from "@/components/form/form-kasus";
 import { FormPublikasi, type NilaiPublikasi } from "@/components/form/form-publikasi";
 
-type Pos = { id: string; nama_lokasi: string; jenis_hunian: string | null };
+type Pos = {
+  id: string;
+  nama_lokasi: string;
+  jenis_hunian: string | null;
+  jenis_hunian_lainnya: string | null;
+};
 
 const NILAI_AWAL: Record<JenisForm, unknown> = {
   aktivitas_anak: {
@@ -134,6 +140,10 @@ export function FormulirInput({
   // memungkinkan mengisi lima laporan dalam satu duduk.
   const posId = pos.id;
   const periodeId = periode.id;
+  const labelHunian = labelJenisHunian(
+    pos.jenis_hunian,
+    pos.jenis_hunian_lainnya
+  );
 
   const [jenis, setJenis] = useState<JenisForm>(jenisAwal);
   const [nilai, setNilai] = useState<Record<JenisForm, unknown>>(
@@ -390,10 +400,10 @@ export function FormulirInput({
             <span className="text-xs text-slate-500">Lokasi Pos SAPA</span>
             <p className="font-semibold text-slate-900">
               {pos.nama_lokasi}
-              {pos.jenis_hunian ? (
+              {labelHunian ? (
                 <span className="font-normal text-slate-500">
                   {" "}
-                  ({pos.jenis_hunian})
+                  ({labelHunian})
                 </span>
               ) : null}
             </p>

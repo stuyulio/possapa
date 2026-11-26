@@ -159,7 +159,7 @@ select
   w.id,
   'Pos SAPA Uji ' || w.kab_kota || ' ' || i.n,
   'UJI-' || lpad((row_number() over (order by w.provinsi, w.kab_kota, i.n))::text, 2, '0'),
-  case i.n when 1 then 'huntap'::jenis_hunian_t else 'huntara'::jenis_hunian_t end,
+  case i.n when 1 then 'huntap' else 'huntara' end,
   'Penanggung Jawab Uji ' || i.n,
   case when row_number() over (order by w.provinsi, w.kab_kota, i.n) = 36
        then false else true end

@@ -172,7 +172,7 @@ Pengganti Google Formulir. Lima percabangan sesuai jenis laporan.
 
 **Perilaku umum**
 - Kab/kota **terisi otomatis** dari penugasan petugas dan tidak dapat diubah.
-- **Lokasi Pos SAPA dipilih dari dropdown** yang hanya berisi lokasi aktif di wilayah petugas. Satu wilayah boleh memiliki beberapa lokasi (Huntap/Huntara).
+- **Lokasi Pos SAPA dipilih dari dropdown** yang hanya berisi lokasi aktif di wilayah petugas. Satu wilayah boleh memiliki beberapa lokasi (Huntap/Huntara/Dinas/UPTD PPPA/lainnya).
 - Draf disimpan **terpisah per lokasi**, sehingga laporan dua Pos SAPA tidak saling menimpa.
 - Pemilihan jenis laporan memecah formulir menjadi lima bagian, mengikuti struktur Google Form agar petugas familiar.
 - **Simpan draf otomatis** ke penyimpanan lokal, tersinkron saat koneksi tersedia. Petugas lapangan sering mengisi dengan sinyal buruk.
@@ -194,7 +194,7 @@ Pengganti Google Formulir. Lima percabangan sesuai jenis laporan.
 
 ### 5.12 Manajemen Data Master
 - Data 18 kab/kota (nama, provinsi, kode wilayah) — referensi tetap, bukan input bebas.
-- Data lokasi Pos SAPA: nama, kab/kota, koordinat, jenis hunian (Huntap/Huntara), status aktif, penanggung jawab.
+- Data lokasi Pos SAPA: nama, kab/kota, koordinat, jenis hunian (Huntap, Huntara, Dinas PPPA, UPTD PPPA, atau Lainnya dengan isian bebas), status aktif, penanggung jawab.
 - Data periode pelaporan: tanggal mulai dan selesai.
 - Data pengguna dan penugasan peran per lokasi/wilayah.
 - **Pengambilan koordinat:** Admin Pusat melakukan digitasi manual — mencari lokasi Pos SAPA di Google Maps, mengambil pasangan `lat,lng` dari titik yang dipilih, lalu memasukkannya ke data master. Prasyarat Fase 3; 18 lokasi.
@@ -228,8 +228,9 @@ Kolom Q1–Q5 (timestamp, periode, lokasi/kode pos, kabupaten/kota, jenis lapora
 ### 6.3 Model Data
 ```
 wilayah(id, provinsi, kab_kota, kode_kemendagri)
-pos_sapa(id, wilayah_id, nama_lokasi, kode_pos, jenis_hunian[Huntap|Huntara],
-         lat, lng, status_aktif, penanggung_jawab)
+pos_sapa(id, wilayah_id, nama_lokasi, kode_pos,
+         jenis_hunian[Huntap|Huntara|Dinas PPPA|UPTD PPPA|Lainnya],
+         jenis_hunian_lainnya, lat, lng, status_aktif, penanggung_jawab)
 periode(id, tanggal_mulai, tanggal_selesai, label)
 laporan(id, pos_id, periode_id, jenis_laporan, status[DRAT|TERKIRIM|TERVERIFIKASI],
         sumber_input[form_internal|google_form],

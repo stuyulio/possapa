@@ -62,7 +62,7 @@ export default async function HalamanLokasiSaya() {
     supabase
       .from("pos_sapa")
       .select(
-        "id, wilayah_id, nama_lokasi, kode_pos, jenis_hunian, lat, lng, penanggung_jawab, status_aktif"
+        "id, wilayah_id, nama_lokasi, kode_pos, jenis_hunian, jenis_hunian_lainnya, lat, lng, penanggung_jawab, status_aktif"
       )
       .eq("wilayah_id", profil.wilayah_id)
       .order("nama_lokasi"),
@@ -84,7 +84,8 @@ export default async function HalamanLokasiSaya() {
           Lokasi Pos SAPA
         </h2>
         <p className="text-sm text-slate-500">
-          Kelola lokasi Pos SAPA (Huntap/Huntara) di{" "}
+          Kelola lokasi Pos SAPA (Huntap, Huntara, Dinas/UPTD PPPA, atau
+          lainnya) di{" "}
           <strong className="text-slate-700">
             {wilayah ? `${wilayah.kab_kota} — ${wilayah.provinsi}` : "wilayah Anda"}
           </strong>

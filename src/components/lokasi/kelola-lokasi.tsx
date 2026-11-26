@@ -4,6 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field, kelasField } from "@/components/form/field";
 import { Badge } from "@/components/dashboard/panel";
+import {
+  JENIS_HUNIAN,
+  JENIS_HUNIAN_LAINNYA,
+  labelJenisHunian,
+  type JenisHunian,
+} from "@/lib/lokasi/jenis-hunian";
 import type {
   HasilLokasi,
   Lokasi,
@@ -15,7 +21,8 @@ const KOSONG = {
   wilayahId: "",
   namaLokasi: "",
   kodePos: "",
-  jenisHunian: "" as "" | "huntap" | "huntara",
+  jenisHunian: "" as JenisHunian | "",
+  jenisHunianLainnya: "",
   lat: "",
   lng: "",
   penanggungJawab: "",
@@ -58,12 +65,21 @@ export function KelolaLokasiForm({
   const [pesan, setPesan] = useState<string | null>(null);
   const [memuat, setMemuat] = useState(false);
 
-  function ubah(k: keyof AsalForm, v: string | boolean) {
-    setForm((f) => ({ ...f, [k]: v }));
+  function ubah<K extends keyof AsalForm>(k: K, v: AsalForm[K]) {
+    setForm((f) => {
+      // Pindah keluar dari "Lainnya" mengosongkan teks bebasnya. Tanpa ini,
+      // isian lama tertinggal di state dan ikut terkirim bila petugas kembali
+      // memilih "Lainnya" — atau lebih buruk, tersimpan bila server tidak
+      // membersihkannya (server memang membersihkan; ini lapisan kedua).
+      if (k === "jenisHunian" && v !== JENIS_HUNIAN_LAINNYA) {
+        return { ...f, [k]: v, jenisHunianLainnya: "" } as AsalForm;
+      }
+      return { ...f, [k]: v } as AsalForm;
+    });
     setGalat((g) => {
       if (!g[k]) return g;
       const b = { ...g };
-      delete b[k];
+      delete b[k as string];
       return b;
     });
   }
@@ -84,6 +100,7 @@ export function KelolaLokasiForm({
       namaLokasi: l.nama_lokasi,
       kodePos: l.kode_pos ?? "",
       jenisHunian: l.jenis_hunian ?? "",
+      jenisHunianLainnya: l.jenis_hunian_lainnya ?? "",
       lat: l.lat?.toString() ?? "",
       lng: l.lng?.toString() ?? "",
       penanggungJawab: l.penanggung_jawab ?? "",
@@ -226,13 +243,16 @@ export function KelolaLokasiForm({
               <select
                 value={form.jenisHunian}
                 onChange={(e) =>
-                  ubah("jenisHunian", e.target.value as "" | "huntap" | "huntara")
+                  ubah("jenisHunian", e.target.value as JenisHunian | "")
                 }
                 className={kelasField(galat.jenisHunian)}
               >
                 <option value="">—</option>
-                <option value="huntap">Huntap</option>
-                <option value="huntara">Huntara</option>
+                {JENIS_HUNIAN.map((j) => (
+                  <option key={j.nilai} value={j.nilai}>
+                    {j.label}
+                  </option>
+                ))}
               </select>
             </Field>
 
@@ -256,6 +276,24 @@ export function KelolaLokasiForm({
               />
             </Field>
           </div>
+
+          {/* Isian bebas hanya muncul untuk "Lainnya"; jenis lain sudah
+              menjelaskan dirinya sendiri. */}
+          {form.jenisHunian === JENIS_HUNIAN_LAINNYA && (
+            <Field
+              label="Sebutkan jenis hunian"
+              wajib
+              galat={galat.jenisHunianLainnya}
+              bantuan="Contoh: Balai Desa, Kantor Camat, Gedung Serbaguna"
+            >
+              <input
+                type="text"
+                value={form.jenisHunianLainnya}
+                onChange={(e) => ubah("jenisHunianLainnya", e.target.value)}
+                className={kelasField(galat.jenisHunianLainnya)}
+              />
+            </Field>
+          )}
 
           <p className="text-[11px] text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
             Koordinat diambil manual dari Google Maps: klik kanan titik lokasi →
@@ -360,8 +398,11 @@ export function KelolaLokasiForm({
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-xs text-slate-600 uppercase">
-                        {l.jenis_hunian ?? "—"}
+                      <td className="px-4 py-2.5 text-xs text-slate-600">
+                        {labelJenisHunian(
+                          l.jenis_hunian,
+                          l.jenis_hunian_lainnya
+                        ) ?? "—"}
                       </td>
                       <td className="px-4 py-2.5 text-xs text-slate-600 font-mono">
                         {l.lat !== null && l.lng !== null

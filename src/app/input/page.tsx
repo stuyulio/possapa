@@ -64,7 +64,7 @@ export default async function HalamanInput({
       .maybeSingle(),
     supabase
       .from("pos_sapa")
-      .select("id, nama_lokasi, jenis_hunian")
+      .select("id, nama_lokasi, jenis_hunian, jenis_hunian_lainnya")
       .eq("wilayah_id", profil.wilayah_id)
       .eq("status_aktif", true)
       .order("nama_lokasi"),
@@ -84,6 +84,7 @@ export default async function HalamanInput({
     id: string;
     nama_lokasi: string;
     jenis_hunian: string | null;
+    jenis_hunian_lainnya: string | null;
   }[];
 
   if (daftarPeriode.length === 0) {
@@ -107,7 +108,8 @@ export default async function HalamanInput({
           Belum ada lokasi Pos SAPA di wilayah Anda
         </h2>
         <p className="text-sm text-slate-600 mt-2">
-          Tambahkan lokasi Pos SAPA (Huntap/Huntara) di{" "}
+          Tambahkan lokasi Pos SAPA (Huntap, Huntara, Dinas/UPTD PPPA, atau
+          lainnya) di{" "}
           <strong>{wilayahRes.data?.kab_kota}</strong> terlebih dahulu, lalu
           laporan dapat diinput.
         </p>

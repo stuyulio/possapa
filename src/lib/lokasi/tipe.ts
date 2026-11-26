@@ -1,5 +1,7 @@
 /** Tipe bersama untuk form Kelola Lokasi Pos SAPA (admin pusat & petugas). */
 
+import type { JenisHunian } from "./jenis-hunian";
+
 export type HasilLokasi =
   | { sukses: true }
   | { sukses: false; pesan: string; galat?: Record<string, string> };
@@ -10,7 +12,9 @@ export type MasukanLokasi = {
   wilayahId?: string;
   namaLokasi: string;
   kodePos?: string;
-  jenisHunian?: "huntap" | "huntara" | "";
+  jenisHunian?: JenisHunian | "";
+  /** Isian bebas bila `jenisHunian` = "lainnya". */
+  jenisHunianLainnya?: string;
   lat?: string;
   lng?: string;
   penanggungJawab?: string;
@@ -22,7 +26,8 @@ export type Lokasi = {
   wilayah_id: string;
   nama_lokasi: string;
   kode_pos: string | null;
-  jenis_hunian: "huntap" | "huntara" | null;
+  jenis_hunian: JenisHunian | null;
+  jenis_hunian_lainnya: string | null;
   lat: number | null;
   lng: number | null;
   penanggung_jawab: string | null;

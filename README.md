@@ -57,7 +57,9 @@ Atau jalankan berkas SQL berikut secara berurutan melalui SQL Editor Supabase:
 6. `supabase/migrations/20261124000002_publik_pembaruan.sql`
 7. `supabase/migrations/20261124000003_fase4_verifikasi_audit.sql`
 8. `supabase/migrations/20261124000004_fase4_perbaikan.sql`
-9. `supabase/seed.sql` (memasukkan 18 kabupaten/kota sasaran)
+9. `supabase/migrations/20261124000005_kunci_terkirim.sql`
+10. `supabase/migrations/20261126000001_jenis_hunian_tambahan.sql`
+11. `supabase/seed.sql` (memasukkan 18 kabupaten/kota sasaran)
 
 ### 4. Buat pengguna pertama
 

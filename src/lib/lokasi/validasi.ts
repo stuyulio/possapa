@@ -1,4 +1,9 @@
 import type { MasukanLokasi } from "./tipe";
+import {
+  adalahJenisHunian,
+  JENIS_HUNIAN_LAINNYA,
+  type JenisHunian,
+} from "./jenis-hunian";
 
 /**
  * Validasi murni untuk isian lokasi Pos SAPA.
@@ -9,7 +14,8 @@ export type ValidasiLokasi = {
   nilai: {
     nama_lokasi: string;
     kode_pos: string | null;
-    jenis_hunian: "huntap" | "huntara" | null;
+    jenis_hunian: JenisHunian | null;
+    jenis_hunian_lainnya: string | null;
     lat: number | null;
     lng: number | null;
     penanggung_jawab: string | null;
@@ -36,6 +42,26 @@ export function validasiMasukanLokasi(m: MasukanLokasi): ValidasiLokasi {
 
   if (!m.namaLokasi?.trim()) galat.namaLokasi = "Nama lokasi wajib diisi";
 
+  // Jenis hunian: boleh kosong, tetapi kalau diisi harus salah satu nilai yang
+  // dikenal. Diperiksa di server juga karena klien dapat mengirim apa saja.
+  const jenisMentah = m.jenisHunian?.trim() || "";
+  if (jenisMentah && !adalahJenisHunian(jenisMentah)) {
+    galat.jenisHunian = "Pilih salah satu jenis hunian yang tersedia";
+  }
+  const jenis: JenisHunian | null = adalahJenisHunian(jenisMentah)
+    ? jenisMentah
+    : null;
+
+  // "Lainnya" wajib dijelaskan; selain itu teks bebasnya harus kosong, sejalan
+  // dengan constraint `pos_sapa_jenis_hunian_lainnya_lengkap`. Kalau tidak
+  // dikosongkan, sisa ketikan dari pilihan sebelumnya akan tersimpan diam-diam
+  // dan muncul lagi bila petugas memilih "Lainnya" lain waktu.
+  const lainnyaMentah =
+    jenis === JENIS_HUNIAN_LAINNYA ? m.jenisHunianLainnya?.trim() ?? "" : "";
+  if (jenis === JENIS_HUNIAN_LAINNYA && !lainnyaMentah) {
+    galat.jenisHunianLainnya = 'Sebutkan jenis hunian untuk pilihan "Lainnya"';
+  }
+
   const lat = angkaKoordinat(m.lat, -11, 6, "Lintang");
   const lng = angkaKoordinat(m.lng, 95, 141, "Bujur");
   if (lat.galat) galat.lat = lat.galat;
@@ -51,7 +77,8 @@ export function validasiMasukanLokasi(m: MasukanLokasi): ValidasiLokasi {
     nilai: {
       nama_lokasi: m.namaLokasi?.trim() ?? "",
       kode_pos: m.kodePos?.trim() || null,
-      jenis_hunian: m.jenisHunian || null,
+      jenis_hunian: jenis,
+      jenis_hunian_lainnya: lainnyaMentah || null,
       lat: lat.nilai,
       lng: lng.nilai,
       penanggung_jawab: m.penanggungJawab?.trim() || null,
