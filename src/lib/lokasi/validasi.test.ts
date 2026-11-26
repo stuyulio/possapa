@@ -37,7 +37,7 @@ describe("validasiMasukanLokasi — jenis hunian", () => {
         jenisHunian: "lainnya",
         jenisHunianLainnya: isi,
       });
-      expect(galat.jenisHunianLainnya).toMatch(/Sebutkan jenis hunian/);
+      expect(galat.jenisHunianLainnya).toMatch(/Sebutkan jenis tempat/);
     }
   });
 
@@ -56,7 +56,7 @@ describe("validasiMasukanLokasi — jenis hunian", () => {
       ...DASAR,
       jenisHunian: "rumah_sakit" as never,
     });
-    expect(galat.jenisHunian).toMatch(/salah satu jenis hunian/);
+    expect(galat.jenisHunian).toMatch(/salah satu jenis tempat/);
   });
 
   it("menerima jenis hunian kosong", () => {

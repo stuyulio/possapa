@@ -1,5 +1,9 @@
 /**
- * Pilihan Jenis Hunian Pos SAPA — dipakai dropdown formulir dan label tampilan.
+ * Pilihan Jenis Tempat Pos SAPA — dipakai dropdown formulir dan label tampilan.
+ *
+ * Disebut "jenis tempat", bukan "jenis hunian": pilihannya mencakup kantor
+ * Dinas/UPTD PPPA yang bukan tempat tinggal. Nama kolom database tetap
+ * `jenis_hunian` agar tidak perlu migrasi.
  *
  * Daftar ini harus sejalan dengan constraint `pos_sapa_jenis_hunian_dikenal`
  * di migrasi `20261126000001_jenis_hunian_tambahan.sql`. Menambah jenis baru

@@ -239,7 +239,7 @@ export function KelolaLokasiForm({
               />
             </Field>
 
-            <Field label="Jenis hunian" galat={galat.jenisHunian}>
+            <Field label="Jenis tempat" galat={galat.jenisHunian}>
               <select
                 value={form.jenisHunian}
                 onChange={(e) =>
@@ -281,7 +281,7 @@ export function KelolaLokasiForm({
               menjelaskan dirinya sendiri. */}
           {form.jenisHunian === JENIS_HUNIAN_LAINNYA && (
             <Field
-              label="Sebutkan jenis hunian"
+              label="Sebutkan jenis tempat"
               wajib
               galat={galat.jenisHunianLainnya}
               bantuan="Contoh: Balai Desa, Kantor Camat, Gedung Serbaguna"
@@ -379,7 +379,7 @@ export function KelolaLokasiForm({
                 <thead className="text-slate-600">
                   <tr>
                     <th className="text-left font-semibold px-4 py-2">Lokasi</th>
-                    <th className="text-left font-semibold px-4 py-2">Hunian</th>
+                    <th className="text-left font-semibold px-4 py-2">Jenis tempat</th>
                     <th className="text-left font-semibold px-4 py-2">Koordinat</th>
                     <th className="text-center font-semibold px-4 py-2">Status</th>
                     <th className="text-right font-semibold px-4 py-2">Laporan</th>

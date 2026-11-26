@@ -46,7 +46,7 @@ export function validasiMasukanLokasi(m: MasukanLokasi): ValidasiLokasi {
   // dikenal. Diperiksa di server juga karena klien dapat mengirim apa saja.
   const jenisMentah = m.jenisHunian?.trim() || "";
   if (jenisMentah && !adalahJenisHunian(jenisMentah)) {
-    galat.jenisHunian = "Pilih salah satu jenis hunian yang tersedia";
+    galat.jenisHunian = "Pilih salah satu jenis tempat yang tersedia";
   }
   const jenis: JenisHunian | null = adalahJenisHunian(jenisMentah)
     ? jenisMentah
@@ -59,7 +59,7 @@ export function validasiMasukanLokasi(m: MasukanLokasi): ValidasiLokasi {
   const lainnyaMentah =
     jenis === JENIS_HUNIAN_LAINNYA ? m.jenisHunianLainnya?.trim() ?? "" : "";
   if (jenis === JENIS_HUNIAN_LAINNYA && !lainnyaMentah) {
-    galat.jenisHunianLainnya = 'Sebutkan jenis hunian untuk pilihan "Lainnya"';
+    galat.jenisHunianLainnya = 'Sebutkan jenis tempat untuk pilihan "Lainnya"';
   }
 
   const lat = angkaKoordinat(m.lat, -11, 6, "Lintang");

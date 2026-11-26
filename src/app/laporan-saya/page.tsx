@@ -174,7 +174,7 @@ export default async function LaporanSaya({
                         {labelJenisHunian(
                           p.jenis_hunian,
                           p.jenis_hunian_lainnya
-                        ) ?? "jenis hunian belum diisi"}{" "}
+                        ) ?? "jenis tempat belum diisi"}{" "}
                         ·{" "}
                         {p.selesai} dari 5 laporan
                       </p>

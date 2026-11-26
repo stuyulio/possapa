@@ -194,7 +194,7 @@ Pengganti Google Formulir. Lima percabangan sesuai jenis laporan.
 
 ### 5.12 Manajemen Data Master
 - Data 18 kab/kota (nama, provinsi, kode wilayah) — referensi tetap, bukan input bebas.
-- Data lokasi Pos SAPA: nama, kab/kota, koordinat, jenis hunian (Huntap, Huntara, Dinas PPPA, UPTD PPPA, atau Lainnya dengan isian bebas), status aktif, penanggung jawab.
+- Data lokasi Pos SAPA: nama, kab/kota, koordinat, jenis tempat (Huntap, Huntara, Dinas PPPA, UPTD PPPA, atau Lainnya dengan isian bebas), status aktif, penanggung jawab.
 - Data periode pelaporan: tanggal mulai dan selesai.
 - Data pengguna dan penugasan peran per lokasi/wilayah.
 - **Pengambilan koordinat:** Admin Pusat melakukan digitasi manual — mencari lokasi Pos SAPA di Google Maps, mengambil pasangan `lat,lng` dari titik yang dipilih, lalu memasukkannya ke data master. Prasyarat Fase 3; 18 lokasi.
