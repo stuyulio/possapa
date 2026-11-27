@@ -78,20 +78,24 @@ export function FormPublikasi({
           />
         </Field>
 
-        <Field label="File publikasi" bantuan="Opsional">
+        <Field
+          label="Link penyimpanan dokumentasi"
+          galat={galat.file_publikasi}
+          bantuan="Opsional. Contoh: Google Drive, Dropbox, OneDrive — URL lengkap, harus diawali https://"
+        >
           <input
-            type="text"
+            type="url"
             value={nilai.file_publikasi}
             onChange={(e) => ubah("file_publikasi", e.target.value)}
             readOnly={bacaSaja}
             className={kelasField(galat.file_publikasi, bacaSaja)}
-            placeholder="Nama berkas atau tautan"
+            placeholder="https://drive.google.com/..."
           />
         </Field>
       </div>
 
       <Field
-        label="Link publikasi"
+        label="Link publikasi media sosial"
         wajib
         galat={galat.link_publikasi}
         bantuan="URL lengkap, harus diawali https://"

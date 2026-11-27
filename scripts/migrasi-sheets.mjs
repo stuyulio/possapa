@@ -466,13 +466,23 @@ function petakanBaris(row, nomorBaris) {
         ditolak: `tautan publikasi bukan URL https yang valid: "${link ?? "(kosong)"}"`,
       };
     }
+
+    // Kolom ke-59 di Google Form bernama "File Publikasi" — di aplikasi kini
+    // berlabel "Link penyimpanan dokumentasi". Header Google Form sengaja
+    // TIDAK diubah (mengubahnya menggeser penomoran seluruh kolom sesudahnya
+    // dan menghentikan pembacaan skrip ini). Karena itu tautan arsip hanya
+    // diterima bila benar-benar berupa https; selain itu dianggap tidak diisi
+    // supaya tidak menyimpan nama berkas lepas ke kolom tautan.
+    const arsip = teks(row[k.file_publikasi]);
+    const arsipSah = arsip && /^https:\/\//i.test(arsip) ? arsip : null;
+
     dasar.publikasi = {
       tanggal_publikasi: tanggal(row[k.tanggal_publikasi]),
       kegiatan: teks(row[k.kegiatan]),
       platform: teks(row[k.platform]) ?? "Lainnya",
       nama_akun: teks(row[k.nama_akun]),
       link_publikasi: link,
-      file_publikasi: teks(row[k.file_publikasi]),
+      file_publikasi: arsipSah,
     };
     if (!dasar.publikasi.tanggal_publikasi) {
       return { ditolak: "tanggal publikasi tidak valid" };

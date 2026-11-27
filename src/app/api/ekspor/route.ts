@@ -107,8 +107,8 @@ export async function GET(request: NextRequest) {
         Kegiatan: x.kegiatan,
         Platform: x.platform,
         Nama_Akun: x.nama_akun,
-        Link: x.link_publikasi,
-        File: x.file_publikasi,
+        Link_Publikasi_Media_Sosial: x.link_publikasi,
+        Link_Penyimpanan_Dokumentasi: x.file_publikasi,
       }));
       break;
     }

@@ -72,18 +72,28 @@ export default async function HalamanPublikasi({
                     <div>{x.kab_kota} — {x.lokasi}</div>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
-                  <span className="text-[11px] text-slate-400 truncate max-w-[45%]">
-                    {x.file_publikasi ?? "Tautan eksternal"}
-                  </span>
+                <div className="mt-4 pt-3 border-t border-slate-200 flex items-center flex-wrap gap-2">
                   <a
                     href={x.link_publikasi}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition"
                   >
-                    Buka tautan
+                    Buka publikasi
                   </a>
+                  {/* Dokumentasi bersifat opsional dan laporan lama bisa berisi
+                      nama berkas, bukan tautan — hanya tampilkan tombol bila
+                      memang berupa tautan https. */}
+                  {x.file_publikasi?.startsWith("https://") && (
+                    <a
+                      href={x.file_publikasi}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
+                    >
+                      Buka dokumentasi
+                    </a>
+                  )}
                 </div>
               </article>
             ))}

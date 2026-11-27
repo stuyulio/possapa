@@ -18,6 +18,37 @@ const teksWajib = (label: string) =>
 
 const teksOpsional = z.string().trim().optional().nullable();
 
+/**
+ * Tautan https yang boleh dikosongkan.
+ *
+ * Kosong (termasuk string kosong dari form) lolos apa adanya; bila diisi,
+ * wajib berupa URL lengkap berawalan https://. Nilai kosong dinormalkan
+ * menjadi undefined supaya tidak tersimpan sebagai '' di kolom teks.
+ *
+ * Dipakai untuk Link Penyimpanan publikasi: sebelumnya kolom `file_publikasi`
+ * adalah teks bebas tanpa validasi, sehingga data lama bisa berisi nama berkas
+ * alih-alih tautan. Data lama tetap sah — aturan ini hanya berlaku untuk
+ * kiriman baru, dan kolom database sengaja tidak dijadikan constraint.
+ */
+const tautanOpsional = z
+  .string()
+  .trim()
+  .optional()
+  .nullable()
+  .transform((v) => (v ? v : undefined))
+  .refine((v) => v === undefined || /^https:\/\//i.test(v), {
+    message: "URL harus diawali https://",
+  })
+  // Spasi di tengah ditolak lebih dulu: URL.canParse meloloskan
+  // "https://a.com/x https://b.com/y" karena spasinya di-encode menjadi %20,
+  // padahal itu hampir selalu dua tautan yang tertempel tanpa sengaja.
+  .refine((v) => v === undefined || !/\s/.test(v), {
+    message: "Tautan tidak boleh mengandung spasi",
+  })
+  .refine((v) => v === undefined || URL.canParse(v), {
+    message: "Harus berupa URL lengkap",
+  });
+
 export const JENIS_KEGIATAN_ANAK = [
   "Edukasi",
   "Trauma Healing",
@@ -227,7 +258,9 @@ export const skemaPublikasi = z.object({
     .refine((v) => v.startsWith("https://"), {
       message: "URL harus diawali https://",
     }),
-  file_publikasi: teksOpsional,
+  // Tempat menyimpan dokumentasi kegiatan (Google Drive atau sejenisnya).
+  // Kolom database masih bernama `file_publikasi`.
+  file_publikasi: tautanOpsional,
 });
 
 export const SKEMA = {

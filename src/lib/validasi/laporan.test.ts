@@ -192,3 +192,52 @@ describe("validasi aktivitas_anak", () => {
     expect(hasil.sukses).toBe(true);
   });
 });
+
+describe("skemaPublikasi — link penyimpanan dokumentasi", () => {
+  const PUBLIKASI_DASAR = {
+    tanggal_publikasi: "2026-11-12",
+    kegiatan: "Dokumentasi Ruang Sahabat Anak",
+    platform: "Instagram",
+    nama_akun: "Dinas PPPA Kab. X",
+    link_publikasi: "https://www.instagram.com/p/abc123/",
+    file_publikasi: "",
+  };
+
+  it("menerima tautan penyimpanan https", () => {
+    const hasil = validasi("publikasi", {
+      ...PUBLIKASI_DASAR,
+      file_publikasi: "https://drive.google.com/drive/folders/xyz",
+    });
+    expect(hasil.sukses).toBe(true);
+  });
+
+  it("menerima kolom penyimpanan yang dikosongkan", () => {
+    // Opsional: kegiatan yang dokumentasinya belum diarsipkan tetap sah.
+    const hasil = validasi("publikasi", PUBLIKASI_DASAR);
+    expect(hasil.sukses).toBe(true);
+    if (hasil.sukses) {
+      expect((hasil.data as { file_publikasi?: string }).file_publikasi)
+        .toBeUndefined();
+    }
+  });
+
+  it("menolak tautan penyimpanan yang bukan https", () => {
+    const hasil = validasi("publikasi", {
+      ...PUBLIKASI_DASAR,
+      file_publikasi: "https://drive.google.com/x http://dropbox.com/y",
+    });
+    expect(hasil.sukses).toBe(false);
+  });
+
+  it("menolak nama berkas lepas sebagai pengganti tautan", () => {
+    // Data Google Form lama bisa berisi nama berkas; kiriman baru harus tautan.
+    const hasil = validasi("publikasi", {
+      ...PUBLIKASI_DASAR,
+      file_publikasi: "dokumentasi-kegiatan.jpg",
+    });
+    expect(hasil.sukses).toBe(false);
+    if (!hasil.sukses) {
+      expect(hasil.galat.file_publikasi).toMatch(/https/);
+    }
+  });
+});
