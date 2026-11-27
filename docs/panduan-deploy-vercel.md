@@ -201,53 +201,61 @@ Buka Dashboard Supabase, lalu:
 Ini langkah yang tidak bisa dibatalkan. Pastikan bagian 1 sudah selesai.
 
 1. Buka Dashboard Supabase → **SQL Editor**.
-2. Buka berkas `supabase/reset-data-produksi.sql` di repo, **salin seluruh
-   isinya**, tempel ke SQL Editor.
+2. Buka berkas `supabase/reset-data-laporan-20261127.sql` di repo, **salin
+   seluruh isinya**, tempel ke SQL Editor.
 3. Jalankan (Run). Ini berjalan sebagai role `postgres`, jadi RLS tidak
    menghalangi dan `audit_log` bisa dibersihkan.
 
 Yang akan terjadi: skrip berjalan dalam satu transaksi. Ia menghapus seluruh
-laporan + detailnya, seluruh lokasi Pos SAPA, dua periode tumpang tindih, lalu
-`audit_log` terakhir.
+laporan + detailnya, satu lokasi Pos SAPA (Huntara Agam), lalu `audit_log`
+yang terkait keduanya di akhir.
+
+> **Catatan revisi 27 Nov 2026.** Rencana awal menghapus **seluruh** Pos SAPA.
+> Itu dibatalkan: lima pos yang ada di basis data ternyata lokasi sungguhan
+> dengan nama pengurus nyata, bukan sisa seed `UJI-`. Skrip lama
+> (`reset-data-produksi.sql`) sudah dihapus dan **tidak boleh** dipakai lagi —
+> ia menuntut tepat 6 periode (sekarang ada 7) dan menghapus kelima pos.
 
 **Anda akan melihat tabel ringkasan** berisi kolom `tabel`, `sebelum`, `sesudah`,
-`dihapus`. Angka `sebelum` di bawah terukur dari database Anda (dibaca dari dump
-backup 2026-11-25); `sesudah` adalah hasil yang diharapkan.
+`dihapus`. Angka `sebelum` di bawah adalah isi basis data per **27 Nov 2026**
+(dibaca langsung dari proyek Supabase); `sesudah` adalah hasil yang diharapkan.
 
 | tabel | sebelum | sesudah |
 |---|---|---|
-| `laporan` | 921 | 0 |
-| `laporan_anak` | 245 | 0 |
-| `laporan_perempuan` | 194 | 0 |
-| `laporan_rekap_pengaduan` | 194 | 0 |
-| `laporan_kasus` | 144 | 0 |
-| `laporan_publikasi` | 144 | 0 |
-| `audit_log` | ratusan | 0 |
-| `pos_sapa` | **40** | 0 |
+| `laporan` | 4 | 0 |
+| `laporan_anak` | 2 | 0 |
+| `laporan_perempuan` | 1 | 0 |
+| `laporan_rekap_pengaduan` | 0 | 0 |
+| `laporan_kasus` | 0 | 0 |
+| `laporan_publikasi` | 1 | 0 |
+| `audit_log` | 25 | **6** |
+| `pos_sapa` | 5 | **4** |
 | `wilayah` | 18 | 18 |
-| `periode` | **8** | **6** |
+| `periode` | 7 | 7 |
 | `pengguna` | 25 | **25 — tidak berubah** |
 | `auth.users` | 25 | **25 — tidak berubah** |
 
-Dua baris **memang** turun, sesuai keputusan Anda:
+Dua baris **memang** berubah, sesuai keputusan Anda:
 
-- **`pos_sapa` 40 → 0.** Keempat puluh lokasi dihapus, bukan hanya yang berkode
-  `UJI-`. Empat di antaranya bukan data uji melainkan lokasi yang mewakili
-  **data nyata Google Form** — nama-namanya terdokumentasi di `PRD.md` §6.5,
-  termasuk kasus satu Pos SAPA yang tercatat dengan dua nama berbeda. Keempatnya
-  dibuat pada 18–23 Nov 2026 dan memuat 4 laporan sungguhan (3 impor Google Form,
-  1 dikirim lewat aplikasi). Semuanya ikut terhapus dan hanya bisa dipulihkan
-  dari backup.
-- **`periode` 8 → 6.** Dua periode tumpang tindih dihapus. Keduanya berasal dari
-  peristiwa yang sama: label periode pada Google Form tidak seragam (PRD §6.5),
-  sehingga dibuat periode yang sesuai agar kiriman nyata itu bisa masuk. Yang
-  tersisa keenam periode resmi dari `seed-periode.sql`, berakhir `2026-12-03`.
+- **`pos_sapa` 5 → 4. Hanya Huntara Agam** (`4b48f71c-718b-4763-93f9-1f5777b989a6`,
+  kode pos `1234456`) yang dihapus. Empat lainnya dipertahankan: Beutong Ateuh
+  (Nagan Raya), Tunyang (Bener Meriah), Kec. Linge (Aceh Tengah), dan Rigeb
+  (Gayo Lues) — semuanya lokasi sungguhan dengan nama pengurus nyata.
+- **`audit_log` 25 → 6.** Yang tersisa hanya enam entri milik empat Pos yang
+  dipertahankan (lima `tambah`, satu `ubah`). Yang dibuang 19: seluruh entri
+  `laporan*` (18) dan satu entri `pos_sapa` Huntara Agam. Angka 19 — bukan 18 —
+  karena trigger `catat_audit` juga menulis entri `hapus` untuk setiap laporan
+  yang dihapus; entri-entri itu terbuang bersama sisanya sebab `audit_log`
+  dibersihkan **terakhir**.
+Sebaliknya `periode` **tetap 7**: tidak ada periode tumpang tindih di basis data
+sekarang, jadi tidak ada yang perlu dihapus. Ketujuh periode (23 Okt – 10 Des)
+utuh.
 
-  Catatan operasional: aplikasi **sengaja hanya memperingatkan**, tidak memblokir
-  periode tumpang tindih (`src/app/admin/periode/form-periode.tsx`), justru
-  supaya data historis Google Form bisa dirapikan. Selama Google Form masih
-  dipakai berdampingan (PRD §15.2), periode tumpang tindih bisa muncul lagi —
-  jadi peringatan di `/admin/periode` perlu diperiksa berkala.
+Catatan operasional: aplikasi **sengaja hanya memperingatkan**, tidak memblokir
+periode tumpang tindih (`src/app/admin/periode/form-periode.tsx`), justru
+supaya data historis Google Form bisa dirapikan. Selama Google Form masih
+dipakai berdampingan (PRD §15.2), periode tumpang tindih bisa muncul lagi —
+jadi peringatan di `/admin/periode` perlu diperiksa berkala.
 
 Kalau muncul galat berawalan `BATAL:` — bagus, itu penjaganya bekerja. Artinya
 ada yang tidak sesuai harapan (mis. akun akan ikut terhapus), dan **seluruh
@@ -264,28 +272,28 @@ baris dan tetap lulus.
 
 ### Skrip ini sudah diuji
 
-Skripnya belum pernah dijalankan pada database produksi Anda, tetapi sudah
-diuji pada Postgres 16 sekali pakai di mesin lokal, dengan 9 migrasi repo dan
-keempat berkas seed diterapkan apa adanya. Basis data uji itu **sengaja
-dibentuk menyerupai produksi**: 40 lokasi (36 berkode `UJI-` + 4 lokasi manual
-non-uji) dan 8 periode (6 resmi + 2 tumpang tindih). Yang terbukti:
+Skripnya belum pernah dijalankan pada database produksi Anda, tetapi sudah diuji
+pada Postgres 16 sekali pakai di mesin lokal, dengan seluruh migrasi repo dan
+seed akun diterapkan apa adanya. Basis data uji itu **dibentuk menyerupai
+produksi per 27 Nov 2026**: 5 lokasi (UUID apa adanya), 7 periode, dan 4 laporan
+di Huntara Agam. Yang terbukti:
 
 | Yang diuji | Hasil |
 |---|---|
 | Skrip berjalan utuh sampai `COMMIT` | Lulus, exit code 0 |
-| Keadaan akhir: `laporan` 0, `pos_sapa` 0, `audit_log` 0 | Lulus |
-| Keadaan akhir: `wilayah` 18, `periode` 6, akun utuh | Lulus |
-| Keenam periode resmi masih lengkap setelah wipe | Lulus |
+| Keadaan akhir: semua tabel `laporan*` = 0 | Lulus |
+| Keadaan akhir: `pos_sapa` 4, `periode` 7, `wilayah` 18, akun utuh | Lulus |
+| Empat Pos SAPA yang dipertahankan hadir, diperiksa per UUID | Lulus |
+| `audit_log` hanya menyisakan entri pos yang dipertahankan | Lulus |
 | Idempoten (dijalankan tiga kali) | Lulus, dua jalan terakhir menghapus 0 baris |
-| **Penjaga AKUN** — jumlah `pengguna` berubah saat transaksi berjalan | Menyala: `BATAL: jumlah baris pengguna berubah (23 -> 0)` |
+| **Penjaga UUID** — nama/kode pos sasaran ditukar | Menyala: `BATAL: UUID sasaran bukan Huntara Agam` |
+| **Penjaga LAPORAN ASING** — ada laporan di luar pos sasaran | Menyala: `BATAL: ada 1 laporan di luar Pos Huntara Agam` |
 | **Penjaga WILAYAH** — jumlah `wilayah` berubah saat transaksi berjalan | Menyala: `BATAL: jumlah baris wilayah berubah (18 -> 19)` |
-| **Penjaga PERIODE** — ada periode asing saat transaksi berjalan | Menyala: `BATAL: periode resmi tidak genap 6, tersisa 7` |
-| **Penjaga TUMPANG TINDIH** — langkah `delete from periode` dihapus dari skrip | Menyala: `BATAL: periode tumpang tindih masih ada` |
-| **Penjaga SISA TRANSAKSIONAL** — baris muncul kembali di `audit_log` | Menyala: `BATAL: masih ada 5662 baris transaksional` |
-| Kegagalan penjaga membatalkan **seluruh** transaksi | Terbukti — `laporan` tetap 688 baris utuh setelah `BATAL` |
+| **Penjaga PERIODE** — ada periode asing saat transaksi berjalan | Menyala: `BATAL: jumlah baris periode berubah (7 -> 8)` |
+| **Penjaga POS LAIN** — satu Pos yang wajib lestari hilang | Menyala: `BATAL: Pos SAPA lain tidak utuh, tersisa 3 dari 4` |
+| Kegagalan penjaga membatalkan **seluruh** transaksi | Terbukti — 4 laporan tetap utuh setelah `BATAL` |
 | `delete from pos_sapa` sebelum `laporan` | Ditolak `RESTRICT`, sesuai dugaan |
 | `DELETE` memicu trigger audit (`aksi='hapus'`) | Terbukti — karena itu `audit_log` dibersihkan terakhir |
-| Semua nama tabel + `audit_log_id_seq` benar-benar ada | Terverifikasi |
 
 Untuk membuktikan penjaga-penjaga itu benar-benar menyala, jumlah baris harus
 berubah **selagi** transaksi berjalan — karena itu pengujiannya memakai trigger
@@ -294,12 +302,12 @@ lalu jalankan skrip" **tidak sah** di sini: snapshot pembanding diambil di dalam
 transaksi, jadi penjaganya memang tidak seharusnya menyala pada cara itu.
 
 Catatan tambahan: `pengguna.pos_id → pos_sapa` adalah `ON DELETE SET NULL`, dan
-tidak ada batasan apa pun dari `pos_sapa` yang mengarah ke akun. Jadi menghapus
-seluruh lokasi **tidak mungkin** menghapus atau mengunci akun. Penjaga di skrip
-tetap ada sebagai pengaman tambahan.
+`pengguna.pos_id` sudah NULL untuk semua baris sejak migrasi
+`20261118000003_petugas_wilayah.sql`. Menghapus satu lokasi **tidak mungkin**
+menghapus atau mengunci akun. Penjaga di skrip tetap ada sebagai pengaman tambahan.
 
-Harness ujinya memakai data seed, sehingga pengujian ini **tidak** menghilangkan
-kewajiban backup di bagian 1 — 4 laporan sungguhan hanya ada di backup.
+Harness ujinya memakai fixture, sehingga pengujian ini **tidak** menghilangkan
+kewajiban backup di bagian 1 — 4 laporan yang ada hanya tersimpan di backup.
 
 ### Verifikasi setelah pengosongan
 
@@ -310,7 +318,7 @@ Jalankan di SQL Editor:
 select peran, count(*) from pengguna group by peran;
 select count(*) as jumlah_auth_users from auth.users;
 
--- Data bersih? Harus 0 / 0 / 0 / 18 / 6
+-- Data bersih? Harus: laporan 0, pos_sapa 4, audit_log 6, wilayah 18, periode 7.
 select
   (select count(*) from laporan)   as laporan,
   (select count(*) from pos_sapa)  as pos_sapa,
@@ -318,16 +326,19 @@ select
   (select count(*) from wilayah)   as wilayah,
   (select count(*) from periode)   as periode;
 
--- Periode tumpang tindih harus benar-benar hilang.
--- Diharapkan: 0 baris.
-select tanggal_mulai, tanggal_selesai
-from periode
-where (tanggal_mulai, tanggal_selesai) in (
-  (date '2026-11-01', date '2026-11-07'),
-  (date '2026-11-08', date '2026-11-14')
-);
+-- Keempat Pos SAPA yang dipertahankan harus hadir. Diharapkan: 4 baris.
+select nama_lokasi, kode_pos from pos_sapa order by nama_lokasi;
 
--- Keenam periode resmi harus lengkap. Diharapkan: 6 baris.
+-- Tidak boleh ada sisa audit untuk laporan / pos yang dihapus.
+-- Diharapkan: 0 baris.
+select entitas, count(*)
+from audit_log
+where entitas like 'laporan%'
+   or (entitas = 'pos_sapa'
+       and entitas_id = '4b48f71c-718b-4763-93f9-1f5777b989a6')
+group by entitas;
+
+-- Ketujuh periode harus utuh. Diharapkan: 7 baris.
 select tanggal_mulai, tanggal_selesai from periode order by tanggal_mulai;
 
 -- Setiap akun masih punya profil lengkap dan aktif.
