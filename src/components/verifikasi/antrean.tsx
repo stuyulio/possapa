@@ -7,6 +7,7 @@ import { Badge, Panel, TabelKosong } from "@/components/dashboard/panel";
 import { waktuPanjang } from "@/lib/format";
 import type { Anomali, AntreanVerifikasi, BarisVerifikasi } from "@/lib/data/verifikasi";
 import { bukaKunciLaporan, verifikasiLaporan } from "@/app/verifikasi/actions";
+import { DialogPratinjau } from "./pratinjau";
 
 const JENIS_SINGKAT: Record<string, string> = {
   aktivitas_anak: "Aktivitas Anak",
@@ -33,6 +34,7 @@ const WARNA_TINGKAT: Record<Anomali["tingkat"], "rose" | "amber"> = {
 
 type Dialog =
   | { jenis: "tutup" }
+  | { jenis: "pratinjau"; baris: BarisVerifikasi; aksi: "verifikasi" | "bukaKunci" }
   | { jenis: "verifikasi"; baris: BarisVerifikasi }
   | { jenis: "bukaKunci"; baris: BarisVerifikasi };
 
@@ -54,13 +56,21 @@ export function AntreanVerifikasi({ antrean }: { antrean: AntreanVerifikasi }) {
     setPesanBaik(false);
   }
 
+  /** Klik baris: tampilkan isi laporan lebih dulu, aksinya menyusul. */
+  function pratinjau(baris: BarisVerifikasi, aksi: "verifikasi" | "bukaKunci") {
+    setDialog({ jenis: "pratinjau", baris, aksi });
+    setCatatan("");
+    setPesan(null);
+    setPesanBaik(false);
+  }
+
   function tutup() {
     if (memuat) return;
     setDialog({ jenis: "tutup" });
   }
 
   async function kirim() {
-    if (dialog.jenis === "tutup") return;
+    if (dialog.jenis !== "verifikasi" && dialog.jenis !== "bukaKunci") return;
 
     setMemuat(true);
     setPesan(null);
@@ -118,19 +128,41 @@ export function AntreanVerifikasi({ antrean }: { antrean: AntreanVerifikasi }) {
 
       <Panel
         judul="Menunggu verifikasi"
-        keterangan={`${menunggu.length} laporan berstatus terkirim pada periode ini`}
+        keterangan={`${menunggu.length} laporan berstatus terkirim pada periode ini · klik baris untuk melihat isinya`}
       >
-        <Tabel baris={menunggu} aksi="verifikasi" onAksi={buka} />
+        <Tabel
+          baris={menunggu}
+          aksi="verifikasi"
+          onAksi={buka}
+          onPratinjau={pratinjau}
+        />
       </Panel>
 
       <Panel
         judul="Sudah terverifikasi"
-        keterangan="Buka kunci bila petugas perlu memperbaiki datanya"
+        keterangan="Buka kunci bila petugas perlu memperbaiki datanya · klik baris untuk melihat isinya"
       >
-        <Tabel baris={terverifikasi} aksi="bukaKunci" onAksi={buka} />
+        <Tabel
+          baris={terverifikasi}
+          aksi="bukaKunci"
+          onAksi={buka}
+          onPratinjau={pratinjau}
+        />
       </Panel>
 
-      {dialog.jenis !== "tutup" && (
+      {dialog.jenis === "pratinjau" && (
+        <DialogPratinjau
+          // Setiap baris punya pratinjau sendiri; kunci ini memastikan state
+          // "memuat" tidak terbawa saat dialog dibuka untuk baris lain.
+          key={dialog.baris.id}
+          baris={dialog.baris}
+          aksi={dialog.aksi}
+          onAksi={buka}
+          tutup={tutup}
+        />
+      )}
+
+      {(dialog.jenis === "verifikasi" || dialog.jenis === "bukaKunci") && (
         <DialogVerifikasi
           dialog={dialog}
           catatan={catatan}
@@ -179,10 +211,12 @@ function Tabel({
   baris,
   aksi,
   onAksi,
+  onPratinjau,
 }: {
   baris: BarisVerifikasi[];
   aksi: "verifikasi" | "bukaKunci";
   onAksi: (jenis: "verifikasi" | "bukaKunci", baris: BarisVerifikasi) => void;
+  onPratinjau: (baris: BarisVerifikasi, aksi: "verifikasi" | "bukaKunci") => void;
 }) {
   if (baris.length === 0) {
     return (
@@ -220,7 +254,24 @@ function Tabel({
                 : waktuPanjang(b.submitted_at);
 
             return (
-              <tr key={b.id} className="hover:bg-slate-50 align-top">
+              <tr
+                key={b.id}
+                tabIndex={0}
+                // Klik baris membuka pratinjau isi laporan; tombol aksi di
+                // kolom kanan menghentikan gelembungnya sendiri agar tidak
+                // membuka dua dialog sekaligus.
+                onClick={() => {
+                  if (!adaTeksTerpilih()) onPratinjau(b, aksi);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onPratinjau(b, aksi);
+                  }
+                }}
+                title="Klik untuk melihat isi laporan"
+                className="hover:bg-slate-50 align-top cursor-pointer focus:outline-none focus-visible:bg-blue-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-400"
+              >
                 <td className="py-3 pr-4">
                   <div className="font-semibold text-slate-900 text-xs sm:text-sm">
                     {b.lokasi?.nama_lokasi ?? "—"}
@@ -260,7 +311,10 @@ function Tabel({
                   {b.bolehUbah ? (
                     <button
                       type="button"
-                      onClick={() => onAksi(aksi, b)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAksi(aksi, b);
+                      }}
                       className={`text-xs font-semibold hover:underline ${
                         aksi === "verifikasi" ? "text-emerald-700" : "text-amber-700"
                       }`}
@@ -283,6 +337,16 @@ function Tabel({
       </table>
     </div>
   );
+}
+
+/**
+ * Baris tabel dapat diklik, tetapi admin kadang menyeret untuk menyalin teks
+ * (nama lokasi, catatan anomali). Bila ada teks terpilih, klik dianggap bagian
+ * dari penyalinan, bukan permintaan membuka pratinjau.
+ */
+function adaTeksTerpilih(): boolean {
+  const pilihan = window.getSelection();
+  return Boolean(pilihan && pilihan.toString().trim() !== "");
 }
 
 function AnomaliBadges({ anomali }: { anomali: Anomali[] }) {

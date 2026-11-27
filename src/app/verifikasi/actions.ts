@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { ambilAnomaliLaporan } from "@/lib/data/verifikasi";
+import {
+  ambilAnomaliLaporan,
+  ambilPratinjauLaporan,
+  type PratinjauLaporan,
+} from "@/lib/data/verifikasi";
 
 export type HasilVerifikasi =
   | { sukses: true; pesan: string }
@@ -33,6 +37,23 @@ async function pastikanAdmin() {
   }
 
   return { ok: true as const, supabase, userId: user.id };
+}
+
+/**
+ * Muat isi satu laporan untuk dialog pratinjau.
+ *
+ * Dipisah dari halaman supaya antrean tidak perlu membawa seluruh isi laporan
+ * ke browser; data baru diambil saat baris benar-benar dibuka. Kewenangan dan
+ * wilayah tetap diperiksa di sisi server (dan oleh RLS).
+ */
+export async function muatPratinjauLaporan(
+  id: string
+): Promise<{ sukses: true; data: PratinjauLaporan } | { sukses: false; pesan: string }> {
+  const hasil = await ambilPratinjauLaporan(id);
+  if (!hasil.data) {
+    return { sukses: false, pesan: hasil.pesan ?? "Rincian laporan gagal dimuat." };
+  }
+  return { sukses: true, data: hasil.data };
 }
 
 const PESAN_GAGAL_UBAH =
