@@ -22,7 +22,6 @@ const JUDUL_ANOMALI: Record<string, string> = {
   subkelompok_perempuan: "Subkelompok perempuan",
   rekap_kategori: "Rincian kategori aduan",
   rekap_nihil: "Status Nihil",
-  kasus_simfoni: "Kelengkapan SIMFONI",
   detail_hilang: "Rincian laporan hilang",
   periode_tumpang_tindih: "Periode tumpang tindih",
 };

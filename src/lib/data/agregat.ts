@@ -185,12 +185,11 @@ export function agregatKasus(laporan: Laporan[]) {
 
   const perKategori = { kekerasan: 0, non_kekerasan: 0 };
   const perStatus = { dalam_proses: 0, dirujuk: 0, selesai: 0 };
-  let simfoni = 0, korban = 0;
+  let korban = 0;
 
   for (const k of kasus) {
     perKategori[k.kategori]++;
     perStatus[k.status_penanganan]++;
-    if (k.sudah_simfoni) simfoni++;
     korban += k.jumlah_korban;
   }
 
@@ -199,7 +198,6 @@ export function agregatKasus(laporan: Laporan[]) {
     korban,
     perKategori,
     perStatus,
-    simfoni,
     rincian: laporan
       .filter((l) => l.laporan_kasus)
       .map((l) => ({

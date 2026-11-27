@@ -64,11 +64,9 @@ export type Kasus = {
   kebutuhan_korban: string | null;
   tindak_lanjut: string | null;
   status_penanganan: "dalam_proses" | "dirujuk" | "selesai";
-  sudah_simfoni: boolean;
-  no_registrasi_simfoni: string | null;
-  tanggal_input_simfoni: string | null;
-  penginput_simfoni: string | null;
-  alasan_belum_simfoni: string | null;
+  // Kolom SIMFONI sengaja tidak diambil lagi: tidak ada layar yang
+  // menampilkannya sejak 27 Nov 2026. Nilainya tetap tersimpan di database
+  // untuk arsip — lihat migrasi 20261127000001.
   hambatan: string | null;
 };
 

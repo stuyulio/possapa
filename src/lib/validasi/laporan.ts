@@ -208,40 +208,11 @@ export const skemaKasus = z
     kebutuhan_korban: teksOpsional,
     tindak_lanjut: teksOpsional,
     status_penanganan: z.enum(["dalam_proses", "dirujuk", "selesai"]),
-    sudah_simfoni: z.boolean(),
-    no_registrasi_simfoni: teksOpsional,
-    tanggal_input_simfoni: teksOpsional,
-    penginput_simfoni: teksOpsional,
-    alasan_belum_simfoni: teksOpsional,
+    // Field SIMFONI (sudah_simfoni, no_registrasi, tanggal input, penginput,
+    // alasan belum) tidak lagi diisi petugas sejak 27 Nov 2026. Kolomnya tetap
+    // ada di database untuk arsip laporan lama, tetapi tidak divalidasi dan
+    // tidak dikirim dari form — lihat migrasi 20261127000001.
     hambatan: teksOpsional,
-  })
-  .superRefine((d, ctx) => {
-    if (d.sudah_simfoni) {
-      if (!d.no_registrasi_simfoni?.trim())
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["no_registrasi_simfoni"],
-          message: "Wajib diisi bila sudah tercatat di SIMFONI",
-        });
-      if (!d.tanggal_input_simfoni?.trim())
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["tanggal_input_simfoni"],
-          message: "Wajib diisi bila sudah tercatat di SIMFONI",
-        });
-      if (!d.penginput_simfoni?.trim())
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["penginput_simfoni"],
-          message: "Wajib diisi bila sudah tercatat di SIMFONI",
-        });
-    } else if (!d.alasan_belum_simfoni?.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["alasan_belum_simfoni"],
-        message: "Alasan wajib diisi bila belum tercatat",
-      });
-    }
   });
 
 export const skemaPublikasi = z.object({

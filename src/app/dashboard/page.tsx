@@ -60,9 +60,9 @@ export default async function Ringkasan({
         judul: `${k.kode_kasus} — ${k.jenis_kasus ?? "—"}`,
         isi: `Korban: ${k.jumlah_korban} orang · ${k.kab_kota}`,
         tindakan:
-          k.sudah_simfoni
-            ? "Tercatat SIMFONI PPA"
-            : "Belum tercatat SIMFONI PPA",
+          k.status_penanganan === "dalam_proses"
+            ? "Dalam proses penanganan"
+            : "Sudah dirujuk",
       })),
   ];
 

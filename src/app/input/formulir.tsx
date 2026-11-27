@@ -66,11 +66,6 @@ const NILAI_AWAL: Record<JenisForm, unknown> = {
     disabilitas: false,
     kebutuhan_korban: "", tindak_lanjut: "",
     status_penanganan: "dalam_proses",
-    sudah_simfoni: false,
-    no_registrasi_simfoni: "",
-    tanggal_input_simfoni: "",
-    penginput_simfoni: "",
-    alasan_belum_simfoni: "",
     hambatan: "",
   } satisfies NilaiKasus,
   publikasi: {

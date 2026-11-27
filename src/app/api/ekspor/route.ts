@@ -92,8 +92,6 @@ export async function GET(request: NextRequest) {
         Kelompok_Usia: x.kelompok_usia,
         Disabilitas: x.disabilitas ? "Ya" : "Tidak",
         Status_Penanganan: x.status_penanganan,
-        Sudah_SIMFONI: x.sudah_simfoni ? "Ya" : "Belum",
-        No_Registrasi_SIMFONI: x.no_registrasi_simfoni,
         Kebutuhan_Korban: x.kebutuhan_korban,
         Tindak_Lanjut: x.tindak_lanjut,
         Hambatan: x.hambatan,

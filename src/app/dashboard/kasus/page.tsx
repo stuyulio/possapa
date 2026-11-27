@@ -33,7 +33,7 @@ export default async function HalamanKasus({
         <KpiCard label="Jumlah kasus" nilai={angka(k.jumlahKasus)} keterangan={`${angka(k.korban)} korban/pelapor`} aksen="rose" />
         <KpiCard label="Kasus kekerasan" nilai={angka(k.perKategori.kekerasan)} keterangan={`${angka(k.perKategori.non_kekerasan)} non-kekerasan`} />
         <KpiCard label="Kasus selesai" nilai={angka(k.perStatus.selesai)} keterangan={`${persen(k.perStatus.selesai, k.jumlahKasus)}% dari kasus`} aksen="emerald" />
-        <KpiCard label="Tercatat SIMFONI PPA" nilai={`${persen(k.simfoni, k.jumlahKasus)}%`} keterangan={`${angka(k.simfoni)} dari ${angka(k.jumlahKasus)} kasus`} aksen="blue" />
+        <KpiCard label="Kasus dirujuk" nilai={angka(k.perStatus.dirujuk)} keterangan={`${persen(k.perStatus.dirujuk, k.jumlahKasus)}% dari kasus`} aksen="blue" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -70,13 +70,12 @@ export default async function HalamanKasus({
                 <th className="text-left font-semibold py-2.5 px-3">Kategori / Jenis</th>
                 <th className="text-left font-semibold py-2.5 px-3">Korban</th>
                 <th className="text-center font-semibold py-2.5 px-3">Status</th>
-                <th className="text-center font-semibold py-2.5 px-3">SIMFONI</th>
                 <th className="text-left font-semibold py-2.5 px-3">Kebutuhan / Tindak lanjut</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {k.rincian.length === 0 ? (
-                <TabelKosong kolom={6} pesan="Belum ada kasus pada filter ini." />
+                <TabelKosong kolom={5} pesan="Belum ada kasus pada filter ini." />
               ) : (
                 k.rincian.map((x) => (
                   <tr key={x.laporan_id} className="hover:bg-slate-50 align-top">
@@ -111,19 +110,6 @@ export default async function HalamanKasus({
                       >
                         {LABEL_STATUS[x.status_penanganan]}
                       </Badge>
-                    </td>
-                    <td className="py-3 px-3 text-center text-xs">
-                      {x.sudah_simfoni ? (
-                        <>
-                          <Badge warna="emerald">Tercatat</Badge>
-                          <div className="font-mono text-[11px] text-slate-700 mt-1">{x.no_registrasi_simfoni ?? "—"}</div>
-                        </>
-                      ) : (
-                        <>
-                          <Badge warna="amber">Belum</Badge>
-                          <div className="text-[11px] text-slate-500 mt-1">{x.alasan_belum_simfoni ?? "—"}</div>
-                        </>
-                      )}
                     </td>
                     <td className="py-3 px-3 text-xs text-slate-700 max-w-sm space-y-1">
                       <div><span className="font-bold">Kebutuhan:</span> {x.kebutuhan_korban ?? "—"}</div>
