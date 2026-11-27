@@ -24,6 +24,7 @@ export type Anak = {
   perlu_layanan_lanjutan: number;
   temuan: string | null;
   tindak_lanjut: string | null;
+  hambatan: string | null;
 };
 
 export type Perempuan = {
@@ -40,6 +41,7 @@ export type Perempuan = {
   lansia: number;
   disabilitas: number;
   manfaat: string | null;
+  hambatan: string | null;
 };
 
 export type Rekap = {

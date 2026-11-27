@@ -48,14 +48,14 @@ const NILAI_AWAL: Record<JenisForm, unknown> = {
     usia_0_5: 0, usia_6_12: 0, usia_13_17: 0,
     laki_laki: 0, perempuan: 0,
     disabilitas: 0, perlu_layanan_lanjutan: 0,
-    temuan: "", tindak_lanjut: "",
+    temuan: "", tindak_lanjut: "", hambatan: "",
   } satisfies NilaiAnak,
   aktivitas_perempuan: {
     jumlah_kegiatan: 1,
     kegiatan: [{ nama: "", jenis: "" }],
     total_ikut: 0, kepala_keluarga: 0,
     hamil: 0, menyusui: 0, lansia: 0, disabilitas: 0,
-    manfaat: "",
+    manfaat: "", hambatan: "",
   } satisfies NilaiPerempuan,
   rekap_pengaduan: {
     status_bulan: "Nihil",

@@ -17,6 +17,30 @@ export const PLATFORM = [
   "Lainnya",
 ] as const;
 
+/** Narasi hambatan satu laporan, beserta asal lokasinya. */
+export type Hambatan = {
+  kab_kota: string;
+  lokasi: string;
+  isi: string;
+};
+
+/**
+ * Petugas yang tidak menemui kendala tidak punya apa pun untuk ditulis, dan
+ * sebagian mengetik "-" sebagai penanda. Keduanya tidak perlu muncul sebagai
+ * hambatan di dashboard.
+ */
+function adaIsi(v: string | null | undefined): v is string {
+  const t = v?.trim();
+  return Boolean(t) && t !== "-";
+}
+
+function wilayahLaporan(l: Laporan) {
+  return {
+    kab_kota: l.pos_sapa?.wilayah?.kab_kota ?? "—",
+    lokasi: l.pos_sapa?.nama_lokasi ?? "—",
+  };
+}
+
 function kelompokPerWilayah(laporan: Laporan[]) {
   const map = new Map<
     string,
@@ -54,6 +78,7 @@ export function agregatAnak(laporan: Laporan[]) {
     tindak_lanjut: string | null;
     perlu: number;
   }> = [];
+  const hambatan: Hambatan[] = [];
 
   for (const l of laporan) {
     const a = l.laporan_anak;
@@ -87,6 +112,10 @@ export function agregatAnak(laporan: Laporan[]) {
         perlu: a.perlu_layanan_lanjutan,
       });
     }
+
+    if (adaIsi(a.hambatan)) {
+      hambatan.push({ ...wilayahLaporan(l), isi: a.hambatan!.trim() });
+    }
   }
 
   return {
@@ -99,6 +128,7 @@ export function agregatAnak(laporan: Laporan[]) {
     jenis: JENIS_ANAK.map((j) => ({ nama: j, jumlah: jenis.get(j) ?? 0 })),
     perWilayah: kelompokPerWilayah(laporan.filter((l) => l.laporan_anak)),
     temuan,
+    hambatan,
   };
 }
 
@@ -106,6 +136,7 @@ export function agregatPerempuan(laporan: Laporan[]) {
   let totalKegiatan = 0, totalIkut = 0, kepalaKeluarga = 0;
   let hamil = 0, menyusui = 0, lansia = 0, disabilitas = 0;
   const jenis = new Map<string, number>();
+  const hambatan: Hambatan[] = [];
 
   for (const l of laporan) {
     const p = l.laporan_perempuan;
@@ -120,6 +151,9 @@ export function agregatPerempuan(laporan: Laporan[]) {
     if (p.jenis_kegiatan) {
       const k = p.jenis_kegiatan.trim();
       jenis.set(k, (jenis.get(k) ?? 0) + 1);
+    }
+    if (adaIsi(p.hambatan)) {
+      hambatan.push({ ...wilayahLaporan(l), isi: p.hambatan.trim() });
     }
   }
 
@@ -137,6 +171,7 @@ export function agregatPerempuan(laporan: Laporan[]) {
       .slice(0, 6)
       .map(([nama, jumlah]) => ({ nama, jumlah })),
     perWilayah: kelompokPerWilayah(laporan.filter((l) => l.laporan_perempuan)),
+    hambatan,
   };
 }
 

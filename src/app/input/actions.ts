@@ -41,6 +41,7 @@ const KOLOM_DETAIL: Record<JenisForm, readonly string[]> = {
     "perlu_layanan_lanjutan",
     "temuan",
     "tindak_lanjut",
+    "hambatan",
   ],
   aktivitas_perempuan: [
     "jumlah_kegiatan",
@@ -54,6 +55,7 @@ const KOLOM_DETAIL: Record<JenisForm, readonly string[]> = {
     "lansia",
     "disabilitas",
     "manfaat",
+    "hambatan",
   ],
   rekap_pengaduan: [
     "status_bulan",

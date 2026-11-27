@@ -15,6 +15,7 @@ const ANAK_DASAR = {
   perlu_layanan_lanjutan: 0,
   temuan: "",
   tindak_lanjut: "",
+  hambatan: "",
 };
 
 const PEREMPUAN_DASAR = {
@@ -29,6 +30,7 @@ const PEREMPUAN_DASAR = {
   lansia: 1,
   disabilitas: 1,
   manfaat: "",
+  hambatan: "",
 };
 
 describe("skemaPerempuan — hamil dan menyusui dipisah", () => {
@@ -268,6 +270,36 @@ describe("rincian kegiatan per jumlah kegiatan", () => {
       kegiatan: [],
     });
     expect(hasil.sukses).toBe(false);
+  });
+});
+
+describe("hambatan/kendala pada aktivitas", () => {
+  const ANAK_LENGKAP = {
+    ...ANAK_DASAR,
+    usia_0_5: 4,
+    usia_6_12: 10,
+    usia_13_17: 6,
+    laki_laki: 9,
+    perempuan: 11,
+  };
+
+  it("menerima hambatan yang dikosongkan", () => {
+    // Pos yang tidak menemui kendala tidak punya apa pun untuk ditulis.
+    expect(validasi("aktivitas_anak", ANAK_LENGKAP).sukses).toBe(true);
+    expect(validasi("aktivitas_perempuan", PEREMPUAN_DASAR).sukses).toBe(true);
+  });
+
+  it("menerima hambatan yang diisi pada kedua jenis laporan", () => {
+    const anak = validasi("aktivitas_anak", {
+      ...ANAK_LENGKAP,
+      hambatan: "Ruang kegiatan terbatas.",
+    });
+    const perempuan = validasi("aktivitas_perempuan", {
+      ...PEREMPUAN_DASAR,
+      hambatan: "Peserta sulit hadir karena jadwal bekerja.",
+    });
+    expect(anak.sukses).toBe(true);
+    expect(perempuan.sukses).toBe(true);
   });
 });
 

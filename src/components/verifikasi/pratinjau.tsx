@@ -458,6 +458,12 @@ function IsiAnak({ d }: { d: Extract<Rincian, { jenis: "aktivitas_anak" }>["data
           <TeksPanjang label="Tindak lanjut temuan" isi={d.tindak_lanjut} />
         </dl>
       </Bagian>
+
+      <Bagian judul="Hambatan/Kendala">
+        <dl>
+          <TeksPanjang label="Hambatan/Kendala" isi={d.hambatan} />
+        </dl>
+      </Bagian>
     </div>
   );
 }
@@ -502,6 +508,12 @@ function IsiPerempuan({
       <dl>
         <TeksPanjang label="Manfaat yang dirasakan" isi={d.manfaat} />
       </dl>
+
+      <Bagian judul="Hambatan/Kendala">
+        <dl>
+          <TeksPanjang label="Hambatan/Kendala" isi={d.hambatan} />
+        </dl>
+      </Bagian>
     </div>
   );
 }

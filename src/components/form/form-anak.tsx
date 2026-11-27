@@ -29,6 +29,7 @@ export type NilaiAnak = {
   perlu_layanan_lanjutan: number;
   temuan: string;
   tindak_lanjut: string;
+  hambatan: string;
 };
 
 export function FormAnak({
@@ -275,6 +276,26 @@ export function FormAnak({
             />
           </Field>
         </div>
+      </fieldset>
+
+      <fieldset className="border-t border-slate-200 pt-4">
+        <legend className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
+          Hambatan/Kendala
+        </legend>
+
+        <Field
+          label="Hambatan/Kendala"
+          bantuan="Kendala yang dihadapi selama kegiatan. Kosongkan bila tidak ada."
+        >
+          <textarea
+            rows={2}
+            value={nilai.hambatan}
+            onChange={(e) => ubah("hambatan", e.target.value)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.hambatan, bacaSaja)}
+            placeholder="Contoh: Ruang kegiatan terbatas dan dua pos tidak dapat dijangkau saat hujan…"
+          />
+        </Field>
       </fieldset>
     </div>
   );

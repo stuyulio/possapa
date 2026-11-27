@@ -18,6 +18,7 @@ export type NilaiPerempuan = {
   lansia: number;
   disabilitas: number;
   manfaat: string;
+  hambatan: string;
 };
 
 export function FormPerempuan({
@@ -208,6 +209,26 @@ export function FormPerempuan({
           placeholder="Contoh: Menambah keterampilan wirausaha rumah tangga"
         />
       </Field>
+
+      <fieldset className="border-t border-slate-200 pt-4">
+        <legend className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
+          Hambatan/Kendala
+        </legend>
+
+        <Field
+          label="Hambatan/Kendala"
+          bantuan="Kendala yang dihadapi selama kegiatan. Kosongkan bila tidak ada."
+        >
+          <textarea
+            rows={2}
+            value={nilai.hambatan}
+            onChange={(e) => ubah("hambatan", e.target.value)}
+            readOnly={bacaSaja}
+            className={kelasField(galat.hambatan, bacaSaja)}
+            placeholder="Contoh: Peserta sulit hadir karena jadwal bertabrakan dengan pekerjaan…"
+          />
+        </Field>
+      </fieldset>
     </div>
   );
 }

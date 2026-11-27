@@ -157,6 +157,9 @@ export const skemaAnak = z
     perlu_layanan_lanjutan: angka(),
     temuan: teksOpsional,
     tindak_lanjut: teksOpsional,
+    // Narasi penutup: kendala yang dihadapi selama kegiatan. Opsional — pos
+    // yang tidak menemui hambatan memang tidak punya apa pun untuk ditulis.
+    hambatan: teksOpsional,
     // Dua kolom ringkasan diturunkan dari `kegiatan` tepat sebelum kirim
     // (lihat `dataKirim` di src/app/input/formulir.tsx). Keduanya tetap
     // diterima di sini supaya penyimpanan tidak ditolak, dan tetap dirapikan
@@ -192,6 +195,8 @@ export const skemaPerempuan = z
     lansia: angka(),
     disabilitas: angka(),
     manfaat: teksOpsional,
+    // Narasi penutup; lihat catatan pada skemaAnak.
+    hambatan: teksOpsional,
     // Ringkasan untuk kolom lama; lihat catatan pada skemaAnak.
     nama_kegiatan: teksOpsional,
     jenis_kegiatan: teksOpsional,

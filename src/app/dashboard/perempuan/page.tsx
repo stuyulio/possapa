@@ -66,6 +66,28 @@ export default async function HalamanPerempuan({
         />
       </Panel>
 
+      <Panel
+        judul="Hambatan/kendala yang dilaporkan"
+        keterangan={`${p.hambatan.length} laporan`}
+      >
+        {p.hambatan.length === 0 ? (
+          <p className="py-6 text-center text-sm text-slate-400">
+            Tidak ada hambatan yang dilaporkan pada filter ini.
+          </p>
+        ) : (
+          <ul className="space-y-2.5">
+            {p.hambatan.map((h, i) => (
+              <li key={i} className="p-3 rounded-xl bg-amber-50/60 border border-amber-200">
+                <p className="text-[11px] font-bold text-amber-800">
+                  {h.kab_kota} — {h.lokasi}
+                </p>
+                <p className="text-xs text-slate-800 mt-1 leading-relaxed">{h.isi}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+
       <Panel judul="Rincian laporan aktivitas perempuan">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

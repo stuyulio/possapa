@@ -29,6 +29,8 @@ export async function GET(request: NextRequest) {
 
   const laporan = await ambilLaporan(filter);
   let baris: Record<string, unknown>[] = [];
+  /** Lembar kedua berisi narasi; lihat kasus "anak"/"perempuan" di bawah. */
+  let lembarTambahan: { nama: string; sheet: XLSX.WorkSheet } | null = null;
 
   switch (jenis) {
     case "anak": {
@@ -44,6 +46,21 @@ export async function GET(request: NextRequest) {
         { Keterangan: "Perlu layanan lanjutan", Nilai: a.perluLanjutan },
         { Keterangan: "Total kegiatan", Nilai: a.totalKegiatan },
       ];
+      // Narasi ikut diekspor terpisah: lembar "ringkasan" berisi angka saja,
+      // jadi hambatan ditempatkan di lembarnya sendiri alih-alih sebagai baris
+      // Nilai yang isinya teks.
+      if (a.hambatan.length > 0) {
+        lembarTambahan = {
+          nama: "Hambatan",
+          sheet: XLSX.utils.json_to_sheet(
+            a.hambatan.map((h) => ({
+              Kabupaten_Kota: h.kab_kota,
+              Lokasi: h.lokasi,
+              Hambatan_Kendala: h.isi,
+            }))
+          ),
+        };
+      }
       break;
     }
     case "perempuan": {
@@ -57,6 +74,18 @@ export async function GET(request: NextRequest) {
         { Keterangan: "Disabilitas", Nilai: p.disabilitas },
         { Keterangan: "Total kegiatan", Nilai: p.totalKegiatan },
       ];
+      if (p.hambatan.length > 0) {
+        lembarTambahan = {
+          nama: "Hambatan",
+          sheet: XLSX.utils.json_to_sheet(
+            p.hambatan.map((h) => ({
+              Kabupaten_Kota: h.kab_kota,
+              Lokasi: h.lokasi,
+              Hambatan_Kendala: h.isi,
+            }))
+          ),
+        };
+      }
       break;
     }
     case "pengaduan": {
@@ -134,6 +163,9 @@ export async function GET(request: NextRequest) {
   const ws = XLSX.utils.json_to_sheet(baris);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, JUDUL[jenis] ?? "Data");
+  if (lembarTambahan) {
+    XLSX.utils.book_append_sheet(wb, lembarTambahan.sheet, lembarTambahan.nama);
+  }
 
   const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" }) as Buffer;
   const nama = `Pos-SAPA_${jenis}_${new Date().toISOString().slice(0, 10)}.xlsx`;
