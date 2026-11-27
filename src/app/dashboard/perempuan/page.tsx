@@ -5,6 +5,7 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { GrafikBatang, WARNA } from "@/components/dashboard/charts";
 import { Panel, TabelKosong } from "@/components/dashboard/panel";
 import { EksporExcel, CetakHalaman } from "@/components/dashboard/aksi-laporan";
+import { kegiatanTampilPerempuan } from "@/lib/kegiatan";
 
 export const metadata = { title: "Aktivitas Perempuan — Pos SAPA" };
 
@@ -95,8 +96,18 @@ export default async function HalamanPerempuan({
                         <div className="text-[11px] text-rose-600 font-semibold mt-0.5">{l.periode?.label}</div>
                       </td>
                       <td className="py-3 px-3">
-                        <div className="font-medium text-slate-800">{x.nama_kegiatan}</div>
-                        <div className="text-xs text-slate-500">{x.jenis_kegiatan}</div>
+                        {kegiatanTampilPerempuan(
+                          x.kegiatan,
+                          x.nama_kegiatan,
+                          x.jenis_kegiatan
+                        ).map((k, i) => (
+                          <div key={i} className={i > 0 ? "mt-1" : undefined}>
+                            <div className="font-medium text-slate-800">{k.nama}</div>
+                            {k.jenis && (
+                              <div className="text-xs text-slate-500">{k.jenis}</div>
+                            )}
+                          </div>
+                        ))}
                       </td>
                       <td className="py-3 px-3 text-center font-bold text-rose-700">{x.total_ikut}</td>
                       <td className="py-3 px-3 text-center">{x.kepala_keluarga}</td>

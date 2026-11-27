@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Badge } from "@/components/dashboard/panel";
 import { angka, tanggalPanjang, waktuPanjang } from "@/lib/format";
 import { LABEL_JENIS } from "@/lib/validasi/laporan";
+import { kegiatanTampilAnak, kegiatanTampilPerempuan } from "@/lib/kegiatan";
 import type {
   Anomali,
   BarisVerifikasi,
@@ -369,28 +370,59 @@ function Total({ item }: { item: { label: string; nilai: number }[] }) {
   );
 }
 
+/**
+ * Daftar kegiatan pada pratinjau verifikasi.
+ *
+ * Daftarnya sudah dirapikan sebelum sampai ke sini (`kegiatanTampilAnak` /
+ * `kegiatanTampilPerempuan`): laporan lama yang belum punya `kegiatan` tampil
+ * sebagai satu kegiatan dari kolom ringkasannya, bukan hilang.
+ */
+function RincianKegiatan({ daftar }: { daftar: { nama: string; jenis: string }[] }) {
+  if (daftar.length === 0) {
+    return (
+      <div className="mt-3">
+        <dt className="text-[11px] text-slate-500">Kegiatan</dt>
+        <dd className="text-sm text-slate-400">Belum ada rincian kegiatan</dd>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3">
+      <dt className="text-[11px] text-slate-500">Kegiatan</dt>
+      <dd className="mt-1 space-y-1">
+        {daftar.map((k, i) => (
+          <div key={i} className="text-sm text-slate-800">
+            <span className="font-semibold">
+              {daftar.length > 1 ? `${i + 1}. ` : ""}
+              {k.nama}
+            </span>
+            {k.jenis && (
+              <span className="text-slate-500"> — {k.jenis}</span>
+            )}
+          </div>
+        ))}
+      </dd>
+    </div>
+  );
+}
+
 function IsiAnak({ d }: { d: Extract<Rincian, { jenis: "aktivitas_anak" }>["data"] }) {
   return (
     <div>
-      <Sebaran
-        item={[
-          { label: "Jumlah kegiatan", nilai: n(d.jumlah_kegiatan) },
-          { label: "Nama kegiatan", nilai: d.nama_kegiatan || "—" },
-          {
-            label: "Jenis kegiatan",
-            nilai:
-              d.jenis_kegiatan.length > 0 ? (
-                <span className="font-normal text-slate-700">
-                  {d.jenis_kegiatan.join(", ")}
-                </span>
-              ) : (
-                "—"
-              ),
-          },
-        ]}
-      />
+      <Sebaran item={[{ label: "Jumlah kegiatan", nilai: n(d.jumlah_kegiatan) }]} />
 
-      <Bagian judul="Penerima manfaat">
+      <dl>
+        <RincianKegiatan
+          daftar={kegiatanTampilAnak(
+            d.kegiatan,
+            d.nama_kegiatan,
+            d.jenis_kegiatan ?? []
+          ).map((k) => ({ nama: k.nama, jenis: k.jenis.join(", ") }))}
+        />
+      </dl>
+
+      <Bagian judul="Penerima manfaat (total periode)">
         <Sebaran
           item={[
             { label: "Usia 0–5 tahun", nilai: n(d.usia_0_5) },
@@ -441,12 +473,20 @@ function IsiPerempuan({
         item={[
           { label: "Jumlah kegiatan", nilai: n(d.jumlah_kegiatan) },
           { label: "Total peserta", nilai: n(d.total_ikut) },
-          { label: "Nama kegiatan", nilai: d.nama_kegiatan || "—" },
-          { label: "Jenis kegiatan", nilai: d.jenis_kegiatan || "—" },
         ]}
       />
 
-      <Bagian judul="Kelompok sasaran">
+      <dl>
+        <RincianKegiatan
+          daftar={kegiatanTampilPerempuan(
+            d.kegiatan,
+            d.nama_kegiatan,
+            d.jenis_kegiatan
+          ).map((k) => ({ nama: k.nama, jenis: k.jenis }))}
+        />
+      </dl>
+
+      <Bagian judul="Kelompok sasaran (total periode)">
         <Sebaran
           kolom={5}
           item={[

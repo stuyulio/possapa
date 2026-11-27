@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAKSIMAL_KEGIATAN } from "@/lib/kegiatan";
 
 /**
  * Skema validasi dipakai di klien (umpan balik langsung) dan di server
@@ -57,6 +58,25 @@ export const JENIS_KEGIATAN_ANAK = [
   "Lainnya",
 ] as const;
 
+/**
+ * Satu kegiatan anak: nama dan jenisnya sendiri.
+ *
+ * Sejak 27 Nov 2026 jumlah kegiatan menentukan berapa kartu yang diisi, dan
+ * setiap kegiatan membawa nama serta jenisnya masing-masing. Aturan wajibnya
+ * sama dengan sebelumnya — nama terisi dan minimal satu jenis dipilih — hanya
+ * saja kini berlaku per kegiatan, bukan sekali untuk seluruh laporan.
+ */
+const kegiatanAnakSchema = z.object({
+  nama: teksWajib("Nama kegiatan"),
+  jenis: z.array(z.string()).min(1, "Pilih minimal satu jenis kegiatan"),
+});
+
+/** Satu kegiatan perempuan: nama dan jenis (teks bebas) sendiri. */
+const kegiatanPerempuanSchema = z.object({
+  nama: teksWajib("Nama kegiatan"),
+  jenis: teksOpsional,
+});
+
 export const PLATFORM = [
   "Instagram",
   "Facebook",
@@ -102,13 +122,32 @@ export function galatPenerimaManfaat(d: {
   return null;
 }
 
+/**
+ * Jumlah angka dan panjang daftar kegiatan harus sama.
+ *
+ * Server memeriksanya sendiri, tidak mengandalkan formulir yang sudah
+ * memotong daftar sebelum mengirim: kiriman langsung ke server action bisa
+ * membawa 1 kegiatan dengan `jumlah_kegiatan: 4`, dan angka itulah yang
+ * dijumlahkan di dashboard. Bila keduanya berbeda, angka dan rincian
+ * menceritakan hal yang tidak sama.
+ */
+function jumlahKegiatanCocok(
+  d: { jumlah_kegiatan: number; kegiatan: unknown[] },
+  ctx: z.RefinementCtx
+) {
+  if (d.kegiatan.length !== d.jumlah_kegiatan) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["kegiatan"],
+      message: `Jumlah kegiatan (${d.jumlah_kegiatan}) tidak sama dengan rincian yang diisi (${d.kegiatan.length})`,
+    });
+  }
+}
+
 export const skemaAnak = z
   .object({
-    jumlah_kegiatan: angka(1000).min(1, "Minimal 1 kegiatan"),
-    nama_kegiatan: teksWajib("Nama kegiatan"),
-    jenis_kegiatan: z
-      .array(z.string())
-      .min(1, "Pilih minimal satu jenis kegiatan"),
+    jumlah_kegiatan: angka(MAKSIMAL_KEGIATAN).min(1, "Minimal 1 kegiatan"),
+    kegiatan: z.array(kegiatanAnakSchema).min(1, "Minimal satu kegiatan"),
     usia_0_5: angka(),
     usia_6_12: angka(),
     usia_13_17: angka(),
@@ -118,6 +157,12 @@ export const skemaAnak = z
     perlu_layanan_lanjutan: angka(),
     temuan: teksOpsional,
     tindak_lanjut: teksOpsional,
+    // Dua kolom ringkasan diturunkan dari `kegiatan` tepat sebelum kirim
+    // (lihat `dataKirim` di src/app/input/formulir.tsx). Keduanya tetap
+    // diterima di sini supaya penyimpanan tidak ditolak, dan tetap dirapikan
+    // agar bentuk yang tidak terduga tidak lolos ke kolom database.
+    nama_kegiatan: teksOpsional,
+    jenis_kegiatan: z.array(z.string()).optional(),
   })
   .superRefine((d, ctx) => {
     const pesan = galatPenerimaManfaat(d);
@@ -128,13 +173,15 @@ export const skemaAnak = z
         message: pesan,
       });
     }
+    jumlahKegiatanCocok(d, ctx);
   });
 
 export const skemaPerempuan = z
   .object({
-    jumlah_kegiatan: angka(1000).min(1, "Minimal 1 kegiatan"),
-    nama_kegiatan: teksWajib("Nama kegiatan"),
-    jenis_kegiatan: teksOpsional,
+    jumlah_kegiatan: angka(MAKSIMAL_KEGIATAN).min(1, "Minimal 1 kegiatan"),
+    kegiatan: z
+      .array(kegiatanPerempuanSchema)
+      .min(1, "Minimal satu kegiatan"),
     total_ikut: angka(),
     kepala_keluarga: angka(),
     // Hamil dan menyusui diisi terpisah. Seorang perempuan dapat hamil
@@ -145,7 +192,11 @@ export const skemaPerempuan = z
     lansia: angka(),
     disabilitas: angka(),
     manfaat: teksOpsional,
+    // Ringkasan untuk kolom lama; lihat catatan pada skemaAnak.
+    nama_kegiatan: teksOpsional,
+    jenis_kegiatan: teksOpsional,
   })
+  .superRefine((d, ctx) => jumlahKegiatanCocok(d, ctx))
   .refine((d) => d.total_ikut >= d.kepala_keluarga, {
     message: "Kepala keluarga tidak boleh melebihi total peserta",
     path: ["kepala_keluarga"],

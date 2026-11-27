@@ -19,6 +19,78 @@ const TABEL_DETAIL: Record<JenisForm, string> = {
   publikasi: "laporan_publikasi",
 };
 
+/**
+ * Kolom yang boleh ditulis ke tiap tabel rincian, di luar `laporan_id`.
+ *
+ * Daftar ini kembar dengan skema validasi — dan itu memang disengaja: skema
+ * menjaga bentuk isian, daftar ini menjaga apa yang benar-benar masuk tabel.
+ * Menambah kolom baru berarti menambahkannya di migrasi, skema, dan di sini.
+ */
+const KOLOM_DETAIL: Record<JenisForm, readonly string[]> = {
+  aktivitas_anak: [
+    "jumlah_kegiatan",
+    "kegiatan",
+    "nama_kegiatan",
+    "jenis_kegiatan",
+    "usia_0_5",
+    "usia_6_12",
+    "usia_13_17",
+    "laki_laki",
+    "perempuan",
+    "disabilitas",
+    "perlu_layanan_lanjutan",
+    "temuan",
+    "tindak_lanjut",
+  ],
+  aktivitas_perempuan: [
+    "jumlah_kegiatan",
+    "kegiatan",
+    "nama_kegiatan",
+    "jenis_kegiatan",
+    "total_ikut",
+    "kepala_keluarga",
+    "hamil",
+    "menyusui",
+    "lansia",
+    "disabilitas",
+    "manfaat",
+  ],
+  rekap_pengaduan: [
+    "status_bulan",
+    "aduan_masuk",
+    "kekerasan_perempuan",
+    "kekerasan_anak",
+    "non_kekerasan_perempuan",
+    "non_kekerasan_anak",
+    "sudah_ditindaklanjuti",
+    "tercatat_simfoni",
+    "tindak_lanjut_umum",
+    "pihak_terlibat",
+  ],
+  tindak_lanjut_kasus: [
+    "kode_kasus",
+    "tanggal_aduan",
+    "kategori",
+    "jenis_kasus",
+    "jumlah_korban",
+    "jenis_kelamin",
+    "kelompok_usia",
+    "disabilitas",
+    "kebutuhan_korban",
+    "tindak_lanjut",
+    "status_penanganan",
+    "hambatan",
+  ],
+  publikasi: [
+    "tanggal_publikasi",
+    "kegiatan",
+    "platform",
+    "nama_akun",
+    "link_publikasi",
+    "file_publikasi",
+  ],
+};
+
 export async function simpanLaporan(masukan: {
   jenis: JenisForm;
   posId: string;
@@ -201,12 +273,22 @@ export async function simpanLaporan(masukan: {
   }
 
   // 2. Rincian — disimpan selagi hak tulisnya masih terbuka.
+  //
+  //    Hanya kolom milik tabel rincian yang dikirim. Skema validasi juga
+  //    menerima beberapa kunci tambahan (mis. `jenis` atau `posId` yang dibawa
+  //    kiriman klien), dan PostgREST menolak seluruh upsert bila ada satu kunci
+  //    yang bukan kolom tabel. Penyaringan ini menjaga daftar kolom tetap
+  //    menjadi urusan tabel, bukan urusan pemanggil.
+  const detail = hasil.data as Record<string, unknown>;
+  const isian = Object.fromEntries(
+    KOLOM_DETAIL[masukan.jenis]
+      .filter((k) => k in detail)
+      .map((k) => [k, detail[k]])
+  );
+
   const { error: errDetail } = await supabase
     .from(TABEL_DETAIL[masukan.jenis])
-    .upsert(
-      { laporan_id: indukId, ...(hasil.data as Record<string, unknown>) },
-      { onConflict: "laporan_id" }
-    );
+    .upsert({ laporan_id: indukId, ...isian }, { onConflict: "laporan_id" });
 
   if (errDetail) {
     return { sukses: false, pesan: `Gagal menyimpan detail: ${errDetail.message}` };

@@ -1,11 +1,16 @@
 "use client";
 
 import { Field, InputAngka, kelasField } from "./field";
+import {
+  MAKSIMAL_KEGIATAN,
+  potongKegiatan,
+  type KegiatanPerempuan,
+} from "@/lib/kegiatan";
 
 export type NilaiPerempuan = {
   jumlah_kegiatan: number;
-  nama_kegiatan: string;
-  jenis_kegiatan: string;
+  /** Satu kartu per kegiatan; lihat catatan di `NilaiAnak.kegiatan`. */
+  kegiatan: KegiatanPerempuan[];
   total_ikut: number;
   kepala_keluarga: number;
   hamil: number;
@@ -19,28 +24,55 @@ export function FormPerempuan({
   nilai,
   ubah,
   galat,
+  hapusGalatKegiatan,
   bacaSaja = false,
 }: {
   nilai: NilaiPerempuan;
   ubah: <K extends keyof NilaiPerempuan>(k: K, v: NilaiPerempuan[K]) => void;
   galat: Record<string, string>;
+  /** Buang galat milik kartu kegiatan ke-i setelah isinya diperbaiki. */
+  hapusGalatKegiatan: (i: number) => void;
   /** Laporan terkirim: tampilkan isinya, jangan biarkan diubah. */
   bacaSaja?: boolean;
 }) {
+  const jumlahTampil = Math.max(1, Number(nilai.jumlah_kegiatan) || 0);
+  const kegiatanTampil = potongKegiatan(nilai.kegiatan ?? [], jumlahTampil, () => ({
+    nama: "",
+    jenis: "",
+  }));
+
+  function ubahKegiatan(i: number, perubahan: Partial<KegiatanPerempuan>) {
+    const baru = [...(nilai.kegiatan ?? [])];
+    while (baru.length <= i) baru.push({ nama: "", jenis: "" });
+    baru[i] = { ...baru[i], ...perubahan };
+    ubah("kegiatan", baru);
+    hapusGalatKegiatan(i);
+  }
+
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Jumlah kegiatan perempuan" wajib galat={galat.jumlah_kegiatan}>
+        <Field
+          label="Jumlah kegiatan perempuan"
+          wajib
+          galat={galat.jumlah_kegiatan}
+          bantuan={`Satu kartu kegiatan untuk setiap kegiatan (1–${MAKSIMAL_KEGIATAN}).`}
+        >
           <InputAngka
             nilai={nilai.jumlah_kegiatan}
             ubah={(v) => ubah("jumlah_kegiatan", v)}
             galat={galat.jumlah_kegiatan}
             min={1}
+            max={MAKSIMAL_KEGIATAN}
             bacaSaja={bacaSaja}
           />
         </Field>
 
-        <Field label="Total perempuan yang ikut (orang)" wajib galat={galat.total_ikut}>
+        <Field
+          label="Total perempuan yang ikut (orang)"
+          wajib
+          galat={galat.total_ikut}
+        >
           <InputAngka
             nilai={nilai.total_ikut}
             ubah={(v) => ubah("total_ikut", v)}
@@ -50,38 +82,76 @@ export function FormPerempuan({
         </Field>
       </div>
 
-      <Field label="Nama kegiatan" wajib galat={galat.nama_kegiatan}>
-        <input
-          type="text"
-          value={nilai.nama_kegiatan}
-          onChange={(e) => ubah("nama_kegiatan", e.target.value)}
-          placeholder="Contoh: Sekolah Perempuan Mandiri"
-          readOnly={bacaSaja}
-          className={kelasField(galat.nama_kegiatan, bacaSaja)}
-        />
-      </Field>
+      <fieldset className="border-t border-slate-200 pt-4">
+        <legend className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
+          Rincian kegiatan
+          <span className="text-rose-600 ml-0.5">*</span>
+        </legend>
+        {galat.kegiatan && (
+          <p
+            role="alert"
+            className="text-[11px] text-rose-600 font-semibold mb-2"
+          >
+            {galat.kegiatan}
+          </p>
+        )}
 
-      <Field
-        label="Jenis kegiatan"
-        bantuan="Contoh: pengajian ibu-ibu, hidroponik, pelatihan usaha"
-      >
-        <input
-          type="text"
-          value={nilai.jenis_kegiatan}
-          onChange={(e) => ubah("jenis_kegiatan", e.target.value)}
-          readOnly={bacaSaja}
-          className={kelasField(galat.jenis_kegiatan, bacaSaja)}
-        />
-      </Field>
+        <div className="space-y-4">
+          {kegiatanTampil.map((k, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+            >
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-3">
+                Kegiatan {i + 1}
+              </p>
+
+              <Field
+                label="Nama kegiatan"
+                wajib
+                galat={galat[`kegiatan.${i}.nama`]}
+              >
+                <input
+                  type="text"
+                  value={k.nama}
+                  onChange={(e) => ubahKegiatan(i, { nama: e.target.value })}
+                  placeholder="Contoh: Sekolah Perempuan Mandiri"
+                  readOnly={bacaSaja}
+                  className={kelasField(galat[`kegiatan.${i}.nama`], bacaSaja)}
+                />
+              </Field>
+
+              <div className="mt-3">
+                <Field
+                  label="Jenis kegiatan"
+                  bantuan="Contoh: pengajian ibu-ibu, hidroponik, pelatihan usaha"
+                >
+                  <input
+                    type="text"
+                    value={k.jenis ?? ""}
+                    onChange={(e) => ubahKegiatan(i, { jenis: e.target.value })}
+                    readOnly={bacaSaja}
+                    className={kelasField(
+                      galat[`kegiatan.${i}.jenis`],
+                      bacaSaja
+                    )}
+                  />
+                </Field>
+              </div>
+            </div>
+          ))}
+        </div>
+      </fieldset>
 
       <fieldset className="border-t border-slate-200 pt-4">
         <legend className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
-          Kelompok sasaran
+          Kelompok sasaran — total periode ini
         </legend>
         <p className="text-[11px] text-slate-500 mb-3">
-          Isi jumlah peserta pada masing-masing kelompok. Tidak boleh melebihi
-          total peserta. Satu peserta boleh dihitung di beberapa kelompok — ibu
-          hamil dapat sekaligus menyusui.
+          Diisi untuk seluruh kegiatan sekaligus, bukan per kegiatan. Isi jumlah
+          peserta pada masing-masing kelompok. Tidak boleh melebihi total
+          peserta. Satu peserta boleh dihitung di beberapa kelompok — ibu hamil
+          dapat sekaligus menyusui.
         </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">

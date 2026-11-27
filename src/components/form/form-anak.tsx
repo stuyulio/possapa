@@ -5,11 +5,21 @@ import {
   galatPenerimaManfaat,
   JENIS_KEGIATAN_ANAK,
 } from "@/lib/validasi/laporan";
+import {
+  MAKSIMAL_KEGIATAN,
+  potongKegiatan,
+  type KegiatanAnak,
+} from "@/lib/kegiatan";
 
 export type NilaiAnak = {
   jumlah_kegiatan: number;
-  nama_kegiatan: string;
-  jenis_kegiatan: string[];
+  /**
+   * Satu kartu per kegiatan. Daftar ini boleh lebih panjang daripada yang
+   * ditampilkan selama petugas mengubah kolom jumlah — isian yang sudah
+   * diketik tidak boleh hilang hanya karena angkanya sedang kosong. Yang
+   * dipakai adalah `slice(0, jumlah_kegiatan)`, dan hanya pada tampilan.
+   */
+  kegiatan: KegiatanAnak[];
   usia_0_5: number;
   usia_6_12: number;
   usia_13_17: number;
@@ -25,11 +35,14 @@ export function FormAnak({
   nilai,
   ubah,
   galat,
+  hapusGalatKegiatan,
   bacaSaja = false,
 }: {
   nilai: NilaiAnak;
   ubah: <K extends keyof NilaiAnak>(k: K, v: NilaiAnak[K]) => void;
   galat: Record<string, string>;
+  /** Buang galat milik kartu kegiatan ke-i setelah isinya diperbaiki. */
+  hapusGalatKegiatan: (i: number) => void;
   /** Laporan terkirim: tampilkan isinya, jangan biarkan diubah. */
   bacaSaja?: boolean;
 }) {
@@ -42,68 +55,129 @@ export function FormAnak({
   const selisih = !bacaSaja && totalUsia !== totalGender;
   const galatBagian = galat.penerima_manfaat;
 
-  function toggleJenis(j: string) {
-    const ada = nilai.jenis_kegiatan.includes(j);
-    ubah(
-      "jenis_kegiatan",
-      ada
-        ? nilai.jenis_kegiatan.filter((x) => x !== j)
-        : [...nilai.jenis_kegiatan, j]
-    );
+  // Minimal satu kartu: kolom jumlah yang dikosongkan tidak boleh
+  // meninggalkan formulir tanpa kegiatan sama sekali.
+  const jumlahTampil = Math.max(1, Number(nilai.jumlah_kegiatan) || 0);
+  const kegiatanTampil = potongKegiatan(nilai.kegiatan ?? [], jumlahTampil, () => ({
+    nama: "",
+    jenis: [],
+  }));
+
+  /** Ubah satu kegiatan. Indeks di luar daftar awal diisi kartu kosong dulu. */
+  function ubahKegiatan(i: number, perubahan: Partial<KegiatanAnak>) {
+    const baru = [...(nilai.kegiatan ?? [])];
+    while (baru.length <= i) baru.push({ nama: "", jenis: [] });
+    baru[i] = { ...baru[i], ...perubahan };
+    ubah("kegiatan", baru);
+    // Galat kartu ini sudah tidak berlaku begitu isinya diubah; tanpa ini
+    // pesan merah bertahan di samping kolom yang sudah diperbaiki.
+    hapusGalatKegiatan(i);
   }
+
+  function toggleJenis(i: number, j: string) {
+    const sekarang = kegiatanTampil[i]?.jenis ?? [];
+    const ada = sekarang.includes(j);
+    ubahKegiatan(i, {
+      jenis: ada ? sekarang.filter((x) => x !== j) : [...sekarang, j],
+    });
+  }
+
+  const galatKegiatan = galat.kegiatan;
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Jumlah kegiatan anak" wajib galat={galat.jumlah_kegiatan}>
-          <InputAngka
-            nilai={nilai.jumlah_kegiatan}
-            ubah={(v) => ubah("jumlah_kegiatan", v)}
-            galat={galat.jumlah_kegiatan}
-            min={1}
-            bacaSaja={bacaSaja}
-          />
-        </Field>
-
-        <Field label="Nama kegiatan" wajib galat={galat.nama_kegiatan}>
-          <input
-            type="text"
-            value={nilai.nama_kegiatan}
-            onChange={(e) => ubah("nama_kegiatan", e.target.value)}
-            placeholder="Contoh: Ruang Sahabat Anak & Edukasi Perlindungan Diri"
-            readOnly={bacaSaja}
-            className={kelasField(galat.nama_kegiatan, bacaSaja)}
-          />
-        </Field>
-      </div>
-
-      <Field label="Jenis kegiatan" wajib galat={galat.jenis_kegiatan}>
-        <div className="flex flex-wrap gap-2">
-          {JENIS_KEGIATAN_ANAK.map((j) => {
-            const aktif = nilai.jenis_kegiatan.includes(j);
-            return (
-              <button
-                key={j}
-                type="button"
-                onClick={() => toggleJenis(j)}
-                aria-pressed={aktif}
-                disabled={bacaSaja}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
-                  aktif
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-slate-600 border-slate-300 hover:border-blue-400"
-                } ${bacaSaja ? "cursor-default opacity-90" : ""}`}
-              >
-                {j}
-              </button>
-            );
-          })}
-        </div>
+      <Field
+        label="Jumlah kegiatan anak"
+        wajib
+        galat={galat.jumlah_kegiatan}
+        bantuan={`Satu kartu kegiatan untuk setiap kegiatan (1–${MAKSIMAL_KEGIATAN}).`}
+      >
+        <InputAngka
+          nilai={nilai.jumlah_kegiatan}
+          ubah={(v) => ubah("jumlah_kegiatan", v)}
+          galat={galat.jumlah_kegiatan}
+          min={1}
+          max={MAKSIMAL_KEGIATAN}
+          bacaSaja={bacaSaja}
+        />
       </Field>
 
       <fieldset className="border-t border-slate-200 pt-4">
         <legend className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
-          Penerima manfaat
+          Rincian kegiatan
+          <span className="text-rose-600 ml-0.5">*</span>
+        </legend>
+        {galatKegiatan && (
+          <p
+            role="alert"
+            className="text-[11px] text-rose-600 font-semibold mb-2"
+          >
+            {galatKegiatan}
+          </p>
+        )}
+
+        <div className="space-y-4">
+          {kegiatanTampil.map((k, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+            >
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-3">
+                Kegiatan {i + 1}
+              </p>
+
+              <Field
+                label="Nama kegiatan"
+                wajib
+                galat={galat[`kegiatan.${i}.nama`]}
+              >
+                <input
+                  type="text"
+                  value={k.nama}
+                  onChange={(e) => ubahKegiatan(i, { nama: e.target.value })}
+                  placeholder="Contoh: Ruang Sahabat Anak & Edukasi Perlindungan Diri"
+                  readOnly={bacaSaja}
+                  className={kelasField(galat[`kegiatan.${i}.nama`], bacaSaja)}
+                />
+              </Field>
+
+              <div className="mt-3">
+                <Field
+                  label="Jenis kegiatan"
+                  wajib
+                  galat={galat[`kegiatan.${i}.jenis`]}
+                >
+                  <div className="flex flex-wrap gap-2">
+                    {JENIS_KEGIATAN_ANAK.map((j) => {
+                      const aktif = (k.jenis ?? []).includes(j);
+                      return (
+                        <button
+                          key={j}
+                          type="button"
+                          onClick={() => toggleJenis(i, j)}
+                          aria-pressed={aktif}
+                          disabled={bacaSaja}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                            aktif
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "bg-white text-slate-600 border-slate-300 hover:border-blue-400"
+                          } ${bacaSaja ? "cursor-default opacity-90" : ""}`}
+                        >
+                          {j}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Field>
+              </div>
+            </div>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="border-t border-slate-200 pt-4">
+        <legend className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
+          Penerima manfaat — total periode ini
           <span className="text-rose-600 ml-0.5">*</span>
         </legend>
         {galatBagian ? (
@@ -115,9 +189,10 @@ export function FormAnak({
           </p>
         ) : (
           <p className="text-[11px] text-slate-500 mb-2">
-            Wajib diisi minimal satu penerima manfaat. Kolom yang tidak ada
-            pesertanya cukup diisi 0; total per usia harus sama dengan total
-            per jenis kelamin.
+            Diisi untuk seluruh kegiatan sekaligus, bukan per kegiatan. Anak
+            yang mengikuti dua kegiatan cukup dihitung sekali. Wajib diisi
+            minimal satu penerima manfaat. Kolom yang tidak ada pesertanya cukup
+            diisi 0; total per usia harus sama dengan total per jenis kelamin.
           </p>
         )}
 

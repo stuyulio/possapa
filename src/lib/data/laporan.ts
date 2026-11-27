@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import type { KegiatanAnak, KegiatanPerempuan } from "@/lib/kegiatan";
 
 export type JenisLaporan =
   | "aktivitas_anak"
@@ -10,6 +11,8 @@ export type JenisLaporan =
 export type Anak = {
   laporan_id: string;
   jumlah_kegiatan: number;
+  /** Rincian per kegiatan; NULL untuk laporan sebelum 27 Nov 2026. */
+  kegiatan: KegiatanAnak[] | null;
   nama_kegiatan: string | null;
   jenis_kegiatan: string[];
   usia_0_5: number;
@@ -26,6 +29,8 @@ export type Anak = {
 export type Perempuan = {
   laporan_id: string;
   jumlah_kegiatan: number;
+  /** Rincian per kegiatan; NULL untuk laporan sebelum 27 Nov 2026. */
+  kegiatan: KegiatanPerempuan[] | null;
   nama_kegiatan: string | null;
   jenis_kegiatan: string | null;
   total_ikut: number;

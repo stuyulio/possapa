@@ -5,6 +5,7 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { GrafikBatang, GrafikDonat, WARNA } from "@/components/dashboard/charts";
 import { Panel, Badge, TabelKosong } from "@/components/dashboard/panel";
 import { EksporExcel, CetakHalaman } from "@/components/dashboard/aksi-laporan";
+import { kegiatanTampilAnak } from "@/lib/kegiatan";
 
 export const metadata = { title: "Aktivitas Anak — Pos SAPA" };
 
@@ -118,12 +119,20 @@ export default async function HalamanAnak({
                         <div className="text-[11px] text-blue-600 font-semibold mt-0.5">{l.periode?.label}</div>
                       </td>
                       <td className="py-3 px-3">
-                        <div className="font-medium text-slate-800">{x.nama_kegiatan}</div>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {x.jenis_kegiatan.map((j) => (
-                            <Badge key={j} warna="blue">{j}</Badge>
-                          ))}
-                        </div>
+                        {kegiatanTampilAnak(
+                          x.kegiatan,
+                          x.nama_kegiatan,
+                          x.jenis_kegiatan ?? []
+                        ).map((k, i) => (
+                          <div key={i} className={i > 0 ? "mt-1.5" : undefined}>
+                            <div className="font-medium text-slate-800">{k.nama}</div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {k.jenis.map((j) => (
+                                <Badge key={j} warna="blue">{j}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </td>
                       <td className="py-3 px-3 text-center">{x.jumlah_kegiatan}</td>
                       <td className="py-3 px-3 text-center">{x.usia_0_5}</td>

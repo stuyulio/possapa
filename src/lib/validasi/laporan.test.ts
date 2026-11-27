@@ -3,6 +3,7 @@ import { galatPenerimaManfaat, validasi } from "./laporan";
 
 const ANAK_DASAR = {
   jumlah_kegiatan: 1,
+  kegiatan: [{ nama: "Ruang Sahabat Anak", jenis: ["Bermain Bersama"] }],
   nama_kegiatan: "Ruang Sahabat Anak",
   jenis_kegiatan: ["Bermain Bersama"],
   usia_0_5: 0,
@@ -18,6 +19,7 @@ const ANAK_DASAR = {
 
 const PEREMPUAN_DASAR = {
   jumlah_kegiatan: 1,
+  kegiatan: [{ nama: "Sekolah Perempuan Mandiri", jenis: "Pelatihan usaha" }],
   nama_kegiatan: "Sekolah Perempuan Mandiri",
   jenis_kegiatan: "Pelatihan usaha",
   total_ikut: 10,
@@ -64,6 +66,7 @@ describe("skemaPerempuan — hamil dan menyusui dipisah", () => {
     // tidak dikenal, dan hamil/menyusui yang wajib menjadi kosong.
     const hasil = validasi("aktivitas_perempuan", {
       jumlah_kegiatan: 1,
+      kegiatan: [{ nama: "Sekolah Perempuan Mandiri", jenis: "Pelatihan usaha" }],
       nama_kegiatan: "Sekolah Perempuan Mandiri",
       jenis_kegiatan: "Pelatihan usaha",
       total_ikut: 10,
@@ -190,6 +193,81 @@ describe("validasi aktivitas_anak", () => {
       pihak_terlibat: "",
     });
     expect(hasil.sukses).toBe(true);
+  });
+});
+
+describe("rincian kegiatan per jumlah kegiatan", () => {
+  const ANAK_DUMMY = {
+    ...ANAK_DASAR,
+    usia_0_5: 4,
+    usia_6_12: 10,
+    usia_13_17: 6,
+    laki_laki: 9,
+    perempuan: 11,
+  };
+
+  it("menerima tiga kegiatan dengan nama dan jenis masing-masing", () => {
+    const hasil = validasi("aktivitas_anak", {
+      ...ANAK_DUMMY,
+      jumlah_kegiatan: 3,
+      kegiatan: [
+        { nama: "Ruang Sahabat Anak", jenis: ["Edukasi"] },
+        { nama: "Trauma Healing", jenis: ["Trauma Healing"] },
+        { nama: "Bermain Bersama", jenis: ["Bermain Bersama"] },
+      ],
+    });
+    expect(hasil.sukses).toBe(true);
+  });
+
+  it("menolak jumlah yang tidak sama dengan banyak kartu kegiatan", () => {
+    // Angka jumlah kegiatan ikut dijumlahkan di dashboard; bila tidak cocok
+    // dengan rinciannya, angka dan rincian menceritakan hal yang berbeda.
+    const hasil = validasi("aktivitas_anak", {
+      ...ANAK_DUMMY,
+      jumlah_kegiatan: 3,
+      kegiatan: [{ nama: "Ruang Sahabat Anak", jenis: ["Edukasi"] }],
+    });
+    expect(hasil.sukses).toBe(false);
+    if (!hasil.sukses) {
+      expect(hasil.galat.kegiatan).toMatch(/tidak sama/);
+    }
+  });
+
+  it("menolak kegiatan tanpa nama", () => {
+    const hasil = validasi("aktivitas_perempuan", {
+      ...PEREMPUAN_DASAR,
+      jumlah_kegiatan: 2,
+      kegiatan: [
+        { nama: "Sekolah Perempuan Mandiri", jenis: "Pelatihan usaha" },
+        { nama: "   ", jenis: "Pengajian" },
+      ],
+    });
+    expect(hasil.sukses).toBe(false);
+    if (!hasil.sukses) {
+      expect(hasil.galat["kegiatan.1.nama"]).toBeDefined();
+    }
+  });
+
+  it("menolak kegiatan anak yang belum punya jenis", () => {
+    // Jenis kegiatan tetap wajib, sekarang per kegiatan.
+    const hasil = validasi("aktivitas_anak", {
+      ...ANAK_DUMMY,
+      jumlah_kegiatan: 1,
+      kegiatan: [{ nama: "Ruang Sahabat Anak", jenis: [] }],
+    });
+    expect(hasil.sukses).toBe(false);
+    if (!hasil.sukses) {
+      expect(hasil.galat["kegiatan.0.jenis"]).toMatch(/minimal satu/);
+    }
+  });
+
+  it("menolak laporan tanpa kartu kegiatan", () => {
+    const hasil = validasi("aktivitas_anak", {
+      ...ANAK_DUMMY,
+      jumlah_kegiatan: 1,
+      kegiatan: [],
+    });
+    expect(hasil.sukses).toBe(false);
   });
 });
 

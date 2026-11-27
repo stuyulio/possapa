@@ -20,6 +20,16 @@ import {
 import { Badge } from "@/components/dashboard/panel";
 import { FormAnak, type NilaiAnak } from "@/components/form/form-anak";
 import { FormPerempuan, type NilaiPerempuan } from "@/components/form/form-perempuan";
+import {
+  gabungJenisAnak,
+  gabungJenisPerempuan,
+  potongKegiatan,
+  rapikanKegiatanAnak,
+  rapikanKegiatanPerempuan,
+  ringkasNama,
+  type KegiatanAnak,
+  type KegiatanPerempuan,
+} from "@/lib/kegiatan";
 import { FormRekap, type NilaiRekap } from "@/components/form/form-rekap";
 import { FormKasus, type NilaiKasus } from "@/components/form/form-kasus";
 import { FormPublikasi, type NilaiPublikasi } from "@/components/form/form-publikasi";
@@ -34,8 +44,7 @@ type Pos = {
 const NILAI_AWAL: Record<JenisForm, unknown> = {
   aktivitas_anak: {
     jumlah_kegiatan: 1,
-    nama_kegiatan: "",
-    jenis_kegiatan: [],
+    kegiatan: [{ nama: "", jenis: [] }],
     usia_0_5: 0, usia_6_12: 0, usia_13_17: 0,
     laki_laki: 0, perempuan: 0,
     disabilitas: 0, perlu_layanan_lanjutan: 0,
@@ -43,8 +52,7 @@ const NILAI_AWAL: Record<JenisForm, unknown> = {
   } satisfies NilaiAnak,
   aktivitas_perempuan: {
     jumlah_kegiatan: 1,
-    nama_kegiatan: "",
-    jenis_kegiatan: "",
+    kegiatan: [{ nama: "", jenis: "" }],
     total_ikut: 0, kepala_keluarga: 0,
     hamil: 0, menyusui: 0, lansia: 0, disabilitas: 0,
     manfaat: "",
@@ -98,6 +106,68 @@ type DrafLokal = {
   periodeId?: string;
   data?: Partial<Record<JenisForm, unknown>>;
 };
+
+/**
+ * Isian tersimpan / draf lama dimuat ke formulir yang kini memakai kartu
+ * kegiatan.
+ *
+ * Dua bentuk lama ditemui:
+ *  1. Sebelum 27 Nov 2026, isian tidak punya `kegiatan` sama sekali — hanya
+ *     `nama_kegiatan` dan `jenis_kegiatan` untuk satu laporan. Keduanya
+ *     dipindahkan menjadi kegiatan pertama (lihat `rapikanKegiatanAnak`).
+ *  2. Kolom `jenis_kegiatan` pada aktivitas anak dulu berupa larik; sesudah
+ *     migrasi 20261127000002 kolom itu menjadi ringkasan untuk dashboard dan
+ *     tidak lagi dikirim ke server. Isinya tetap dipindahkan ke kegiatan
+ *     pertama, bukan dibuang, supaya Admin yang membuka kunci laporan lama
+ *     melihat jenis yang pernah dipilih.
+ */
+function rapikanIsianAnak(
+  isian: Record<string, unknown>
+): Record<string, unknown> {
+  return {
+    ...isian,
+    kegiatan: rapikanKegiatanAnak(isian),
+    // Ringkasan hanya untuk disimpan, bukan untuk diedit.
+    nama_kegiatan: undefined,
+    jenis_kegiatan: undefined,
+  };
+}
+
+function rapikanIsianPerempuan(
+  isian: Record<string, unknown>
+): Record<string, unknown> {
+  return {
+    ...isian,
+    kegiatan: rapikanKegiatanPerempuan(isian),
+    nama_kegiatan: undefined,
+    jenis_kegiatan: undefined,
+  };
+}
+
+/** Bentuk formulir untuk satu jenis — berlaku juga untuk draf yang dipulihkan. */
+function rapikanIsian(
+  jenis: JenisForm,
+  isian: Record<string, unknown>
+): Record<string, unknown> {
+  if (jenis === "aktivitas_anak") return rapikanIsianAnak(isian);
+  if (jenis === "aktivitas_perempuan") return rapikanIsianPerempuan(isian);
+  return isian;
+}
+
+/**
+ * Buang kolom ringkasan sebelum isian masuk ke formulir.
+ *
+ * Keduanya diturunkan dari `kegiatan` saat dikirim, jadi menyimpannya di state
+ * formulir hanya menciptakan nilai basi yang bisa ikut ke draf lokal.
+ */
+function tanpaRingkasan(
+  isian: Record<string, unknown>
+): Record<string, unknown> {
+  const salinan = { ...isian };
+  delete salinan.nama_kegiatan;
+  delete salinan.jenis_kegiatan;
+  return salinan;
+}
 
 /**
  * Draf lama — ditulis sebelum "Hamil / Menyusui" dipisah — menyimpan satu
@@ -222,10 +292,19 @@ export function FormulirInput({
   const bolehSimpanDraf = !modeAdmin && !bacaSaja && mode === "draf";
   const [catatanVerifikasi, setCatatanVerifikasi] = useState("");
 
-  /** Isian tersimpan di server untuk satu kombinasi, atau formulir kosong. */
-  const dasarUntuk = useCallback(
-    (j: JenisForm): Record<string, unknown> => {
-      const tersimpan = serverRef.current[posId]?.[periodeId]?.[j];
+  /**
+   * Bagian isian yang boleh dibawa ke formulir — apa pun bentuk asalnya.
+   *
+   * Dipakai untuk isian server maupun draf lokal. Isian dari server berbentuk
+   * kolom database: `kegiatan` (jsonb) plus ringkasan `nama_kegiatan`/
+   * `jenis_kegiatan`. Formulir memakai kartu kegiatan, jadi ringkasannya
+   * dibuang dan rinciannya dirapikan — juga untuk laporan lama yang belum
+   * punya `kegiatan` sama sekali.
+   */
+  const rapikanUntuk = useCallback(
+    (j: JenisForm, isian: Record<string, unknown> | undefined) => {
+      if (!isian) return { ...(NILAI_AWAL[j] as Record<string, unknown>) };
+
       // Khusus jenis tindak lanjut kasus: `kode_kasus` tidak pernah diketik
       // petugas. Nilainya diturunkan database dari kab/kota dan tanggal, lalu
       // diisi via trigger. Kalau nilai tersimpan dari server ikut dimuat dan
@@ -233,15 +312,23 @@ export function FormulirInput({
       const bolehDimuat =
         j === "tindak_lanjut_kasus"
           ? Object.fromEntries(
-              Object.entries(tersimpan ?? {}).filter(([k]) => k !== "kode_kasus")
+              Object.entries(isian).filter(([k]) => k !== "kode_kasus")
             )
-          : tersimpan;
+          : tanpaRingkasan(isian);
 
-      return bolehDimuat
-        ? { ...(NILAI_AWAL[j] as Record<string, unknown>), ...bolehDimuat }
-        : (NILAI_AWAL[j] as Record<string, unknown>);
+      return rapikanIsian(j, {
+        ...(NILAI_AWAL[j] as Record<string, unknown>),
+        ...bolehDimuat,
+      });
     },
-    [posId, periodeId]
+    []
+  );
+
+  /** Isian tersimpan di server untuk satu kombinasi, atau formulir kosong. */
+  const dasarUntuk = useCallback(
+    (j: JenisForm): Record<string, unknown> =>
+      rapikanUntuk(j, serverRef.current[posId]?.[periodeId]?.[j]),
+    [posId, periodeId, rapikanUntuk]
   );
 
   /** Draf lokal yang tersimpan untuk kombinasi lokasi+periode ini. */
@@ -275,10 +362,19 @@ export function FormulirInput({
         // terkirim; memulihkannya di perangkat Admin akan menampilkan angka
         // milik petugas yang tidak pernah disetujui siapa pun.
         const s = statusPerJenis[j]?.status;
-        gabung[j] =
-          modeAdmin || s === "terkirim" || s === "terverifikasi"
-            ? dasarUntuk(j)
-            : { ...dasarUntuk(j), ...(draf?.data?.[j] as object | undefined) };
+        const drafI = draf?.data?.[j] as Record<string, unknown> | undefined;
+        if (modeAdmin || s === "terkirim" || s === "terverifikasi") {
+          // Draf lokal adalah suntingan yang belum pernah terkirim; memulihkannya
+          // di perangkat Admin akan menampilkan angka milik petugas yang tidak
+          // pernah disetujui siapa pun.
+          gabung[j] = dasarUntuk(j);
+        } else if (drafI) {
+          // Draf lama bisa memakai bentuk sebelum kartu kegiatan ada; ia
+          // dirapikan melalui jalur yang sama dengan isian server.
+          gabung[j] = rapikanUntuk(j, drafI);
+        } else {
+          gabung[j] = dasarUntuk(j);
+        }
       }
       return gabung;
     });
@@ -289,7 +385,7 @@ export function FormulirInput({
     // Dipasang sekali saat halaman dibuka; `statusPerJenis` tidak berubah di
     // sisi klien — setelah kirim berhasil halaman ini ditinggalkan.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dasarUntuk, bacaDraf]);
+  }, [dasarUntuk, bacaDraf, rapikanUntuk]);
 
   // Simpan draf otomatis (debounce 600 ms).
   useEffect(() => {
@@ -339,6 +435,72 @@ export function FormulirInput({
     [jenis]
   );
 
+  /**
+   * Galat satu kartu kegiatan tidak punya kunci kolom sendiri, jadi tidak
+   * dapat dibuang lewat `ubah`. Kuncinya berbentuk `kegiatan.<i>.<kolom>`
+   * (juga `kegiatan` untuk galat jumlah), dan semuanya milik kartu yang sama.
+   */
+  const hapusGalatKegiatan = useCallback((i: number) => {
+    setGalat((g) => {
+      const awalan = `kegiatan.${i}.`;
+      const kunci = Object.keys(g).filter(
+        (k) => k.startsWith(awalan) || k === "kegiatan"
+      );
+      if (kunci.length === 0) return g;
+      const baru = { ...g };
+      for (const k of kunci) delete baru[k];
+      return baru;
+    });
+  }, []);
+
+  /**
+   * Data yang benar-benar dikirim ke server.
+   *
+   * Formulir menyimpan daftar kegiatan yang boleh lebih panjang daripada yang
+   * ditampilkan (lihat `NilaiAnak.kegiatan`), dan server mewajibkan panjangnya
+   * sama dengan `jumlah_kegiatan`. Pemotongan terjadi di sini, sekali, tepat
+   * sebelum validasi — sehingga server selalu menerima bentuk yang konsisten
+   * dan tidak perlu memaafkan selisih.
+   *
+   * Dua kolom ringkasan (`nama_kegiatan`, `jenis_kegiatan`) diturunkan dari
+   * kartu kegiatan, bukan diketik: dashboard, ekspor, dan laporan lama membaca
+   * kolom itu, sementara kebenarannya ada di `kegiatan`.
+   */
+  const dataKirim = useCallback(
+    (j: JenisForm, isian: unknown): unknown => {
+      if (j !== "aktivitas_anak" && j !== "aktivitas_perempuan") return isian;
+
+      if (j === "aktivitas_anak") {
+        const a = isian as NilaiAnak;
+        const kegiatan: KegiatanAnak[] = potongKegiatan(
+          a.kegiatan ?? [],
+          a.jumlah_kegiatan,
+          () => ({ nama: "", jenis: [] })
+        );
+        return {
+          ...a,
+          kegiatan,
+          nama_kegiatan: ringkasNama(kegiatan),
+          jenis_kegiatan: gabungJenisAnak(kegiatan),
+        };
+      }
+
+      const p = isian as NilaiPerempuan;
+      const kegiatan: KegiatanPerempuan[] = potongKegiatan(
+        p.kegiatan ?? [],
+        p.jumlah_kegiatan,
+        () => ({ nama: "", jenis: "" })
+      );
+      return {
+        ...p,
+        kegiatan,
+        nama_kegiatan: ringkasNama(kegiatan),
+        jenis_kegiatan: gabungJenisPerempuan(kegiatan),
+      };
+    },
+    []
+  );
+
   async function kirim(status: "draf" | "terkirim" | "terverifikasi") {
     setMemuat(true);
     setPesan(null);
@@ -354,7 +516,7 @@ export function FormulirInput({
         jenis,
         posId,
         periodeId,
-        data: nilai[jenis],
+        data: dataKirim(jenis, nilai[jenis]),
         status,
         catatanVerifikasi: modeAdmin ? catatanVerifikasi : undefined,
       });
@@ -575,6 +737,7 @@ export function FormulirInput({
             nilai={data}
             ubah={ubah}
             galat={galat}
+            hapusGalatKegiatan={hapusGalatKegiatan}
             bacaSaja={bacaSaja}
           />
         )}
@@ -583,6 +746,7 @@ export function FormulirInput({
             nilai={data}
             ubah={ubah}
             galat={galat}
+            hapusGalatKegiatan={hapusGalatKegiatan}
             bacaSaja={bacaSaja}
           />
         )}

@@ -188,6 +188,7 @@ Pengganti Google Formulir. Lima percabangan sesuai jenis laporan.
 | Jumlah aduan masuk | Harus sama dengan jumlah keempat kategori aduan |
 | Total anak | Harus ≥ jumlah subkelompok usia dan ≥ jumlah per jenis kelamin |
 | Total perempuan | Harus ≥ jumlah PEKKA/hamil/menyusui/lansia/disabilitas (masing-masing, boleh tumpang tindih) |
+| Jumlah kegiatan | Menentukan banyak kartu kegiatan yang diisi; tiap kegiatan wajib bernama (anak: wajib punya minimal satu jenis). Angka dan panjang rincian harus sama |
 | Link publikasi | Harus URL valid berawalan `https://` |
 | Kode kasus | Unik per wilayah |
 | Periode | Satu laporan per lokasi per periode per jenis laporan |
@@ -235,10 +236,12 @@ periode(id, tanggal_mulai, tanggal_selesai, label)
 laporan(id, pos_id, periode_id, jenis_laporan, status[DRAT|TERKIRIM|TERVERIFIKASI],
         sumber_input[form_internal|google_form],
         submitted_by, submitted_at, verified_by, verified_at, link_dokumentasi)
-  ├─ laporan_anak(laporan_id, jumlah_kegiatan, nama_kegiatan, jenis_kegiatan[],
+  ├─ laporan_anak(laporan_id, jumlah_kegiatan, kegiatan jsonb,
+  │               nama_kegiatan, jenis_kegiatan[],
   │               usia_0_5, usia_6_12, usia_13_17, laki_laki, perempuan,
   │               disabilitas, perlu_layanan_lanjutan, temuan, tindak_lanjut)
-  ├─ laporan_perempuan(laporan_id, jumlah_kegiatan, nama_kegiatan, jenis_kegiatan,
+  ├─ laporan_perempuan(laporan_id, jumlah_kegiatan, kegiatan jsonb,
+  │                   nama_kegiatan, jenis_kegiatan,
   │                   total_ikut, kepala_keluarga, hamil, menyusui, lansia,
   │                   disabilitas, manfaat)
   ├─ laporan_rekap_pengaduan(laporan_id, status_bulan, aduan_masuk, kekerasan_perempuan,
@@ -257,6 +260,8 @@ audit_log(id, aktor_id, entitas, entitas_id, aksi, perubahan, waktu)
 ```
 
 Catatan: `periode` disimpan sebagai tanggal, bukan string bebas. Label diturunkan dari tanggal.
+
+**Rincian kegiatan.** Sejak 27 Nov 2026 `jumlah_kegiatan` menentukan banyaknya kartu kegiatan yang diisi, dan tiap kegiatan punya nama serta jenisnya sendiri. Rinciannya disimpan di kolom `kegiatan` (jsonb, larik), bukan tabel anak — satu laporan tetap satu baris rincian. `nama_kegiatan` dan `jenis_kegiatan` tetap diisi aplikasi sebagai ringkasan agar dashboard, ekspor, dan view anomali yang sudah ada tidak berubah. **Penerima manfaat tetap total periode**, bukan per kegiatan: anak yang ikut dua kegiatan dihitung sekali, sesuai bentuk Google Form aslinya. Baris lama yang belum punya `kegiatan` dibaca sebagai satu kegiatan dari kolom ringkasannya.
 
 **Penugasan petugas.** Petugas terikat ke `wilayah_id` (kabupaten/kota), bukan ke `pos_id`. Kolom `pos_id` pada `pengguna` dipertahankan untuk kompatibilitas tetapi tidak dibaca oleh kode. Karena satu wilayah dapat memiliki beberapa lokasi Pos SAPA, `laporan.pos_id` tetap menjadi kunci penentu lokasi mana yang dilaporkan.
 
