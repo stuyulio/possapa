@@ -140,6 +140,9 @@ export type ChecklistPos = {
   nama_lokasi: string;
   jenis_hunian: string | null;
   jenis_hunian_lainnya: string | null;
+  /** Hanya diisi pada daftar lintas wilayah; null saat dipersempit ke satu wilayah. */
+  kab_kota: string | null;
+  provinsi: string | null;
   status: {
     jenis: JenisLaporan;
     status: "draf" | "terkirim" | "terverifikasi" | "belum";
@@ -158,12 +161,22 @@ export type Checklist = {
 };
 
 /**
- * Checklist kelengkapan untuk semua Pos SAPA dalam satu wilayah.
- * Petugas mengelola beberapa lokasi dalam kabupaten/kotanya.
+ * Checklist kelengkapan Pos SAPA untuk satu periode.
+ *
+ * - `wilayahId` berupa uuid  → hanya Pos SAPA di wilayah itu (Petugas).
+ * - `wilayahId` null        → seluruh Pos SAPA lintas wilayah (Admin Pusat),
+ *                             lengkap dengan nama kab/kota untuk ditampilkan.
+ *
+ * `sertakanDraf` ikut mengambil laporan berstatus draf. Petugas tidak
+ * membutuhkannya (draf pertamanya baru muncul setelah dikirim), tetapi Admin
+ * Pusat perlu melihatnya: simpanan yang tertahan karena anomali tetap tersimpan
+ * sebagai draf, dan tanpa ini selnya akan tampak "Belum" padahal datanya ada.
+ * Hitungan `selesai` tetap hanya terkirim/terverifikasi.
  */
 export async function ambilChecklist(
-  wilayahId: string,
-  periodeId?: string
+  wilayahId: string | null,
+  periodeId?: string,
+  opsi?: { sertakanDraf?: boolean }
 ): Promise<Checklist> {
   const supabase = await createClient();
 
@@ -183,20 +196,26 @@ export async function ambilChecklist(
       ? periodeId
       : daftarPeriode[0]?.id;
 
+  // Query dibangun bertahap, bukan dipecah dua fungsi: aturan status di bawah
+  // harus tetap satu tempat, dan hanya cakupan wilayah yang berbeda.
+  const posQuery = supabase
+    .from("pos_sapa")
+    .select(
+      "id, nama_lokasi, jenis_hunian, jenis_hunian_lainnya, wilayah:wilayah_id ( provinsi, kab_kota )"
+    )
+    .eq("status_aktif", true)
+    .order("nama_lokasi");
+
+  const laporanQuery = supabase
+    .from("laporan")
+    .select(
+      "pos_id, jenis_laporan, status, periode_id, updated_at, catatan_buka_kunci"
+    )
+    .eq("periode_id", aktifId ?? "");
+
   const [posRes, laporanRes] = await Promise.all([
-    supabase
-      .from("pos_sapa")
-      .select("id, nama_lokasi, jenis_hunian, jenis_hunian_lainnya")
-      .eq("wilayah_id", wilayahId)
-      .eq("status_aktif", true)
-      .order("nama_lokasi"),
-    supabase
-      .from("laporan")
-      .select(
-        "pos_id, jenis_laporan, status, periode_id, updated_at, catatan_buka_kunci"
-      )
-      .eq("periode_id", aktifId ?? "")
-      .neq("status", "draf"),
+    wilayahId ? posQuery.eq("wilayah_id", wilayahId) : posQuery,
+    opsi?.sertakanDraf ? laporanQuery : laporanQuery.neq("status", "draf"),
   ]);
 
   const laporan = (laporanRes.data ?? []) as {
@@ -208,11 +227,12 @@ export async function ambilChecklist(
     catatan_buka_kunci: string | null;
   }[];
 
-  const pos = (posRes.data ?? []) as {
+  const pos = (posRes.data ?? []) as unknown as {
     id: string;
     nama_lokasi: string;
     jenis_hunian: string | null;
     jenis_hunian_lainnya: string | null;
+    wilayah: { provinsi: string; kab_kota: string } | null;
   }[];
 
   const daftar: ChecklistPos[] = pos.map((p) => {
@@ -235,12 +255,26 @@ export async function ambilChecklist(
       nama_lokasi: p.nama_lokasi,
       jenis_hunian: p.jenis_hunian,
       jenis_hunian_lainnya: p.jenis_hunian_lainnya,
+      kab_kota: p.wilayah?.kab_kota ?? null,
+      provinsi: p.wilayah?.provinsi ?? null,
       status,
       selesai: status.filter(
         (s) => s.status === "terkirim" || s.status === "terverifikasi"
       ).length,
     };
   });
+
+  // Lintas wilayah: urutkan provinsi → kab/kota → lokasi supaya Pos yang
+  // berdekatan muncul berdekatan. Di satu wilayah urutannya sudah seragam
+  // (satu kab/kota), jadi pengurutan ini tidak mengubah apa pun bagi petugas.
+  if (!wilayahId) {
+    daftar.sort(
+      (a, b) =>
+        (a.provinsi ?? "").localeCompare(b.provinsi ?? "") ||
+        (a.kab_kota ?? "").localeCompare(b.kab_kota ?? "") ||
+        a.nama_lokasi.localeCompare(b.nama_lokasi)
+    );
+  }
 
   return {
     periode: daftarPeriode.find((p) => p.id === aktifId) ?? null,

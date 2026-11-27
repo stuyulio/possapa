@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { modeFormulir, terkunciUntukPetugas } from "./laporan";
+import { modeFormulir, modeFormulirAdmin, terkunciUntukPetugas } from "./laporan";
 
 describe("terkunciUntukPetugas", () => {
   it("mengunci laporan terkirim yang menunggu verifikasi", () => {
@@ -50,5 +50,19 @@ describe("modeFormulir", () => {
     expect(modeFormulir("terkirim")).toBe("lihat");
     expect(modeFormulir("terverifikasi")).toBe("lihat");
     expect(modeFormulir("terverifikasi", "Dibuka")).toBe("lihat");
+  });
+});
+
+describe("modeFormulirAdmin", () => {
+  it("memilih baru hanya bila belum ada baris laporan", () => {
+    expect(modeFormulirAdmin("belum")).toBe("baru");
+  });
+
+  it("memilih perbarui untuk setiap laporan yang sudah ada", () => {
+    // Admin Pusat tidak mengenal draf maupun kunci: status apa pun yang sudah
+    // ada berarti isinya diubah, bukan dibuat baru.
+    expect(modeFormulirAdmin("draf")).toBe("perbarui");
+    expect(modeFormulirAdmin("terkirim")).toBe("perbarui");
+    expect(modeFormulirAdmin("terverifikasi")).toBe("perbarui");
   });
 });

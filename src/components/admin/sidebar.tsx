@@ -7,6 +7,14 @@ import { LogoKemenPPPA } from "@/components/brand/logo";
 import { AkunRingkas } from "@/components/dashboard/menu-akun";
 
 const MENU_ADMIN = [
+  // `jugaAktifDi`: formulirnya tinggal di /input, rute bersama semua peran.
+  // Tanpa ini sidebar tidak menandai apa pun saat Admin sedang mengisi.
+  {
+    href: "/admin/input-laporan",
+    label: "Input Laporan",
+    ikon: "M9 12h6M9 16h6M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6",
+    jugaAktifDi: ["/input"],
+  },
   { href: "/admin/akun", label: "Akun", ikon: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" },
   { href: "/admin/periode", label: "Periode", ikon: "M3 4h18v18H3zM16 2v4M8 2v4M3 10h18" },
   { href: "/admin/wilayah", label: "Wilayah & Lokasi", ikon: "M12 21s-7-5.7-7-11a7 7 0 1 1 14 0c0 5.3-7 11-7 11zM12 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" },
@@ -20,9 +28,16 @@ const MENU_KEMBALI = [{ href: "/dashboard", label: "Dashboard", ikon: "M3 12l9-9
 export function SidebarAdmin({
   nama,
   peran,
+  akunDiSidebar = false,
 }: {
   nama: string;
   peran: string;
+  /**
+   * Tampilkan nama dan tombol Keluar di dasar sidebar desktop. Dipakai halaman
+   * yang tidak memasang BarAkun kanan atas — tanpa ini identitas dan jalan
+   * keluar akun hilang di layar besar.
+   */
+  akunDiSidebar?: boolean;
 }) {
   const pathname = usePathname();
   const [terbuka, setTerbuka] = useState(false);
@@ -31,12 +46,17 @@ export function SidebarAdmin({
     href,
     label,
     ikon,
+    jugaAktifDi,
   }: {
     href: string;
     label: string;
     ikon: string;
+    /** Rute lain yang dihitung sebagai bagian menu ini. */
+    jugaAktifDi?: string[];
   }) => {
-    const aktif = pathname.startsWith(href);
+    const aktif =
+      pathname.startsWith(href) ||
+      (jugaAktifDi?.some((r) => pathname.startsWith(r)) ?? false);
     return (
       <Link
         href={href}
@@ -139,12 +159,16 @@ export function SidebarAdmin({
           </div>
         </nav>
 
-        <div className="px-5 py-3 border-t border-slate-700/60">
-          <p className="text-[11px] font-semibold text-slate-400">{peran}</p>
-          <p className="text-[10px] text-slate-500 mt-0.5">
-            Akun &amp; keluar ada di kanan atas
-          </p>
-        </div>
+        {akunDiSidebar ? (
+          <AkunRingkas nama={nama} peran={peran} />
+        ) : (
+          <div className="px-5 py-3 border-t border-slate-700/60">
+            <p className="text-[11px] font-semibold text-slate-400">{peran}</p>
+            <p className="text-[10px] text-slate-500 mt-0.5">
+              Akun &amp; keluar ada di kanan atas
+            </p>
+          </div>
+        )}
       </aside>
     </>
   );

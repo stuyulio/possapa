@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { SidebarAdmin } from "@/components/admin/sidebar";
-import { BarAkun } from "@/components/dashboard/menu-akun";
-import { KakiHalaman } from "@/components/brand/kaki";
+import { KerangkaAdmin } from "@/components/admin/kerangka";
 
 const LABEL_PERAN: Record<string, string> = {
   petugas: "Petugas Kab/Kota",
@@ -46,23 +44,11 @@ export default async function LayoutAdmin({
   }
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
-      <SidebarAdmin
-        nama={profil?.nama ?? user?.email ?? "Pengguna"}
-        peran={LABEL_PERAN[profil?.peran ?? ""] ?? "Admin Pusat"}
-      />
-
-      <div className="flex-1 min-w-0 flex flex-col">
-        <BarAkun
-          nama={profil?.nama ?? user?.email ?? "Pengguna"}
-          peran={LABEL_PERAN[profil?.peran ?? ""] ?? "Admin Pusat"}
-          lebar="6xl"
-        />
-        <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {children}
-        </main>
-        <KakiHalaman gelap={false} />
-      </div>
-    </div>
+    <KerangkaAdmin
+      nama={profil?.nama ?? user?.email ?? "Pengguna"}
+      peran={LABEL_PERAN[profil?.peran ?? ""] ?? "Admin Pusat"}
+    >
+      {children}
+    </KerangkaAdmin>
   );
 }

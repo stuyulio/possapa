@@ -72,3 +72,19 @@ export function modeFormulir(
 export function bacaSaja(mode: ModeFormulir): boolean {
   return mode === "lihat";
 }
+
+/**
+ * Aturan mode untuk Admin Pusat yang mengisi laporan.
+ *
+ * Admin Pusat adalah sumber yang diverifikasi, bukan pengirim yang menunggu
+ * verifikasi: ia tidak punya draf (setiap simpan langsung terverifikasi) dan
+ * tidak pernah terkunci — laporan terverifikasi pun harus dapat ia betulkan.
+ * Karena itu satu-satunya pertanyaan yang tersisa adalah barisnya sudah ada
+ * atau belum. Aturan petugas (`modeFormulir`/`terkunciUntukPetugas`) sengaja
+ * tidak diubah: dua peran, dua aturan, masing-masing satu sumber.
+ */
+export type ModeAdmin = "baru" | "perbarui";
+
+export function modeFormulirAdmin(status: StatusLaporan): ModeAdmin {
+  return status === "belum" ? "baru" : "perbarui";
+}

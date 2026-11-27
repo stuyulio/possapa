@@ -18,11 +18,6 @@ export default async function HalamanInput({
   const periodeDiminta = typeof params.periode === "string" ? params.periode : null;
   const jenisDiminta = typeof params.jenis === "string" ? params.jenis : null;
 
-  // Lokasi dan periode adalah identitas laporan, bukan pilihan di halaman ini.
-  // Tanpa keduanya tidak ada yang bisa diisi dengan aman, jadi pemilihnya
-  // dikembalikan ke /laporan-saya — bukan ditebak dengan periode terbaru.
-  if (!posDiminta || !periodeDiminta) redirect("/laporan-saya");
-
   const supabase = await createClient();
   const {
     data: { user },
@@ -36,7 +31,43 @@ export default async function HalamanInput({
         .maybeSingle()
     : { data: null };
 
-  if (!profil?.wilayah_id) {
+  // Admin Pusat mengisi laporan seluruh wilayah, jadi ia TIDAK terikat
+  // `wilayah_id` dan lokasinya diambil langsung dari parameter URL. Petugas
+  // tetap seperti sebelumnya: terikat satu kabupaten/kota dan hanya boleh
+  // memilih lokasi di wilayahnya. Peran lain (Admin Kab/Kota, Pimpinan) tidak
+  // mengisi laporan — ditolak lebih awal agar tidak jatuh ke galat RLS yang
+  // tidak menjelaskan apa pun.
+  const adminPusat = profil?.peran === "admin_pusat";
+
+  // Lokasi dan periode adalah identitas laporan, bukan pilihan di halaman ini.
+  // Tanpa keduanya tidak ada yang bisa diisi dengan aman, jadi pemilihnya
+  // dikembalikan ke halaman daftar milik peran masing-masing — bukan ditebak
+  // dengan periode terbaru. Diperiksa setelah peran diketahui supaya Admin
+  // Pusat dilempar ke /laporan-saya, halaman yang bukan miliknya.
+  if (!posDiminta || !periodeDiminta) {
+    redirect(adminPusat ? "/admin/input-laporan" : "/laporan-saya");
+  }
+
+  if (!adminPusat && profil?.peran !== "petugas") {
+    return (
+      <div className="bg-white rounded-2xl border border-amber-200 p-6">
+        <h2 className="font-display font-bold text-slate-900">Akses terbatas</h2>
+        <p className="text-sm text-slate-600 mt-2">
+          Pengisian laporan tersedia untuk <strong>Petugas Pos SAPA</strong> dan{" "}
+          <strong>Admin Pusat</strong>. Peran Anda belum memiliki kewenangan
+          mengisi laporan.
+        </p>
+        <Link
+          href="/dashboard"
+          className="inline-block mt-4 text-sm font-semibold text-blue-700 hover:underline"
+        >
+          ← Kembali ke dashboard
+        </Link>
+      </div>
+    );
+  }
+
+  if (!adminPusat && !profil?.wilayah_id) {
     return (
       <div className="bg-white rounded-2xl border border-amber-200 p-6">
         <h2 className="font-display font-bold text-slate-900">
@@ -56,18 +87,25 @@ export default async function HalamanInput({
     );
   }
 
-  const [wilayahRes, posRes, periodeRes] = await Promise.all([
-    supabase
-      .from("wilayah")
-      .select("kab_kota, provinsi")
-      .eq("id", profil.wilayah_id)
-      .maybeSingle(),
-    supabase
-      .from("pos_sapa")
-      .select("id, nama_lokasi, jenis_hunian, jenis_hunian_lainnya")
-      .eq("wilayah_id", profil.wilayah_id)
-      .eq("status_aktif", true)
-      .order("nama_lokasi"),
+  const wilayahId = profil?.wilayah_id ?? null;
+
+  // Pos untuk Admin Pusat diambil per id, tanpa filter wilayah MAUPUN
+  // status_aktif: laporan lama di lokasi yang sudah dinonaktifkan tetap harus
+  // dapat dibetulkan lewat tautan yang sudah beredar.
+  const posQuery = adminPusat
+    ? supabase
+        .from("pos_sapa")
+        .select("id, nama_lokasi, jenis_hunian, jenis_hunian_lainnya, wilayah_id")
+        .eq("id", posDiminta)
+    : supabase
+        .from("pos_sapa")
+        .select("id, nama_lokasi, jenis_hunian, jenis_hunian_lainnya")
+        .eq("wilayah_id", wilayahId as string)
+        .eq("status_aktif", true)
+        .order("nama_lokasi");
+
+  const [posRes, periodeRes] = await Promise.all([
+    posQuery,
     supabase
       .from("periode")
       .select("id, label, tanggal_mulai")
@@ -80,12 +118,31 @@ export default async function HalamanInput({
     tanggal_mulai: string;
   }[];
 
-  const daftarPos = (posRes.data ?? []) as {
+  const daftarPos = (posRes.data ?? []) as unknown as {
     id: string;
     nama_lokasi: string;
     jenis_hunian: string | null;
     jenis_hunian_lainnya: string | null;
+    wilayah_id?: string | null;
   }[];
+
+  // Wilayah yang ditampilkan pada panel identitas. Petugas: wilayah
+  // penugasannya. Admin Pusat: wilayah milik lokasi yang sedang dibuka —
+  // dan hanya bila lokasi itu memang ditemukan.
+  const wilayahIdTampil = adminPusat
+    ? (daftarPos[0]?.wilayah_id ?? null)
+    : wilayahId;
+
+  const wilayahRes = wilayahIdTampil
+    ? await supabase
+        .from("wilayah")
+        .select("id, kab_kota, provinsi")
+        .eq("id", wilayahIdTampil)
+        .maybeSingle()
+    : { data: null };
+
+  const kembaliHref = adminPusat ? "/admin/input-laporan" : "/laporan-saya";
+  const kembaliLabel = adminPusat ? "Input Laporan" : "Laporan Saya";
 
   if (daftarPeriode.length === 0) {
     return (
@@ -101,7 +158,7 @@ export default async function HalamanInput({
     );
   }
 
-  if (daftarPos.length === 0) {
+  if (!adminPusat && daftarPos.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-amber-200 p-6">
         <h2 className="font-display font-bold text-slate-900">
@@ -123,10 +180,10 @@ export default async function HalamanInput({
     );
   }
 
-  // Parameter URL harus menunjuk lokasi di wilayah petugas dan periode yang
-  // benar-benar ada. RLS sudah menolak penulisan ke luar wilayah; pemeriksaan di
-  // sini hanya supaya halaman tidak menampilkan formulir yang pasti gagal saat
-  // dikirim.
+  // Parameter URL harus menunjuk lokasi yang benar-benar ada — dan, untuk
+  // petugas, lokasi di wilayahnya. RLS sudah menolak penulisan ke luar wilayah;
+  // pemeriksaan di sini hanya supaya halaman tidak menampilkan formulir yang
+  // pasti gagal saat dikirim.
   const pos = daftarPos.find((p) => p.id === posDiminta);
   const periode = daftarPeriode.find((p) => p.id === periodeDiminta);
 
@@ -138,11 +195,18 @@ export default async function HalamanInput({
         </h2>
         <p className="text-sm text-slate-600 mt-2">
           {!pos ? (
-            <>
-              Lokasi pada tautan ini bukan Pos SAPA aktif di wilayah{" "}
-              <strong>{wilayahRes.data?.kab_kota}</strong>. Lokasi mungkin sudah
-              dinonaktifkan, atau tautannya berasal dari wilayah lain.
-            </>
+            adminPusat ? (
+              <>
+                Lokasi pada tautan ini tidak ditemukan — mungkin sudah dihapus.
+                Kembali ke daftar lalu pilih lokasinya.
+              </>
+            ) : (
+              <>
+                Lokasi pada tautan ini bukan Pos SAPA aktif di wilayah{" "}
+                <strong>{wilayahRes.data?.kab_kota}</strong>. Lokasi mungkin sudah
+                dinonaktifkan, atau tautannya berasal dari wilayah lain.
+              </>
+            )
           ) : (
             <>
               Periode pada tautan ini tidak ada — mungkin sudah dihapus atau
@@ -151,10 +215,10 @@ export default async function HalamanInput({
           )}
         </p>
         <Link
-          href="/laporan-saya"
+          href={adminPusat ? "/admin/input-laporan" : "/laporan-saya"}
           className="inline-block mt-4 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl no-print"
         >
-          ← Pilih dari Laporan Saya
+          ← Pilih dari {kembaliLabel}
         </Link>
       </div>
     );
@@ -167,7 +231,12 @@ export default async function HalamanInput({
 
   // Hanya satu kombinasi yang dibuka, jadi hanya isian kombinasi itulah yang
   // perlu diambil — bukan seluruh lokasi petugas sepanjang waktu.
-  const nilaiServer = await ambilNilaiTersimpan(supabase, pos.id, periode.id);
+  const nilaiServer = await ambilNilaiTersimpan(
+    supabase,
+    pos.id,
+    periode.id,
+    adminPusat
+  );
 
   // Status per jenis untuk kombinasi ini. Kunci laporan berlaku per jenis:
   // satu lokasi dapat punya laporan anak yang sudah terkirim sementara
@@ -187,8 +256,9 @@ export default async function HalamanInput({
           Input Laporan Berkala
         </h2>
         <p className="text-sm text-slate-500">
-          Isi satu jenis laporan per pengiriman. Draf tersimpan otomatis di
-          perangkat ini.
+          {adminPusat
+            ? "Isi satu jenis laporan per penyimpanan. Laporan yang Anda simpan langsung berstatus terverifikasi."
+            : "Isi satu jenis laporan per pengiriman. Draf tersimpan otomatis di perangkat ini."}
         </p>
       </div>
 
@@ -198,6 +268,9 @@ export default async function HalamanInput({
         provinsiNama={wilayah?.provinsi ?? "—"}
         periode={{ id: periode.id, label: periode.label }}
         jenisAwal={jenisAwal}
+        modeAdmin={adminPusat}
+        kembaliHref={kembaliHref}
+        kembaliLabel={kembaliLabel}
         nilaiServer={nilaiServer}
         statusPerJenis={statusPerJenis}
       />
@@ -251,30 +324,38 @@ async function ambilStatusJenis(
 }
 
 /**
- * Rincian laporan yang masih dapat diubah petugas untuk satu kombinasi lokasi
- * dan periode.
+ * Rincian laporan untuk satu kombinasi lokasi dan periode.
  *
  * Sengaja dipersempit ke satu kombinasi: halaman ini tidak lagi punya pemilih
  * lokasi maupun periode, jadi isian kombinasi lain tidak mungkin ditampilkan
  * dan tidak ada gunanya diambil. Ini juga menjawab kekhawatiran lama tentang
  * periode — angka periode lain tidak dapat lagi masuk ke periode yang sedang
- * dibuka. Hanya status draf dan terkirim; laporan terverifikasi terkunci RLS.
+ * dibuka.
+ *
+ * `termasukTerverifikasi` hanya untuk Admin Pusat: bagi petugas laporan
+ * terverifikasi terkunci dan memang tidak boleh dimuat, tetapi Admin Pusat
+ * harus dapat memperbaikinya — dan tanpa memuat isinya, formulirnya akan
+ * kosong lalu menimpa data dengan nol.
  */
 async function ambilNilaiTersimpan(
   supabase: Awaited<ReturnType<typeof createClient>>,
   posId: string,
-  periodeId: string
+  periodeId: string,
+  termasukTerverifikasi = false
 ): Promise<NilaiServer> {
   const { data, error } = await supabase
     .from("laporan")
     .select(
-      `jenis_laporan, pos_id, periode_id,
+      `jenis_laporan, pos_id, periode_id, status,
        laporan_anak (*), laporan_perempuan (*), laporan_rekap_pengaduan (*),
        laporan_kasus (*), laporan_publikasi (*)`
     )
     .eq("pos_id", posId)
     .eq("periode_id", periodeId)
-    .in("status", ["draf", "terkirim"]);
+    .in(
+      "status",
+      termasukTerverifikasi ? ["draf", "terkirim", "terverifikasi"] : ["draf", "terkirim"]
+    );
 
   if (error) {
     console.error("[ambilNilaiTersimpan]", error.message);

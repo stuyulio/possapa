@@ -39,6 +39,9 @@ export function NavDashboard({
             : []),
           ...(peranKode === "admin_pusat"
             ? [
+                // Admin Pusat mengisi laporan seluruh wilayah; tautan ini juga
+                // menjadi jalan pulang dari formulir /input yang ia buka.
+                { href: "/admin/input-laporan", label: "Input Laporan" },
                 { href: "/admin/periode", label: "Periode" },
                 { href: "/admin/audit", label: "Log Audit" },
               ]

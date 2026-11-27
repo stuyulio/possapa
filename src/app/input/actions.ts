@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { validasi, type JenisForm } from "@/lib/validasi/laporan";
 import { terkunciUntukPetugas, type StatusLaporan } from "@/lib/laporan";
+import { ambilAnomaliLaporan } from "@/lib/data/verifikasi";
 
 export type HasilSimpan =
   | { sukses: true; laporanId: string }
@@ -23,8 +24,10 @@ export async function simpanLaporan(masukan: {
   posId: string;
   periodeId: string;
   data: unknown;
-  status: "draf" | "terkirim";
+  status: "draf" | "terkirim" | "terverifikasi";
   laporanId?: string;
+  /** Hanya dibaca untuk Admin Pusat; wajib bila datanya beranomali. */
+  catatanVerifikasi?: string;
 }): Promise<HasilSimpan> {
   const supabase = await createClient();
 
@@ -33,14 +36,40 @@ export async function simpanLaporan(masukan: {
   } = await supabase.auth.getUser();
   if (!user) return { sukses: false, pesan: "Sesi berakhir. Silakan masuk kembali." };
 
-  // Petugas terikat ke wilayah, bukan ke satu Pos SAPA.
   const { data: profil } = await supabase
     .from("pengguna")
     .select("wilayah_id, peran")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (!profil?.wilayah_id) {
+  // Admin Pusat mengisi laporan seluruh wilayah; ia tidak terikat wilayah dan
+  // tidak mengenal draf maupun kunci. Petugas tetap terikat ke wilayah, bukan
+  // ke satu Pos SAPA.
+  const adminPusat = profil?.peran === "admin_pusat";
+  // Kewenangan ditentukan dari profil di server. Kiriman klien hanya menentukan
+  // apa yang ingin disimpan, bukan siapa yang boleh menyimpannya.
+  //
+  // Admin Pusat selalu terverifikasi, apa pun yang dikirim klien: formulirnya
+  // hanya menawarkan satu tombol, dan server tidak perlu mempertanyakan lagi.
+  // Bagi petugas, "terverifikasi" dari klien diperlakukan sebagai "terkirim" —
+  // petugas tidak dapat memverifikasi laporannya sendiri (celah yang sudah
+  // ditutup di migrasi 20261124000001); RLS tetap penegak sebenarnya, ini hanya
+  // menjaga pesan galatnya tetap masuk akal.
+  const statusDiminta: "draf" | "terkirim" | "terverifikasi" = adminPusat
+    ? "terverifikasi"
+    : masukan.status === "terverifikasi"
+      ? "terkirim"
+      : masukan.status;
+
+  if (!adminPusat && profil?.peran !== "petugas") {
+    return {
+      sukses: false,
+      pesan:
+        "Pengisian laporan hanya untuk Petugas Pos SAPA dan Admin Pusat.",
+    };
+  }
+
+  if (!adminPusat && !profil?.wilayah_id) {
     return {
       sukses: false,
       pesan:
@@ -55,8 +84,9 @@ export async function simpanLaporan(masukan: {
     };
   }
 
-  // Pastikan lokasi yang dipilih memang berada di wilayah petugas.
-  // RLS juga menegakkan ini, tetapi pesan galatnya lebih jelas di sini.
+  // Pastikan lokasi yang dipilih memang ada — dan, bagi petugas, berada di
+  // wilayahnya. RLS juga menegakkan ini, tetapi pesan galatnya lebih jelas di
+  // sini.
   const { data: pos } = await supabase
     .from("pos_sapa")
     .select("id, wilayah_id")
@@ -66,7 +96,7 @@ export async function simpanLaporan(masukan: {
   if (!pos) {
     return { sukses: false, pesan: "Lokasi Pos SAPA tidak ditemukan." };
   }
-  if (pos.wilayah_id !== profil.wilayah_id) {
+  if (!adminPusat && pos.wilayah_id !== profil?.wilayah_id) {
     return {
       sukses: false,
       pesan: "Lokasi Pos SAPA berada di luar wilayah penugasan Anda.",
@@ -78,6 +108,10 @@ export async function simpanLaporan(masukan: {
   // kunci. Diperiksa di sini supaya petugas mendapat penjelasan yang jelas —
   // RLS dan trigger `laporan_cek_kunci_petugas` tetap menjadi penegak
   // sebenarnya, jadi pemeriksaan ini tidak dapat dilewati dari klien.
+  //
+  // Admin Pusat tidak diperiksa: baginya tidak ada kunci. Keputusan produknya
+  // jelas — Admin Pusat boleh memperbaiki laporan mana pun, termasuk yang sudah
+  // terverifikasi, dan jejaknya tetap tercatat di audit_log.
   const { data: tersimpan, error: errCek } = await supabase
     .from("laporan")
     .select("id, status, catatan_buka_kunci")
@@ -94,6 +128,7 @@ export async function simpanLaporan(masukan: {
   }
 
   if (
+    !adminPusat &&
     tersimpan &&
     terkunciUntukPetugas(
       tersimpan.status as StatusLaporan,
@@ -132,7 +167,7 @@ export async function simpanLaporan(masukan: {
   // Jadi induk disimpan dalam keadaan yang masih boleh ditulis, rinciannya
   // disusul, dan status final ditetapkan paling akhir.
   // ---------------------------------------------------------------------------
-  const terkirim = masukan.status === "terkirim";
+  const terkirim = statusDiminta !== "draf";
 
   // 1. Induk. Baris yang SUDAH ADA sengaja tidak disentuh sama sekali:
   //    mengubah statusnya di sini akan menutup hak tulis rincian pada langkah 2.
@@ -183,31 +218,99 @@ export async function simpanLaporan(masukan: {
   //    Kiriman ulang   : tetap terkirim, penanda buka kunci dilepas supaya
   //                      laporan kembali masuk antrean verifikasi. Riwayat buka
   //                      kuncinya tetap tersimpan di audit_log.
-  if (terkirim) {
-    const finalKolom: Record<string, unknown> = { status: "terkirim" };
-    if (tersimpan) finalKolom.catatan_buka_kunci = null;
+  //    Admin Pusat     : langsung terverifikasi, dengan dirinya sebagai
+  //                      verifikator. `submitted_at` dan `verified_at` diisi
+  //                      trigger `set_submitted_at`.
+  if (!terkirim) {
+    revalidatePath("/laporan-saya");
+    return { sukses: true, laporanId: indukId };
+  }
 
-    const { error: errFinal } = await supabase
-      .from("laporan")
-      .update(finalKolom)
-      .eq("id", indukId);
+  const catatanVerifikasi = masukan.catatanVerifikasi?.trim() || null;
 
-    if (errFinal) {
-      // Isi laporan sudah tersimpan dan rinciannya lengkap; yang gagal hanya
-      // penetapan status akhir. Dikatakan apa adanya supaya tidak dikira
-      // seluruh kiriman hilang — petugas cukup mengirim ulang sekali lagi.
+  // Gerbang anomali untuk Admin Pusat. Alasannya sama dengan verifikasi biasa
+  // (PRD §6.4): anomali boleh diterima, tetapi alasannya harus tercatat.
+  // Keputusan ini diambil dari data di database, bukan dari kiriman klien.
+  //
+  // Diperiksa SETELAH rincian tersimpan: anomali baru terbaca dari detailnya,
+  // dan bila ditolak di sini isian Admin tidak hilang — formulir dapat dibuka
+  // lagi dan catatannya dilengkapi.
+  //
+  // Baris LAMA yang sudah terverifikasi sengaja diturunkan ke `draf`, bukan
+  // dibiarkan terverifikasi: bila statusnya dibiarkan, data terverifikasi
+  // kembali tersimpan tanpa alasan — persis yang dicoba dicegah. Menurunkannya
+  // membuat keadaannya jujur ("belum terverifikasi"), dan setelah catatan diisi
+  // ia naik lagi ke terverifikasi lewat jalur yang sama.
+  if (adminPusat) {
+    const anomali = await ambilAnomaliLaporan(indukId);
+    if (anomali.length > 0 && !catatanVerifikasi) {
+      const tinggi = anomali.filter((a) => a.tingkat === "tinggi").length;
+
+      if (tersimpan?.status === "terverifikasi") {
+        const { error: errTurun } = await supabase
+          .from("laporan")
+          .update({ status: "draf" })
+          .eq("id", indukId);
+
+        if (errTurun) {
+          return {
+            sukses: false,
+            pesan:
+              "Rincian tersimpan, tetapi status verifikasi lama gagal diturunkan: " +
+              `${errTurun.message}. Isi catatan verifikasi lalu simpan lagi.`,
+          };
+        }
+      }
+
       return {
         sukses: false,
         pesan:
-          "Rincian laporan tersimpan, tetapi status akhir gagal ditetapkan: " +
-          `${errFinal.message}. Coba kirim ulang sekali lagi.`,
+          `Isian tersimpan, tetapi belum terverifikasi: laporan ini ` +
+          `punya ${anomali.length} anomali` +
+          (tinggi > 0 ? ` (${tinggi} tingkat tinggi)` : "") +
+          ". Isi catatan verifikasi untuk menjelaskan mengapa datanya diterima, lalu simpan lagi.",
       };
     }
   }
 
+  const finalKolom: Record<string, unknown> = adminPusat
+    ? {
+        status: "terverifikasi",
+        verified_by: user.id,
+        // Ditulis eksplisit: trigger `set_submitted_at` hanya mengisi kolom ini
+        // bila masih kosong, sehingga verifikasi ULANG atas baris yang sudah
+        // terverifikasi akan tetap memakai tanggal lama. Yang tercatat harus
+        // waktu persetujuan yang sedang berlaku.
+        verified_at: new Date().toISOString(),
+        catatan_verifikasi: catatanVerifikasi,
+        catatan_buka_kunci: null,
+      }
+    : { status: "terkirim" };
+
+  if (tersimpan && !adminPusat) finalKolom.catatan_buka_kunci = null;
+
+  const { error: errFinal } = await supabase
+    .from("laporan")
+    .update(finalKolom)
+    .eq("id", indukId);
+
+  if (errFinal) {
+    // Isi laporan sudah tersimpan dan rinciannya lengkap; yang gagal hanya
+    // penetapan status akhir. Dikatakan apa adanya supaya tidak dikira
+    // seluruh kiriman hilang — petugas cukup mengirim ulang sekali lagi.
+    return {
+      sukses: false,
+      pesan:
+        "Rincian laporan tersimpan, tetapi status akhir gagal ditetapkan: " +
+        `${errFinal.message}. Coba kirim ulang sekali lagi.`,
+    };
+  }
+
   revalidatePath("/laporan-saya");
+  revalidatePath("/admin/input-laporan");
   revalidatePath("/monitoring");
   revalidatePath("/dashboard");
+  revalidatePath("/verifikasi");
 
   return { sukses: true, laporanId: indukId };
 }

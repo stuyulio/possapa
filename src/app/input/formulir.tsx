@@ -13,6 +13,7 @@ import { labelJenisHunian } from "@/lib/lokasi/jenis-hunian";
 import {
   bacaSaja as hitungBacaSaja,
   modeFormulir,
+  modeFormulirAdmin,
   type ModeFormulir,
   type StatusLaporan,
 } from "@/lib/laporan";
@@ -133,8 +134,11 @@ export function FormulirInput({
   jenisAwal,
   nilaiServer = {},
   statusPerJenis = {},
+  modeAdmin = false,
+  kembaliHref,
+  kembaliLabel = "Laporan Saya",
 }: {
-  /** Lokasi yang diisi — ditentukan /laporan-saya, tidak dapat diubah di sini. */
+  /** Lokasi yang diisi — ditentukan halaman pemilih, tidak dapat diubah di sini. */
   pos: Pos;
   wilayahNama: string;
   provinsiNama: string;
@@ -144,6 +148,15 @@ export function FormulirInput({
   nilaiServer?: NilaiServer;
   /** Status tersimpan per jenis; yang tidak ada berarti belum pernah diisi. */
   statusPerJenis?: Partial<Record<JenisForm, StatusJenis>>;
+  /**
+   * Admin Pusat: tidak mengenal draf maupun kunci, setiap simpan langsung
+   * terverifikasi. Aturannya sendiri di `modeFormulirAdmin`, bukan variasi
+   * aturan petugas.
+   */
+  modeAdmin?: boolean;
+  /** Tujuan "kembali"; default halaman daftar untuk peran pemanggil. */
+  kembaliHref?: string;
+  kembaliLabel?: string;
 }) {
   const router = useRouter();
 
@@ -162,6 +175,7 @@ export function FormulirInput({
   // memungkinkan mengisi lima laporan dalam satu duduk.
   const posId = pos.id;
   const periodeId = periode.id;
+  const urlKembali = kembaliHref ?? `/laporan-saya?periode=${periodeId}`;
   const labelHunian = labelJenisHunian(
     pos.jenis_hunian,
     pos.jenis_hunian_lainnya
@@ -193,11 +207,20 @@ export function FormulirInput({
   // Mode mengikuti JENIS yang sedang dibuka, bukan seluruh kombinasi: satu
   // lokasi dapat punya laporan anak yang sudah terkirim sementara rekapan
   // pengaduannya masih draf.
-  const mode: ModeFormulir = modeFormulir(statusJenis, catatanBukaKunci);
-  const bacaSaja = hitungBacaSaja(mode);
-  // Draf pada jenis yang terkunci tetap tidak boleh ditulis; kalau tidak, draf
-  // lokal dari kunjungan lama akan muncul dan menyesatkan.
-  const bolehSimpanDraf = !bacaSaja && mode === "draf";
+  //
+  // Admin Pusat memakai aturan sendiri (`modeFormulirAdmin`): tidak ada draf
+  // dan tidak ada kunci, jadi formulirnya tidak pernah baca-saja. Status
+  // "terverifikasi" di sini berarti "sudah ada isinya", bukan "jangan disentuh".
+  const mode: ModeFormulir = modeAdmin
+    ? "baru"
+    : modeFormulir(statusJenis, catatanBukaKunci);
+  const bacaSaja = modeAdmin ? false : hitungBacaSaja(mode);
+  const modeAdminJenis = modeAdmin ? modeFormulirAdmin(statusJenis) : null;
+  // Admin Pusat tidak pernah menyimpan draf, jadi autosave lokal tidak berlaku
+  // untuknya. Bagi petugas, draf pada jenis yang terkunci juga tidak ditulis:
+  // kalau tidak, draf lama dari kunjungan sebelumnya muncul dan menyesatkan.
+  const bolehSimpanDraf = !modeAdmin && !bacaSaja && mode === "draf";
+  const [catatanVerifikasi, setCatatanVerifikasi] = useState("");
 
   /** Isian tersimpan di server untuk satu kombinasi, atau formulir kosong. */
   const dasarUntuk = useCallback(
@@ -246,20 +269,21 @@ export function FormulirInput({
     setNilai(() => {
       const gabung = {} as Record<JenisForm, unknown>;
       for (const j of Object.keys(NILAI_AWAL) as JenisForm[]) {
-        // Untuk jenis yang terkunci, yang ditampilkan adalah isian tersimpan di
-        // server — bukan draf lokal. Draf lokal adalah suntingan yang belum
-        // pernah terkirim, jadi menampilkannya di atas laporan terkirim akan
-        // memperlihatkan angka yang tidak pernah disetujui siapa pun.
+        // Untuk jenis yang terkunci — dan untuk Admin Pusat, yang selalu
+        // mengubah isian tersimpan — yang ditampilkan adalah isian di server,
+        // bukan draf lokal. Draf lokal adalah suntingan yang belum pernah
+        // terkirim; memulihkannya di perangkat Admin akan menampilkan angka
+        // milik petugas yang tidak pernah disetujui siapa pun.
         const s = statusPerJenis[j]?.status;
         gabung[j] =
-          s === "terkirim" || s === "terverifikasi"
+          modeAdmin || s === "terkirim" || s === "terverifikasi"
             ? dasarUntuk(j)
             : { ...dasarUntuk(j), ...(draf?.data?.[j] as object | undefined) };
       }
       return gabung;
     });
 
-    if (draf?.data && !bacaSaja) {
+    if (draf?.data && !bacaSaja && !modeAdmin) {
       setPesan("Draf tersimpan di perangkat ini dipulihkan.");
     }
     // Dipasang sekali saat halaman dibuka; `statusPerJenis` tidak berubah di
@@ -315,7 +339,7 @@ export function FormulirInput({
     [jenis]
   );
 
-  async function kirim(status: "draf" | "terkirim") {
+  async function kirim(status: "draf" | "terkirim" | "terverifikasi") {
     setMemuat(true);
     setPesan(null);
     setGalat({});
@@ -332,6 +356,7 @@ export function FormulirInput({
         periodeId,
         data: nilai[jenis],
         status,
+        catatanVerifikasi: modeAdmin ? catatanVerifikasi : undefined,
       });
     } catch (e) {
       setPesan(
@@ -356,7 +381,7 @@ export function FormulirInput({
 
     const drafLama = bacaDraf();
 
-    if (status === "terkirim") {
+    if (status !== "draf") {
       // Hapus draf jenis ini; jenis lain tetap tersimpan.
       if (drafLama?.data) {
         delete drafLama.data[jenis];
@@ -379,7 +404,11 @@ export function FormulirInput({
       // page.tsx mem-`redirect()` ke /laporan-saya tanpa periode — persis bug
       // "dikembalikan ke periode sebelumnya" yang pernah diperbaiki. URL
       // lengkap membuat halaman tujuan dirender segar.
-      router.push(`/laporan-saya?periode=${periodeId}`);
+      // `urlKembali` untuk Admin Pusat menunjuk /admin/input-laporan dan sudah
+      // membawa periode di URL, jadi tidak perlu ditambahi lagi.
+      router.push(
+        kembaliHref ? urlKembali : `/laporan-saya?periode=${periodeId}`
+      );
     } else {
       setPesan("Draf disimpan.");
     }
@@ -412,10 +441,10 @@ export function FormulirInput({
             Identitas laporan
           </p>
           <Link
-            href="/laporan-saya"
+            href={urlKembali}
             className="text-[11px] font-semibold text-blue-700 hover:underline no-print"
           >
-            ← Kembali ke Laporan Saya
+            ← Kembali ke {kembaliLabel}
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
@@ -442,9 +471,9 @@ export function FormulirInput({
           </div>
         </div>
         <p className="text-[11px] text-slate-500 mt-3">
-          Lokasi dan periode mengikuti sel yang Anda pilih di Laporan Saya,
-          sehingga tidak dapat diubah dari sini. Untuk lokasi atau periode lain,
-          kembali ke daftar lalu pilih selnya.
+          {modeAdmin
+            ? "Lokasi dan periode mengikuti yang Anda pilih di menu Input Laporan, sehingga tidak dapat diubah dari sini. Untuk lokasi atau periode lain, kembali ke daftar lalu pilih selnya."
+            : "Lokasi dan periode mengikuti sel yang Anda pilih di Laporan Saya, sehingga tidak dapat diubah dari sini. Untuk lokasi atau periode lain, kembali ke daftar lalu pilih selnya."}
         </p>
       </div>
 
@@ -457,7 +486,9 @@ export function FormulirInput({
           {(Object.keys(LABEL_JENIS) as JenisForm[]).map((j) => {
             const s = statusPerJenis[j]?.status ?? "belum";
             const catatan = statusPerJenis[j]?.catatanBukaKunci ?? null;
-            const terkunci = modeFormulir(s, catatan) === "lihat";
+            // Admin Pusat tidak pernah terkunci — laporan terverifikasi pun
+            // harus dapat ia perbaiki.
+            const terkunci = modeAdmin ? false : modeFormulir(s, catatan) === "lihat";
             return (
               <button
                 key={j}
@@ -466,6 +497,9 @@ export function FormulirInput({
                   setJenis(j);
                   setGalat({});
                   setPesan(null);
+                  // Catatan verifikasi menjelaskan anomali JENIS ini; membawanya
+                  // ke jenis lain hanya akan menempelkan alasan yang salah.
+                  setCatatanVerifikasi("");
                 }}
                 aria-pressed={jenis === j}
                 className={`text-left px-3 py-2.5 rounded-xl text-xs font-semibold border transition ${
@@ -497,8 +531,10 @@ export function FormulirInput({
         </div>
       </div>
 
-      {/* Keterangan status jenis yang sedang dibuka. */}
-      {(bacaSaja || catatanBukaKunci) && (
+      {/* Keterangan status jenis yang sedang dibuka. Admin Pusat tidak
+          membutuhkannya: tidak ada tampilan baca-saja maupun kunci baginya,
+          dan status yang sudah ada sudah terlihat di tab jenis. */}
+      {!modeAdmin && (bacaSaja || catatanBukaKunci) && (
         <div
           className={`rounded-2xl border p-4 text-sm ${
             bacaSaja
@@ -592,65 +628,96 @@ export function FormulirInput({
       {bacaSaja ? (
         <div className="flex flex-wrap items-center gap-3">
           <Link
-            href={`/laporan-saya?periode=${periodeId}`}
+            href={urlKembali}
             className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition no-print"
           >
-            ← Kembali ke Laporan Saya
+            ← Kembali ke {kembaliLabel}
           </Link>
           <span className="text-xs text-slate-500">
             Tidak ada yang dapat diubah di tampilan ini.
           </span>
         </div>
       ) : (
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={() => kirim("terkirim")}
-            disabled={memuat || tertahan}
-            title={tertahan ? galatAnak : undefined}
-            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold text-sm transition"
-          >
-            {memuat
-              ? "Menyimpan…"
-              : mode === "ulang"
-                ? "Kirim ulang laporan"
-                : "Kirim laporan"}
-          </button>
-
-          {tertahan && (
-            <p role="status" className="text-xs font-semibold text-amber-700">
-              Lengkapi bagian <strong>Penerima manfaat</strong> untuk menyimpan
-              laporan ini.
-            </p>
+        <div className="space-y-3">
+          {/* Catatan verifikasi hanya untuk Admin Pusat: simpanannya langsung
+              terverifikasi, dan bila datanya beranomali server mewajibkan
+              catatan agar alasannya tercatat — sama seperti verifikasi biasa. */}
+          {modeAdmin && (
+            <div>
+              <label
+                htmlFor="catatan-verifikasi"
+                className="text-xs font-bold uppercase tracking-wide text-slate-500"
+              >
+                Catatan verifikasi{" "}
+                <span className="font-normal normal-case text-slate-400">
+                  (wajib bila data beranomali)
+                </span>
+              </label>
+              <textarea
+                id="catatan-verifikasi"
+                value={catatanVerifikasi}
+                onChange={(e) => setCatatanVerifikasi(e.target.value)}
+                rows={2}
+                placeholder="Mis. angka usia dan jenis kelamin memang berbeda karena satu anak mengikuti dua kegiatan."
+                className="mt-1 w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white"
+              />
+            </div>
           )}
 
-          {/* "Simpan draf" tidak ditawarkan setelah Admin membuka kunci: draf
-              menghapus penanda buka kunci, sehingga alasan perbaikan dari Admin
-              ikut hilang tanpa jejak. */}
-          {mode === "draf" && (
+          <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              onClick={() => kirim("draf")}
+              onClick={() => kirim(modeAdmin ? "terverifikasi" : "terkirim")}
               disabled={memuat || tertahan}
               title={tertahan ? galatAnak : undefined}
-              className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-700 font-semibold text-sm transition"
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold text-sm transition"
             >
-              Simpan draf
+              {memuat
+                ? "Menyimpan…"
+                : modeAdmin
+                  ? modeAdminJenis === "perbarui"
+                    ? "Perbarui & verifikasi"
+                    : "Simpan & verifikasi"
+                  : mode === "ulang"
+                    ? "Kirim ulang laporan"
+                    : "Kirim laporan"}
             </button>
-          )}
 
-          {!bacaSaja && tersimpan && (
-            <span className="text-xs text-slate-500">
-              Draf lokal tersimpan {tersimpan}
-            </span>
-          )}
+            {tertahan && (
+              <p role="status" className="text-xs font-semibold text-amber-700">
+                Lengkapi bagian <strong>Penerima manfaat</strong> untuk menyimpan
+                laporan ini.
+              </p>
+            )}
 
-          <Link
-            href={`/laporan-saya?periode=${periodeId}`}
-            className="text-xs font-semibold text-blue-700 hover:underline no-print"
-          >
-            Kembali ke Laporan Saya →
-          </Link>
+            {/* "Simpan draf" tidak ditawarkan setelah Admin membuka kunci: draf
+                menghapus penanda buka kunci, sehingga alasan perbaikan dari Admin
+                ikut hilang tanpa jejak. Admin Pusat tidak punya draf sama sekali. */}
+            {mode === "draf" && !modeAdmin && (
+              <button
+                type="button"
+                onClick={() => kirim("draf")}
+                disabled={memuat || tertahan}
+                title={tertahan ? galatAnak : undefined}
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-60 text-slate-700 font-semibold text-sm transition"
+              >
+                Simpan draf
+              </button>
+            )}
+
+            {!bacaSaja && !modeAdmin && tersimpan && (
+              <span className="text-xs text-slate-500">
+                Draf lokal tersimpan {tersimpan}
+              </span>
+            )}
+
+            <Link
+              href={urlKembali}
+              className="text-xs font-semibold text-blue-700 hover:underline no-print"
+            >
+              Kembali ke {kembaliLabel} →
+            </Link>
+          </div>
         </div>
       )}
     </div>
