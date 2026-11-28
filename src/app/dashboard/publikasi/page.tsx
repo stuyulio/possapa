@@ -1,11 +1,12 @@
 import { ambilLaporan, bacaFilter } from "@/lib/data/laporan";
 import { agregatPublikasi, kelengkapanDokumentasi } from "@/lib/data/agregat";
-import { angka, tanggalPendek } from "@/lib/format";
+import { angka } from "@/lib/format";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { GrafikDonat } from "@/components/dashboard/charts";
-import { Panel, Badge } from "@/components/dashboard/panel";
+import { Panel } from "@/components/dashboard/panel";
 import { GrafikBatang } from "@/components/dashboard/charts";
 import { EksporExcel, CetakHalaman } from "@/components/dashboard/aksi-laporan";
+import { KartuPublikasi } from "@/components/dashboard/pratinjau-publikasi";
 
 export const metadata = { title: "Publikasi — Pos SAPA" };
 
@@ -53,49 +54,7 @@ export default async function HalamanPublikasi({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {p.daftar.map((x) => (
-              <article
-                key={x.laporan_id}
-                className="bg-slate-50/70 border border-slate-200 rounded-2xl p-4 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <Badge warna="slate">{x.platform}</Badge>
-                    <span className="text-[11px] font-semibold text-slate-500">
-                      {tanggalPendek(x.tanggal_publikasi)}
-                    </span>
-                  </div>
-                  <h3 className="font-semibold text-slate-900 text-sm leading-snug">
-                    {x.kegiatan ?? "—"}
-                  </h3>
-                  <div className="text-xs text-slate-600 mt-2 space-y-0.5">
-                    <div><strong>Akun:</strong> {x.nama_akun ?? "—"}</div>
-                    <div>{x.kab_kota} — {x.lokasi}</div>
-                  </div>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-200 flex items-center flex-wrap gap-2">
-                  <a
-                    href={x.link_publikasi}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition"
-                  >
-                    Buka publikasi
-                  </a>
-                  {/* Dokumentasi bersifat opsional dan laporan lama bisa berisi
-                      nama berkas, bukan tautan — hanya tampilkan tombol bila
-                      memang berupa tautan https. */}
-                  {x.file_publikasi?.startsWith("https://") && (
-                    <a
-                      href={x.file_publikasi}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
-                    >
-                      Buka dokumentasi
-                    </a>
-                  )}
-                </div>
-              </article>
+              <KartuPublikasi key={x.laporan_id} publikasi={x} />
             ))}
           </div>
         )}
