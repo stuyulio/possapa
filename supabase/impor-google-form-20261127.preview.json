@@ -1,0 +1,1533 @@
+{
+ "laporan": [
+  {
+   "kab": "Aceh Tamiang",
+   "nama": "Huntara 1",
+   "kode": null,
+   "hunian": "huntara",
+   "jenis": "aktivitas_perempuan",
+   "baris": [
+    29
+   ],
+   "ts": "2026-11-18T16:45:19.395000",
+   "detail": {
+    "total_ikut": 4,
+    "kepala_keluarga": 2,
+    "hamil": 2,
+    "lansia": 0,
+    "disabilitas": 0,
+    "jumlah_kegiatan": 1,
+    "nama_kegiatan": "Konseling PHBS dan edukasi ttng perempuan dan anak",
+    "jenis_kegiatan": "Ibu menyusui dan perempuan sekitar huntara",
+    "manfaat": "Paham akan edukasi PHBS serta konseling ibu menyusui",
+    "_per_baris": [
+     {
+      "nama": "Konseling PHBS dan edukasi ttng perempuan dan anak",
+      "jenis": "Ibu menyusui dan perempuan sekitar huntara"
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "23873846-ef66-5df8-916b-0ffee8698dff",
+   "id_rincian": "b251249e-c29d-5306-82ed-9e5dfbd851ff",
+   "detail_final": {
+    "total_ikut": 4,
+    "kepala_keluarga": 2,
+    "hamil": 2,
+    "lansia": 0,
+    "disabilitas": 0,
+    "jumlah_kegiatan": 1,
+    "nama_kegiatan": "Konseling PHBS dan edukasi ttng perempuan dan anak",
+    "jenis_kegiatan": "Ibu menyusui dan perempuan sekitar huntara",
+    "manfaat": "Paham akan edukasi PHBS serta konseling ibu menyusui",
+    "kegiatan": [
+     {
+      "nama": "Konseling PHBS dan edukasi ttng perempuan dan anak",
+      "jenis": "Ibu menyusui dan perempuan sekitar huntara"
+     }
+    ]
+   }
+  },
+  {
+   "kab": "Aceh Tamiang",
+   "nama": "Huntara Desa Upah",
+   "kode": null,
+   "hunian": "huntara",
+   "jenis": "publikasi",
+   "baris": [
+    6
+   ],
+   "ts": "2026-11-19T11:48:36.794000",
+   "detail": {
+    "tanggal_publikasi": "2026-11-19",
+    "kegiatan": "Layanan Dukungan Psikososial untuk Anak",
+    "platform": "YouTube",
+    "nama_akun": "Flower Aceh",
+    "link_publikasi": "https://youtu.be/9hXF4QbXycg",
+    "file_publikasi": "https://drive.google.com/open?id=1SXv4Z-drVEEYThiv2KUveSSoR-l8rQt3"
+   },
+   "link_dok": "https://drive.google.com/open?id=1SXv4Z-drVEEYThiv2KUveSSoR-l8rQt3",
+   "id_laporan": "1b48181c-77aa-5639-8bd3-2a736ab2efb6",
+   "id_rincian": "d6bbe4f1-ca26-5848-960b-96ffd4a71d51",
+   "detail_final": {
+    "tanggal_publikasi": "2026-11-19",
+    "kegiatan": "Layanan Dukungan Psikososial untuk Anak",
+    "platform": "YouTube",
+    "nama_akun": "Flower Aceh",
+    "link_publikasi": "https://youtu.be/9hXF4QbXycg",
+    "file_publikasi": "https://drive.google.com/open?id=1SXv4Z-drVEEYThiv2KUveSSoR-l8rQt3"
+   }
+  },
+  {
+   "kab": "Aceh Tamiang",
+   "nama": "Huntara Desa Upah",
+   "kode": null,
+   "hunian": "huntara",
+   "jenis": "publikasi",
+   "baris": [
+    30
+   ],
+   "ts": "2026-11-19T11:37:11.742000",
+   "detail": {
+    "tanggal_publikasi": "2026-11-18",
+    "kegiatan": "Layanan Dukungan Psikososial untuk anak",
+    "platform": "YouTube",
+    "nama_akun": "Flower Aceh",
+    "link_publikasi": "https://www.youtube.com/watch?v=olXrsAv0lWY",
+    "file_publikasi": "https://drive.google.com/open?id=1crhYNb8M5JFlh5zqXDXMhGUfrbzH69J9"
+   },
+   "link_dok": "https://drive.google.com/open?id=1crhYNb8M5JFlh5zqXDXMhGUfrbzH69J9",
+   "id_laporan": "c1b80d6e-f749-570a-8798-343d6db05a4b",
+   "id_rincian": "c32e337f-8a79-5850-9c50-357fc3020aae",
+   "detail_final": {
+    "tanggal_publikasi": "2026-11-18",
+    "kegiatan": "Layanan Dukungan Psikososial untuk anak",
+    "platform": "YouTube",
+    "nama_akun": "Flower Aceh",
+    "link_publikasi": "https://www.youtube.com/watch?v=olXrsAv0lWY",
+    "file_publikasi": "https://drive.google.com/open?id=1crhYNb8M5JFlh5zqXDXMhGUfrbzH69J9"
+   }
+  },
+  {
+   "kab": "Aceh Tamiang",
+   "nama": "Huntara Kampung Empat",
+   "kode": "24476",
+   "hunian": "huntara",
+   "jenis": "aktivitas_perempuan",
+   "baris": [
+    7
+   ],
+   "ts": "2026-11-12T10:44:56.483000",
+   "detail": {
+    "total_ikut": 10,
+    "kepala_keluarga": 2,
+    "hamil": 0,
+    "lansia": 3,
+    "disabilitas": 0,
+    "jumlah_kegiatan": 5,
+    "nama_kegiatan": "Perempuan Berdaya",
+    "jenis_kegiatan": "Pelatihan usaha",
+    "manfaat": "Menambah keterampilan diri",
+    "_per_baris": [
+     {
+      "nama": "Perempuan Berdaya",
+      "jenis": "Pelatihan usaha"
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "b60a6ae5-24fb-5599-b508-5c1c7c30613a",
+   "id_rincian": "4672fd75-77aa-5b32-8933-5e794a6fcbf9",
+   "detail_final": {
+    "total_ikut": 10,
+    "kepala_keluarga": 2,
+    "hamil": 0,
+    "lansia": 3,
+    "disabilitas": 0,
+    "jumlah_kegiatan": 5,
+    "nama_kegiatan": "Perempuan Berdaya",
+    "jenis_kegiatan": "Pelatihan usaha",
+    "manfaat": "Menambah keterampilan diri",
+    "kegiatan": null
+   }
+  },
+  {
+   "kab": "Aceh Tamiang",
+   "nama": "Huntara Kampung Empat",
+   "kode": "24476",
+   "hunian": "huntara",
+   "jenis": "rekap_pengaduan",
+   "baris": [
+    2
+   ],
+   "ts": "2026-11-12T10:46:29.078000",
+   "detail": {
+    "status_bulan": "Ada aduan",
+    "aduan_masuk": 2,
+    "kekerasan_perempuan": 0,
+    "kekerasan_anak": 1,
+    "non_kekerasan_perempuan": 0,
+    "non_kekerasan_anak": 1,
+    "sudah_ditindaklanjuti": 2,
+    "tercatat_simfoni": 2,
+    "tindak_lanjut_umum": "Sudah ditangani bersama UPTD PPA",
+    "pihak_terlibat": "UPTD PPA"
+   },
+   "link_dok": null,
+   "id_laporan": "44f7e8e0-18ba-55a0-9fda-efb3345b7752",
+   "id_rincian": "9a70f4f8-7512-5407-9a53-f96c63b1c67d",
+   "detail_final": {
+    "status_bulan": "Ada aduan",
+    "aduan_masuk": 2,
+    "kekerasan_perempuan": 0,
+    "kekerasan_anak": 1,
+    "non_kekerasan_perempuan": 0,
+    "non_kekerasan_anak": 1,
+    "sudah_ditindaklanjuti": 2,
+    "tercatat_simfoni": 2,
+    "tindak_lanjut_umum": "Sudah ditangani bersama UPTD PPA",
+    "pihak_terlibat": "UPTD PPA"
+   }
+  },
+  {
+   "kab": "Aceh Tamiang",
+   "nama": "Huntara Kampung Empat",
+   "kode": "24476",
+   "hunian": "huntara",
+   "jenis": "tindak_lanjut_kasus",
+   "baris": [
+    8
+   ],
+   "ts": "2026-11-12T10:48:24.360000",
+   "detail": {
+    "kode_kasus": "ACH-01",
+    "tanggal_aduan": "2026-11-03",
+    "kategori": "kekerasan",
+    "jenis_kasus": "Penelantaran",
+    "jumlah_korban": 1,
+    "jenis_kelamin": "Perempuan",
+    "kelompok_usia": "Anak (0-17 Tahun)",
+    "disabilitas": false,
+    "kebutuhan_korban": "Pendampingan psikologis",
+    "tindak_lanjut": "rujukan UPTD PPA",
+    "status_penanganan": "dirujuk",
+    "hambatan": null
+   },
+   "link_dok": null,
+   "id_laporan": "03d0c90a-15ee-5b38-b5bb-a64d6036bd04",
+   "id_rincian": "ba7ed2a7-47de-5717-8552-80613e88abcc",
+   "detail_final": {
+    "kode_kasus": "ACH-01",
+    "tanggal_aduan": "2026-11-03",
+    "kategori": "kekerasan",
+    "jenis_kasus": "Penelantaran",
+    "jumlah_korban": 1,
+    "jenis_kelamin": "Perempuan",
+    "kelompok_usia": "Anak (0-17 Tahun)",
+    "disabilitas": false,
+    "kebutuhan_korban": "Pendampingan psikologis",
+    "tindak_lanjut": "rujukan UPTD PPA",
+    "status_penanganan": "dirujuk",
+    "hambatan": null
+   }
+  },
+  {
+   "kab": "Aceh Tamiang",
+   "nama": "Huntara Simpang Empat",
+   "kode": null,
+   "hunian": "huntara",
+   "jenis": "aktivitas_anak",
+   "baris": [
+    14,
+    16
+   ],
+   "ts": "2026-11-19T10:48:34.798000",
+   "detail": {
+    "usia_0_5": 10,
+    "usia_6_12": 90,
+    "usia_13_17": 0,
+    "laki_laki": 50,
+    "perempuan": 50,
+    "disabilitas": 0,
+    "perlu_layanan_lanjutan": 0,
+    "jumlah_kegiatan": 5,
+    "nama_kegiatan": "1. Screening anak terdampak banjir, 2. Sosialisasi pos sapa dan mengajar ngaji, 3. Identifikasi emosi anak\n\n1. Bermain boardgame ular tangga, 2. Mengaji bersama anak",
+    "jenis_kegiatan": [
+     "Bermain Bersama",
+     "Psikososial",
+     "mengajar ngaji",
+     "Mengaji"
+    ],
+    "temuan": null,
+    "tindak_lanjut": null,
+    "_per_baris": [
+     {
+      "nama": "1. Screening anak terdampak banjir, 2. Sosialisasi pos sapa dan mengajar ngaji, 3. Identifikasi emosi anak",
+      "jenis": [
+       "Bermain Bersama",
+       "Psikososial",
+       "mengajar ngaji"
+      ]
+     },
+     {
+      "nama": "1. Bermain boardgame ular tangga, 2. Mengaji bersama anak",
+      "jenis": [
+       "Bermain Bersama",
+       "Mengaji"
+      ]
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "7b4e43a4-2722-5e7b-bab0-76ac4b080fe8",
+   "id_rincian": "904da2c9-b06d-52d9-b5cd-75a40c40787b",
+   "detail_final": {
+    "usia_0_5": 10,
+    "usia_6_12": 90,
+    "usia_13_17": 0,
+    "laki_laki": 50,
+    "perempuan": 50,
+    "disabilitas": 0,
+    "perlu_layanan_lanjutan": 0,
+    "jumlah_kegiatan": 5,
+    "nama_kegiatan": "1. Screening anak terdampak banjir, 2. Sosialisasi pos sapa dan mengajar ngaji, 3. Identifikasi emosi anak\n\n1. Bermain boardgame ular tangga, 2. Mengaji bersama anak",
+    "jenis_kegiatan": [
+     "Bermain Bersama",
+     "Psikososial",
+     "mengajar ngaji",
+     "Mengaji"
+    ],
+    "temuan": null,
+    "tindak_lanjut": null,
+    "kegiatan": null
+   }
+  },
+  {
+   "kab": "Aceh Tamiang",
+   "nama": "Huntara Simpang Empat",
+   "kode": null,
+   "hunian": "huntara",
+   "jenis": "aktivitas_perempuan",
+   "baris": [
+    15,
+    17
+   ],
+   "ts": "2026-11-19T10:52:15.509000",
+   "detail": {
+    "total_ikut": 9,
+    "kepala_keluarga": 1,
+    "hamil": 0,
+    "lansia": 0,
+    "disabilitas": 0,
+    "jumlah_kegiatan": 2,
+    "nama_kegiatan": "Sosialisasi pos sapa\n\nSosialisasi pengenalan pos sapa dan tempat pelaporan kasus kekerasan",
+    "jenis_kegiatan": "Sosialisasi pos sapa; Sosualisasi pos sapa kepada ibuk ibuk",
+    "manfaat": "Mendapat info terkait keberadaan pos sapa\n\nMembantu Mendeteksi resiko kekerasan atau kerentanan sejak dini, menerima pengaduan",
+    "_per_baris": [
+     {
+      "nama": "Sosialisasi pos sapa",
+      "jenis": "Sosialisasi pos sapa"
+     },
+     {
+      "nama": "Sosialisasi pengenalan pos sapa dan tempat pelaporan kasus kekerasan",
+      "jenis": "Sosualisasi pos sapa kepada ibuk ibuk"
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "f43acfd2-5d53-5b3d-afc0-37fb4fc23919",
+   "id_rincian": "c3b12414-056c-561c-87af-a73d7df06ca6",
+   "detail_final": {
+    "total_ikut": 9,
+    "kepala_keluarga": 1,
+    "hamil": 0,
+    "lansia": 0,
+    "disabilitas": 0,
+    "jumlah_kegiatan": 2,
+    "nama_kegiatan": "Sosialisasi pos sapa\n\nSosialisasi pengenalan pos sapa dan tempat pelaporan kasus kekerasan",
+    "jenis_kegiatan": "Sosialisasi pos sapa; Sosualisasi pos sapa kepada ibuk ibuk",
+    "manfaat": "Mendapat info terkait keberadaan pos sapa\n\nMembantu Mendeteksi resiko kekerasan atau kerentanan sejak dini, menerima pengaduan",
+    "kegiatan": [
+     {
+      "nama": "Sosialisasi pos sapa",
+      "jenis": "Sosialisasi pos sapa"
+     },
+     {
+      "nama": "Sosialisasi pengenalan pos sapa dan tempat pelaporan kasus kekerasan",
+      "jenis": "Sosualisasi pos sapa kepada ibuk ibuk"
+     }
+    ]
+   }
+  },
+  {
+   "kab": "Aceh Tamiang",
+   "nama": "Huntara Simpang Empat",
+   "kode": null,
+   "hunian": "huntara",
+   "jenis": "rekap_pengaduan",
+   "baris": [
+    31
+   ],
+   "ts": "2026-11-18T12:52:56.020000",
+   "detail": {
+    "status_bulan": "Ada aduan",
+    "aduan_masuk": 1,
+    "kekerasan_perempuan": 0,
+    "kekerasan_anak": 0,
+    "non_kekerasan_perempuan": 1,
+    "non_kekerasan_anak": 0,
+    "sudah_ditindaklanjuti": 1,
+    "tercatat_simfoni": 0,
+    "tindak_lanjut_umum": "Sudah di rujuk ke dinas ppa kabupaten dan di rujuk ke tim penannganan kasus Flower",
+    "pihak_terlibat": "Dinas ppa, Flower Aceh"
+   },
+   "link_dok": null,
+   "id_laporan": "6dbc9d4e-ee87-54e0-9713-d4840e8a2d7b",
+   "id_rincian": "fc332537-7dd3-55a2-a761-468c9270a3df",
+   "detail_final": {
+    "status_bulan": "Ada aduan",
+    "aduan_masuk": 1,
+    "kekerasan_perempuan": 0,
+    "kekerasan_anak": 0,
+    "non_kekerasan_perempuan": 1,
+    "non_kekerasan_anak": 0,
+    "sudah_ditindaklanjuti": 1,
+    "tercatat_simfoni": 0,
+    "tindak_lanjut_umum": "Sudah di rujuk ke dinas ppa kabupaten dan di rujuk ke tim penannganan kasus Flower",
+    "pihak_terlibat": "Dinas ppa, Flower Aceh"
+   }
+  },
+  {
+   "kab": "Aceh Timur",
+   "nama": "Desa Grong-Grong Kec. Pante Bidari",
+   "kode": "24463",
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    3
+   ],
+   "ts": "2026-11-19T15:53:15.711000",
+   "detail": {
+    "tanggal_publikasi": "2026-10-16",
+    "kegiatan": "Kegiatan Aktivasi Pos SAPA",
+    "platform": "Instagram",
+    "nama_akun": "@dp3akb_atim dan @bidang_ppa_aceh_timur",
+    "link_publikasi": "https://www.instagram.com/p/DeipNKRpfuK/?bqrl=ZmtwMXh1dWNtdW05",
+    "file_publikasi": "https://drive.google.com/open?id=1mWeHFO-J9ABJxjYlNpEb26nCgIGCpbqo"
+   },
+   "link_dok": "https://drive.google.com/open?id=1mWeHFO-J9ABJxjYlNpEb26nCgIGCpbqo",
+   "id_laporan": "ca2c9158-6b52-5531-8d30-66d203bb327c",
+   "id_rincian": "afbfb6a8-278d-5256-a25f-2f7bad6ad270",
+   "detail_final": {
+    "tanggal_publikasi": "2026-10-16",
+    "kegiatan": "Kegiatan Aktivasi Pos SAPA",
+    "platform": "Instagram",
+    "nama_akun": "@dp3akb_atim dan @bidang_ppa_aceh_timur",
+    "link_publikasi": "https://www.instagram.com/p/DeipNKRpfuK/?bqrl=ZmtwMXh1dWNtdW05",
+    "file_publikasi": "https://drive.google.com/open?id=1mWeHFO-J9ABJxjYlNpEb26nCgIGCpbqo"
+   }
+  },
+  {
+   "kab": "Bener Meriah",
+   "nama": "Huntara Tunyang",
+   "kode": null,
+   "hunian": "huntara",
+   "jenis": "aktivitas_anak",
+   "baris": [
+    32
+   ],
+   "ts": "2026-11-13T14:26:21.123000",
+   "detail": {
+    "usia_0_5": 50,
+    "usia_6_12": 70,
+    "usia_13_17": 80,
+    "laki_laki": 100,
+    "perempuan": 100,
+    "disabilitas": 10,
+    "perlu_layanan_lanjutan": 2,
+    "jumlah_kegiatan": 15,
+    "nama_kegiatan": "1. Pemberian Layanan Dukungan Psikososial pada Anak; 2. Kegiatan Melatih Menari; 3. Kegiatan Pelatihan Futsal Bagi Anak",
+    "jenis_kegiatan": [
+     "Edukasi",
+     "Kegiatan Fisik",
+     "Bermain Bersama"
+    ],
+    "temuan": "Anak terlihat menarik diri dan tidak mau beraktivitas dengan teman temannya, anak juga terlihat murung selama proses kegiatan",
+    "tindak_lanjut": "Pos SAPA mengkoordinasikan kepada Dinas P3A/UPTD PPA untuk dilakukan asesmen lebih lanjut terkait kondisi anak",
+    "_per_baris": [
+     {
+      "nama": "1. Pemberian Layanan Dukungan Psikososial pada Anak; 2. Kegiatan Melatih Menari; 3. Kegiatan Pelatihan Futsal Bagi Anak",
+      "jenis": [
+       "Edukasi",
+       "Kegiatan Fisik",
+       "Bermain Bersama"
+      ]
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "5749390d-fd9b-5222-9561-3341a3286b82",
+   "id_rincian": "30f9efe1-90d1-59d6-96d7-e5e0c39e1c90",
+   "detail_final": {
+    "usia_0_5": 50,
+    "usia_6_12": 70,
+    "usia_13_17": 80,
+    "laki_laki": 100,
+    "perempuan": 100,
+    "disabilitas": 10,
+    "perlu_layanan_lanjutan": 2,
+    "jumlah_kegiatan": 15,
+    "nama_kegiatan": "1. Pemberian Layanan Dukungan Psikososial pada Anak; 2. Kegiatan Melatih Menari; 3. Kegiatan Pelatihan Futsal Bagi Anak",
+    "jenis_kegiatan": [
+     "Edukasi",
+     "Kegiatan Fisik",
+     "Bermain Bersama"
+    ],
+    "temuan": "Anak terlihat menarik diri dan tidak mau beraktivitas dengan teman temannya, anak juga terlihat murung selama proses kegiatan",
+    "tindak_lanjut": "Pos SAPA mengkoordinasikan kepada Dinas P3A/UPTD PPA untuk dilakukan asesmen lebih lanjut terkait kondisi anak",
+    "kegiatan": null
+   }
+  },
+  {
+   "kab": "Kota Padang",
+   "nama": "Huntara Lubuk Buaya",
+   "kode": "25173",
+   "hunian": "huntara",
+   "jenis": "aktivitas_anak",
+   "baris": [
+    10
+   ],
+   "ts": "2026-11-20T18:56:48.474000",
+   "detail": {
+    "usia_0_5": 44,
+    "usia_6_12": 63,
+    "usia_13_17": 50,
+    "laki_laki": 71,
+    "perempuan": 99,
+    "disabilitas": 1,
+    "perlu_layanan_lanjutan": 0,
+    "jumlah_kegiatan": 42,
+    "nama_kegiatan": "Pelayanan dan Pembimbingan",
+    "jenis_kegiatan": [
+     "Edukasi",
+     "Trauma Healing",
+     "Kegiatan Fisik",
+     "Bermain Bersama"
+    ],
+    "temuan": null,
+    "tindak_lanjut": null,
+    "_per_baris": [
+     {
+      "nama": "Pelayanan dan Pembimbingan",
+      "jenis": [
+       "Edukasi",
+       "Trauma Healing",
+       "Kegiatan Fisik",
+       "Bermain Bersama"
+      ]
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "737431b8-9314-555e-a8fc-a91bad6d60ef",
+   "id_rincian": "52d748eb-330f-5316-a1a5-c3dbd6c963bb",
+   "detail_final": {
+    "usia_0_5": 44,
+    "usia_6_12": 63,
+    "usia_13_17": 50,
+    "laki_laki": 71,
+    "perempuan": 99,
+    "disabilitas": 1,
+    "perlu_layanan_lanjutan": 0,
+    "jumlah_kegiatan": 42,
+    "nama_kegiatan": "Pelayanan dan Pembimbingan",
+    "jenis_kegiatan": [
+     "Edukasi",
+     "Trauma Healing",
+     "Kegiatan Fisik",
+     "Bermain Bersama"
+    ],
+    "temuan": null,
+    "tindak_lanjut": null,
+    "kegiatan": null
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "aktivitas_anak",
+   "baris": [
+    33
+   ],
+   "ts": "2026-11-19T14:43:13.298000",
+   "detail": {
+    "usia_0_5": 2,
+    "usia_6_12": 30,
+    "usia_13_17": 13,
+    "laki_laki": 10,
+    "perempuan": 35,
+    "disabilitas": 1,
+    "perlu_layanan_lanjutan": 0,
+    "jumlah_kegiatan": 2,
+    "nama_kegiatan": "1. Psikososial dan Edukasi Pencegahan Tindak Kekerasan pada Anak 2. Sosialisasi Pos SAPA dan Edukasi Perilaku Hidup Bersih dan Sehat (PHBS), Dusun 2 Air Hitam",
+    "jenis_kegiatan": [
+     "Edukasi",
+     "Kegiatan Fisik",
+     "Bermain Bersama"
+    ],
+    "temuan": null,
+    "tindak_lanjut": null,
+    "_per_baris": [
+     {
+      "nama": "1. Psikososial dan Edukasi Pencegahan Tindak Kekerasan pada Anak 2. Sosialisasi Pos SAPA dan Edukasi Perilaku Hidup Bersih dan Sehat (PHBS), Dusun 2 Air Hitam",
+      "jenis": [
+       "Edukasi",
+       "Kegiatan Fisik",
+       "Bermain Bersama"
+      ]
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "32360be4-46c9-5958-bc27-b6e5b9f15303",
+   "id_rincian": "a3371f5b-6797-5f34-ad0e-911bbf48f544",
+   "detail_final": {
+    "usia_0_5": 2,
+    "usia_6_12": 30,
+    "usia_13_17": 13,
+    "laki_laki": 10,
+    "perempuan": 35,
+    "disabilitas": 1,
+    "perlu_layanan_lanjutan": 0,
+    "jumlah_kegiatan": 2,
+    "nama_kegiatan": "1. Psikososial dan Edukasi Pencegahan Tindak Kekerasan pada Anak 2. Sosialisasi Pos SAPA dan Edukasi Perilaku Hidup Bersih dan Sehat (PHBS), Dusun 2 Air Hitam",
+    "jenis_kegiatan": [
+     "Edukasi",
+     "Kegiatan Fisik",
+     "Bermain Bersama"
+    ],
+    "temuan": null,
+    "tindak_lanjut": null,
+    "kegiatan": null
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    36
+   ],
+   "ts": "2026-11-19T15:30:41.640000",
+   "detail": {
+    "tanggal_publikasi": "2026-10-21",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Website Resmi",
+    "nama_akun": "iNews.Medan",
+    "link_publikasi": "https://medan.inews.id/read/724461/tak-perlu-bingung-cari-bantuan-pos-sapa-langkat-sediakan-layanan-terpadu-perempuan-dan-anak",
+    "file_publikasi": "https://drive.google.com/open?id=16goBvFfbkpijU-azbPnBym2-6LUyEAR0"
+   },
+   "link_dok": "https://drive.google.com/open?id=16goBvFfbkpijU-azbPnBym2-6LUyEAR0",
+   "id_laporan": "b6df1373-206f-5f4f-805f-3a557842d213",
+   "id_rincian": "058b1341-cc31-5733-8659-7d69bafa9c10",
+   "detail_final": {
+    "tanggal_publikasi": "2026-10-21",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Website Resmi",
+    "nama_akun": "iNews.Medan",
+    "link_publikasi": "https://medan.inews.id/read/724461/tak-perlu-bingung-cari-bantuan-pos-sapa-langkat-sediakan-layanan-terpadu-perempuan-dan-anak",
+    "file_publikasi": "https://drive.google.com/open?id=16goBvFfbkpijU-azbPnBym2-6LUyEAR0"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    37
+   ],
+   "ts": "2026-11-19T15:34:17.658000",
+   "detail": {
+    "tanggal_publikasi": "2026-10-21",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Website Resmi",
+    "nama_akun": "DetikPos.id",
+    "link_publikasi": "https://detikpos.id/nasional/pos-sapa-hadir-di-langkat-perkuat-perlindungan-perempuan-dan-anak-pascabencana",
+    "file_publikasi": "https://drive.google.com/open?id=13nrw9fy40vVcG791527N51vg5OitqCSl"
+   },
+   "link_dok": "https://drive.google.com/open?id=13nrw9fy40vVcG791527N51vg5OitqCSl",
+   "id_laporan": "4f54ee9b-c4b0-5c03-846a-737eb23fb721",
+   "id_rincian": "bd86d22f-f627-5c58-8a86-2805a1d27f5c",
+   "detail_final": {
+    "tanggal_publikasi": "2026-10-21",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Website Resmi",
+    "nama_akun": "DetikPos.id",
+    "link_publikasi": "https://detikpos.id/nasional/pos-sapa-hadir-di-langkat-perkuat-perlindungan-perempuan-dan-anak-pascabencana",
+    "file_publikasi": "https://drive.google.com/open?id=13nrw9fy40vVcG791527N51vg5OitqCSl"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    38
+   ],
+   "ts": "2026-11-19T15:37:28.392000",
+   "detail": {
+    "tanggal_publikasi": "2026-10-22",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Website Resmi",
+    "nama_akun": "Mimbar Umum",
+    "link_publikasi": "https://mimbarumum.co.id/kemenpppa-dan-yafsi-aktifkan-pos-sapa-di-langkat-untuk-lindungi-perempuan-dan-anak-pascabencana/#google_vignette",
+    "file_publikasi": "https://drive.google.com/open?id=1c37n-6fbmHNp6ZT3tZeZp7C4bxTwu-JW"
+   },
+   "link_dok": "https://drive.google.com/open?id=1c37n-6fbmHNp6ZT3tZeZp7C4bxTwu-JW",
+   "id_laporan": "de71406b-e5f5-5ad3-823f-ff332dffca50",
+   "id_rincian": "1919c012-19ce-5621-8c43-c08196dfdc43",
+   "detail_final": {
+    "tanggal_publikasi": "2026-10-22",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Website Resmi",
+    "nama_akun": "Mimbar Umum",
+    "link_publikasi": "https://mimbarumum.co.id/kemenpppa-dan-yafsi-aktifkan-pos-sapa-di-langkat-untuk-lindungi-perempuan-dan-anak-pascabencana/#google_vignette",
+    "file_publikasi": "https://drive.google.com/open?id=1c37n-6fbmHNp6ZT3tZeZp7C4bxTwu-JW"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    39
+   ],
+   "ts": "2026-11-19T15:39:53.374000",
+   "detail": {
+    "tanggal_publikasi": "2026-10-22",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Website Resmi",
+    "nama_akun": "KitaKini News",
+    "link_publikasi": "https://www.kitakininews.co.id/news/29622/kemenpppa-dan-yafsi-hadirkan-pos-sapa-di-langkat-untuk-perlindungan-pascabencana",
+    "file_publikasi": "https://drive.google.com/open?id=11ClMYJLRBhcFVeM7nrkue5AcIKHsprDv"
+   },
+   "link_dok": "https://drive.google.com/open?id=11ClMYJLRBhcFVeM7nrkue5AcIKHsprDv",
+   "id_laporan": "6965f179-9a95-518b-98db-44d72743d33d",
+   "id_rincian": "1d776e76-4b97-55fb-a211-7bc696612a03",
+   "detail_final": {
+    "tanggal_publikasi": "2026-10-22",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Website Resmi",
+    "nama_akun": "KitaKini News",
+    "link_publikasi": "https://www.kitakininews.co.id/news/29622/kemenpppa-dan-yafsi-hadirkan-pos-sapa-di-langkat-untuk-perlindungan-pascabencana",
+    "file_publikasi": "https://drive.google.com/open?id=11ClMYJLRBhcFVeM7nrkue5AcIKHsprDv"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    40
+   ],
+   "ts": "2026-11-19T15:42:49.804000",
+   "detail": {
+    "tanggal_publikasi": "2026-10-23",
+    "kegiatan": "Aktivasi dan Operasionalisasi Pos SAPA",
+    "platform": "Website Resmi",
+    "nama_akun": "Detik Pos",
+    "link_publikasi": "https://detikpos.id/nasional/kemen-pppa-perkuat-layanan-perlindungan-perempuan-dan-anak-pascabencana-di-langkat",
+    "file_publikasi": "https://drive.google.com/open?id=1QzeareVrIvzVKBL2c3lTQzU3ZQBN9s1O"
+   },
+   "link_dok": "https://drive.google.com/open?id=1QzeareVrIvzVKBL2c3lTQzU3ZQBN9s1O",
+   "id_laporan": "6a4dc75a-9007-5fdf-887c-db8b21370431",
+   "id_rincian": "7d6ec94e-16ca-5795-b883-6f08c5079efa",
+   "detail_final": {
+    "tanggal_publikasi": "2026-10-23",
+    "kegiatan": "Aktivasi dan Operasionalisasi Pos SAPA",
+    "platform": "Website Resmi",
+    "nama_akun": "Detik Pos",
+    "link_publikasi": "https://detikpos.id/nasional/kemen-pppa-perkuat-layanan-perlindungan-perempuan-dan-anak-pascabencana-di-langkat",
+    "file_publikasi": "https://drive.google.com/open?id=1QzeareVrIvzVKBL2c3lTQzU3ZQBN9s1O"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    41
+   ],
+   "ts": "2026-11-19T15:45:28.896000",
+   "detail": {
+    "tanggal_publikasi": "2026-11-09",
+    "kegiatan": "Psikososial dan Edukasi",
+    "platform": "Website Resmi",
+    "nama_akun": "iNews",
+    "link_publikasi": "https://medan.inews.id/read/728880/ceriakan-tangkahan-durian-pos-sapa-dan-yafsi-ajari-anak-cara-lindungi-diri-dari-bahaya",
+    "file_publikasi": "https://drive.google.com/open?id=1fd2TXb_MnJVxF_ZTrxNNOobbivhehfQ2"
+   },
+   "link_dok": "https://drive.google.com/open?id=1fd2TXb_MnJVxF_ZTrxNNOobbivhehfQ2",
+   "id_laporan": "5bec79f7-d8e5-5d4e-99b6-c76e61285e77",
+   "id_rincian": "8b6aad5d-bef5-5c78-94e1-1fbadf912486",
+   "detail_final": {
+    "tanggal_publikasi": "2026-11-09",
+    "kegiatan": "Psikososial dan Edukasi",
+    "platform": "Website Resmi",
+    "nama_akun": "iNews",
+    "link_publikasi": "https://medan.inews.id/read/728880/ceriakan-tangkahan-durian-pos-sapa-dan-yafsi-ajari-anak-cara-lindungi-diri-dari-bahaya",
+    "file_publikasi": "https://drive.google.com/open?id=1fd2TXb_MnJVxF_ZTrxNNOobbivhehfQ2"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    42
+   ],
+   "ts": "2026-11-19T15:48:08.902000",
+   "detail": {
+    "tanggal_publikasi": "2026-11-09",
+    "kegiatan": "Psikososial da Edukasi",
+    "platform": "Website Resmi",
+    "nama_akun": "KitaKini News",
+    "link_publikasi": "https://www.kitakininews.co.id/news/29956/gandeng-yafsi-pos-sapa-langkat-gelar-edukasi-perlindungan-anak-di-tangkahan-durian",
+    "file_publikasi": "https://drive.google.com/open?id=1JbULRevXqhbpjw62mHMoz-4gL6p4LOPK"
+   },
+   "link_dok": "https://drive.google.com/open?id=1JbULRevXqhbpjw62mHMoz-4gL6p4LOPK",
+   "id_laporan": "f644e96a-a15c-5a33-85e7-c3df5584c47b",
+   "id_rincian": "0f078316-f74b-5ee7-8900-33bee5610f26",
+   "detail_final": {
+    "tanggal_publikasi": "2026-11-09",
+    "kegiatan": "Psikososial da Edukasi",
+    "platform": "Website Resmi",
+    "nama_akun": "KitaKini News",
+    "link_publikasi": "https://www.kitakininews.co.id/news/29956/gandeng-yafsi-pos-sapa-langkat-gelar-edukasi-perlindungan-anak-di-tangkahan-durian",
+    "file_publikasi": "https://drive.google.com/open?id=1JbULRevXqhbpjw62mHMoz-4gL6p4LOPK"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    43
+   ],
+   "ts": "2026-11-19T15:50:38.928000",
+   "detail": {
+    "tanggal_publikasi": "2026-11-08",
+    "kegiatan": "Psikososial dan Edukasi",
+    "platform": "Website Resmi",
+    "nama_akun": "DetikPos",
+    "link_publikasi": "https://detikpos.id/nasional/pos-sapa-langkat-bersama-yafsi-gelar-psikososial-dan-edukasi-perlindungan-anak-di-tangkahan-durian",
+    "file_publikasi": "https://drive.google.com/open?id=1y8RvBQHLfMDfsoJ3s9DMLqpfgmAmBx4a"
+   },
+   "link_dok": "https://drive.google.com/open?id=1y8RvBQHLfMDfsoJ3s9DMLqpfgmAmBx4a",
+   "id_laporan": "cdd6fb85-9459-515f-b959-a7c93707b134",
+   "id_rincian": "30a5194c-e418-5658-90be-c8c0e2e3e380",
+   "detail_final": {
+    "tanggal_publikasi": "2026-11-08",
+    "kegiatan": "Psikososial dan Edukasi",
+    "platform": "Website Resmi",
+    "nama_akun": "DetikPos",
+    "link_publikasi": "https://detikpos.id/nasional/pos-sapa-langkat-bersama-yafsi-gelar-psikososial-dan-edukasi-perlindungan-anak-di-tangkahan-durian",
+    "file_publikasi": "https://drive.google.com/open?id=1y8RvBQHLfMDfsoJ3s9DMLqpfgmAmBx4a"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    44
+   ],
+   "ts": "2026-11-19T15:57:06.676000",
+   "detail": {
+    "tanggal_publikasi": "2026-11-10",
+    "kegiatan": "Psikososial dan Edukasi",
+    "platform": "Instagram",
+    "nama_akun": "@yafsi",
+    "link_publikasi": "https://www.instagram.com/reel/DfmxKmxzL6z/?utm_source=ig_web_copy_link&knvt=MzRlODBiNWFlZA%3D%3D&avpt=MzRlODBiNWFlZA%3D%3D",
+    "file_publikasi": "https://drive.google.com/open?id=18AIeGtV_6rqU2TffPfqke0ghHiAPURS6"
+   },
+   "link_dok": "https://drive.google.com/open?id=18AIeGtV_6rqU2TffPfqke0ghHiAPURS6",
+   "id_laporan": "f392dc28-660c-5acb-ab55-63ac78421520",
+   "id_rincian": "e7347c24-ee23-56c4-9e5c-2d8809de75db",
+   "detail_final": {
+    "tanggal_publikasi": "2026-11-10",
+    "kegiatan": "Psikososial dan Edukasi",
+    "platform": "Instagram",
+    "nama_akun": "@yafsi",
+    "link_publikasi": "https://www.instagram.com/reel/DfmxKmxzL6z/?utm_source=ig_web_copy_link&knvt=MzRlODBiNWFlZA%3D%3D&avpt=MzRlODBiNWFlZA%3D%3D",
+    "file_publikasi": "https://drive.google.com/open?id=18AIeGtV_6rqU2TffPfqke0ghHiAPURS6"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    45
+   ],
+   "ts": "2026-11-19T16:04:40.853000",
+   "detail": {
+    "tanggal_publikasi": "2026-10-28",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Instagram",
+    "nama_akun": "@yafsi",
+    "link_publikasi": "https://www.instagram.com/reel/DfmxKmxzL6z/?utm_source=ig_web_copy_link&knvt=MzRlODBiNWFlZA%3D%3D&avpt=MzRlODBiNWFlZA%3D%3D",
+    "file_publikasi": "https://drive.google.com/open?id=1YZdkesw-pUQ9d1rymr_RGM_eiutRHE17"
+   },
+   "link_dok": "https://drive.google.com/open?id=1YZdkesw-pUQ9d1rymr_RGM_eiutRHE17",
+   "id_laporan": "137d4fd5-2d43-5569-bf25-67a00efbc9d9",
+   "id_rincian": "9f329429-6397-5711-b07e-9c9f2a739871",
+   "detail_final": {
+    "tanggal_publikasi": "2026-10-28",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Instagram",
+    "nama_akun": "@yafsi",
+    "link_publikasi": "https://www.instagram.com/reel/DfmxKmxzL6z/?utm_source=ig_web_copy_link&knvt=MzRlODBiNWFlZA%3D%3D&avpt=MzRlODBiNWFlZA%3D%3D",
+    "file_publikasi": "https://drive.google.com/open?id=1YZdkesw-pUQ9d1rymr_RGM_eiutRHE17"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    46
+   ],
+   "ts": "2026-11-19T16:12:04.833000",
+   "detail": {
+    "tanggal_publikasi": "2026-10-24",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Facebook",
+    "nama_akun": "YAFSI Indonesia",
+    "link_publikasi": "https://www.facebook.com/yafsindonesia/videos/pos-sapa-hadir-di-langkat-memperkuat-perlindungan-perempuan-dan-anak-pascabencan/2236679057198097/?rdid=sYGwMjuZyA9bNzhL",
+    "file_publikasi": null
+   },
+   "link_dok": null,
+   "id_laporan": "e0925cd1-2dbe-50bd-9165-823e79676b7f",
+   "id_rincian": "ea3577ed-f00e-5e68-9d48-f73f14ad6b8f",
+   "detail_final": {
+    "tanggal_publikasi": "2026-10-24",
+    "kegiatan": "Aktivasi Pos SAPA",
+    "platform": "Facebook",
+    "nama_akun": "YAFSI Indonesia",
+    "link_publikasi": "https://www.facebook.com/yafsindonesia/videos/pos-sapa-hadir-di-langkat-memperkuat-perlindungan-perempuan-dan-anak-pascabencan/2236679057198097/?rdid=sYGwMjuZyA9bNzhL",
+    "file_publikasi": null
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    47
+   ],
+   "ts": "2026-11-19T16:13:53.034000",
+   "detail": {
+    "tanggal_publikasi": "2026-11-11",
+    "kegiatan": "Psikososial dan Edukasi",
+    "platform": "Facebook",
+    "nama_akun": "YAFSI",
+    "link_publikasi": "https://www.facebook.com/yafsindonesia/videos/yafsi-bersama-pos-sapa-sahabat-perempuan-dan-anak-kabupaten-langkat-menggelar-ps/3569432456563285/?rdid=kbeEv6xHQV7rxTsr",
+    "file_publikasi": null
+   },
+   "link_dok": null,
+   "id_laporan": "d7dfff70-ac50-54a8-aef7-582f9d0db0b6",
+   "id_rincian": "0b49bfc7-cfdb-5c80-bdd5-3dc6a7d11cf6",
+   "detail_final": {
+    "tanggal_publikasi": "2026-11-11",
+    "kegiatan": "Psikososial dan Edukasi",
+    "platform": "Facebook",
+    "nama_akun": "YAFSI",
+    "link_publikasi": "https://www.facebook.com/yafsindonesia/videos/yafsi-bersama-pos-sapa-sahabat-perempuan-dan-anak-kabupaten-langkat-menggelar-ps/3569432456563285/?rdid=kbeEv6xHQV7rxTsr",
+    "file_publikasi": null
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "rekap_pengaduan",
+   "baris": [
+    34
+   ],
+   "ts": "2026-11-19T14:57:27.876000",
+   "detail": {
+    "status_bulan": "Ada aduan",
+    "aduan_masuk": 3,
+    "kekerasan_perempuan": 1,
+    "kekerasan_anak": 1,
+    "non_kekerasan_perempuan": 0,
+    "non_kekerasan_anak": 1,
+    "sudah_ditindaklanjuti": 3,
+    "tercatat_simfoni": 1,
+    "tindak_lanjut_umum": "Melakukan pendampingan, membuat rujukan",
+    "pihak_terlibat": "UPTD PPA, BNN, Kepolisian, Babinkamtbmas, Babinsa dan Pemerintah Desa"
+   },
+   "link_dok": null,
+   "id_laporan": "7006ba34-5ec9-53a2-b099-028b2723e1d1",
+   "id_rincian": "27aa0c16-fb12-523b-b246-d13ec54d3467",
+   "detail_final": {
+    "status_bulan": "Ada aduan",
+    "aduan_masuk": 3,
+    "kekerasan_perempuan": 1,
+    "kekerasan_anak": 1,
+    "non_kekerasan_perempuan": 0,
+    "non_kekerasan_anak": 1,
+    "sudah_ditindaklanjuti": 3,
+    "tercatat_simfoni": 1,
+    "tindak_lanjut_umum": "Melakukan pendampingan, membuat rujukan",
+    "pihak_terlibat": "UPTD PPA, BNN, Kepolisian, Babinkamtbmas, Babinsa dan Pemerintah Desa"
+   }
+  },
+  {
+   "kab": "Langkat",
+   "nama": "RPTRA Gebang",
+   "kode": null,
+   "hunian": null,
+   "jenis": "tindak_lanjut_kasus",
+   "baris": [
+    35
+   ],
+   "ts": "2026-11-19T15:08:58.226000",
+   "detail": {
+    "kode_kasus": "F.01.PS",
+    "tanggal_aduan": "2026-11-06",
+    "kategori": "kekerasan",
+    "jenis_kasus": "Kekerasan Fisik",
+    "jumlah_korban": 2,
+    "jenis_kelamin": "Perempuan",
+    "kelompok_usia": "Dewasa (18+ Tahun)",
+    "disabilitas": false,
+    "kebutuhan_korban": "Pendampingan Psikologis",
+    "tindak_lanjut": "Pendampingan dan Rujukan UPTD PPA",
+    "status_penanganan": "selesai",
+    "hambatan": null
+   },
+   "link_dok": null,
+   "id_laporan": "dbc2ede7-d57c-5715-9187-71039f9cf8a7",
+   "id_rincian": "e4504ef4-be66-59c5-9ad9-2f2338e56b37",
+   "detail_final": {
+    "kode_kasus": "F.01.PS",
+    "tanggal_aduan": "2026-11-06",
+    "kategori": "kekerasan",
+    "jenis_kasus": "Kekerasan Fisik",
+    "jumlah_korban": 2,
+    "jenis_kelamin": "Perempuan",
+    "kelompok_usia": "Dewasa (18+ Tahun)",
+    "disabilitas": false,
+    "kebutuhan_korban": "Pendampingan Psikologis",
+    "tindak_lanjut": "Pendampingan dan Rujukan UPTD PPA",
+    "status_penanganan": "selesai",
+    "hambatan": null
+   }
+  },
+  {
+   "kab": "Pidie Jaya",
+   "nama": "Kantor Dinsos PPPA Kab. Pidie Jaya",
+   "kode": null,
+   "hunian": "dinas_pppa",
+   "jenis": "aktivitas_perempuan",
+   "baris": [
+    19
+   ],
+   "ts": "2026-11-19T10:03:31.982000",
+   "detail": {
+    "total_ikut": 22,
+    "kepala_keluarga": 0,
+    "hamil": 0,
+    "lansia": 3,
+    "disabilitas": 2,
+    "jumlah_kegiatan": 6,
+    "nama_kegiatan": "Edukasi Terkait Pemenuhan Hak anak dan Perempuan serta Pelayanan Pos SAPA",
+    "jenis_kegiatan": "Edukasi dan Penyuluhan",
+    "manfaat": "Perempuan mengetahui hak nya dan bagaimana ikut berkontribusi dalam pemenuhan hak anak serta perempuan telah mengetahui adanya layanan Pos SAPA",
+    "_per_baris": [
+     {
+      "nama": "Edukasi Terkait Pemenuhan Hak anak dan Perempuan serta Pelayanan Pos SAPA",
+      "jenis": "Edukasi dan Penyuluhan"
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "73f581d0-73dd-57d9-95a8-6ace2537c49b",
+   "id_rincian": "614aff17-5826-506c-a476-254782e96fc9",
+   "detail_final": {
+    "total_ikut": 22,
+    "kepala_keluarga": 0,
+    "hamil": 0,
+    "lansia": 3,
+    "disabilitas": 2,
+    "jumlah_kegiatan": 6,
+    "nama_kegiatan": "Edukasi Terkait Pemenuhan Hak anak dan Perempuan serta Pelayanan Pos SAPA",
+    "jenis_kegiatan": "Edukasi dan Penyuluhan",
+    "manfaat": "Perempuan mengetahui hak nya dan bagaimana ikut berkontribusi dalam pemenuhan hak anak serta perempuan telah mengetahui adanya layanan Pos SAPA",
+    "kegiatan": null
+   }
+  },
+  {
+   "kab": "Solok",
+   "nama": "Nagari Paninggahan",
+   "kode": null,
+   "hunian": null,
+   "jenis": "aktivitas_perempuan",
+   "baris": [
+    20,
+    22,
+    23,
+    24,
+    25,
+    28
+   ],
+   "ts": "2026-11-19T11:50:06.702000",
+   "detail": {
+    "total_ikut": 108,
+    "kepala_keluarga": 0,
+    "hamil": 0,
+    "lansia": 2,
+    "disabilitas": 0,
+    "jumlah_kegiatan": 9,
+    "nama_kegiatan": "Sosialisasi pos sapa kepada wakil bupati dan wali nagari paninggahan\n\nSosialisasi dan pengumpulan data perempuan dan anak\n\nEdukasi\n\nEdukasi dan Pendataan\n\nPendataan perempuan dan anak\n\nSosialisasi",
+    "jenis_kegiatan": "Sosialisasi; Edukasi; Pendataanmasyarakat terdampak; Pengenalan Pos SAPA",
+    "manfaat": "Masyarakat mengetahui telah adanya Pos SAPA dan terdatanya data nagari terkait perempuan dan anak\n\nKegiatan yang dilakukan adalah pendataan dan edukasi bagi masyarakat nagari paninggahan sehingga jumlah yang ikut serta adalah masyarakat nagari peninggahan\n\nMasyarakat nagari paninggahan mengenal Pos SAPA",
+    "_per_baris": [
+     {
+      "nama": "Sosialisasi pos sapa kepada wakil bupati dan wali nagari paninggahan",
+      "jenis": ""
+     },
+     {
+      "nama": "Sosialisasi dan pengumpulan data perempuan dan anak",
+      "jenis": "Sosialisasi"
+     },
+     {
+      "nama": "Edukasi",
+      "jenis": "Edukasi"
+     },
+     {
+      "nama": "Edukasi dan Pendataan",
+      "jenis": "Pendataanmasyarakat terdampak"
+     },
+     {
+      "nama": "Pendataan perempuan dan anak",
+      "jenis": ""
+     },
+     {
+      "nama": "Sosialisasi",
+      "jenis": "Pengenalan Pos SAPA"
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "92d16546-924f-54c8-a302-c5ba736f36f2",
+   "id_rincian": "510d10de-db43-5d25-8312-01ffd83e58d5",
+   "detail_final": {
+    "total_ikut": 108,
+    "kepala_keluarga": 0,
+    "hamil": 0,
+    "lansia": 2,
+    "disabilitas": 0,
+    "jumlah_kegiatan": 9,
+    "nama_kegiatan": "Sosialisasi pos sapa kepada wakil bupati dan wali nagari paninggahan\n\nSosialisasi dan pengumpulan data perempuan dan anak\n\nEdukasi\n\nEdukasi dan Pendataan\n\nPendataan perempuan dan anak\n\nSosialisasi",
+    "jenis_kegiatan": "Sosialisasi; Edukasi; Pendataanmasyarakat terdampak; Pengenalan Pos SAPA",
+    "manfaat": "Masyarakat mengetahui telah adanya Pos SAPA dan terdatanya data nagari terkait perempuan dan anak\n\nKegiatan yang dilakukan adalah pendataan dan edukasi bagi masyarakat nagari paninggahan sehingga jumlah yang ikut serta adalah masyarakat nagari peninggahan\n\nMasyarakat nagari paninggahan mengenal Pos SAPA",
+    "kegiatan": null
+   }
+  },
+  {
+   "kab": "Solok",
+   "nama": "Nagari Paninggahan",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    26
+   ],
+   "ts": "2026-11-19T11:14:19.999000",
+   "detail": {
+    "tanggal_publikasi": "2026-10-23",
+    "kegiatan": "Koordinasi Pos SAPA bersama sekretaris daerah Kabupaten Solok dan Dinas DP2KBP3A",
+    "platform": "Instagram",
+    "nama_akun": "jemari.sakato",
+    "link_publikasi": "https://www.instagram.com/p/De1nhjeEi2t/?evlk=MThsdmdmYjBpMnB4",
+    "file_publikasi": null
+   },
+   "link_dok": null,
+   "id_laporan": "c54b48f7-82a3-5814-a9ee-dbb98300da34",
+   "id_rincian": "6aba17e5-2033-5b29-85c8-b5799e7a14e9",
+   "detail_final": {
+    "tanggal_publikasi": "2026-10-23",
+    "kegiatan": "Koordinasi Pos SAPA bersama sekretaris daerah Kabupaten Solok dan Dinas DP2KBP3A",
+    "platform": "Instagram",
+    "nama_akun": "jemari.sakato",
+    "link_publikasi": "https://www.instagram.com/p/De1nhjeEi2t/?evlk=MThsdmdmYjBpMnB4",
+    "file_publikasi": null
+   }
+  },
+  {
+   "kab": "Solok",
+   "nama": "Nagari Paninggahan",
+   "kode": null,
+   "hunian": null,
+   "jenis": "publikasi",
+   "baris": [
+    27
+   ],
+   "ts": "2026-11-19T11:17:09.665000",
+   "detail": {
+    "tanggal_publikasi": "2026-11-09",
+    "kegiatan": "Konsolidasi program, peerumusan mekanisme kerja dan SOP Petugass Pos SAPA",
+    "platform": "Instagram",
+    "nama_akun": "jemari.sakato",
+    "link_publikasi": "https://www.instagram.com/p/DfoPEi-Eqgl/?fqnt=MW5za3F1enNycnB1eQ==",
+    "file_publikasi": null
+   },
+   "link_dok": null,
+   "id_laporan": "4b2f66d8-555c-53dc-829c-d94241028d3e",
+   "id_rincian": "1e8e0a9d-c28c-5cad-8919-386dca564187",
+   "detail_final": {
+    "tanggal_publikasi": "2026-11-09",
+    "kegiatan": "Konsolidasi program, peerumusan mekanisme kerja dan SOP Petugass Pos SAPA",
+    "platform": "Instagram",
+    "nama_akun": "jemari.sakato",
+    "link_publikasi": "https://www.instagram.com/p/DfoPEi-Eqgl/?fqnt=MW5za3F1enNycnB1eQ==",
+    "file_publikasi": null
+   }
+  },
+  {
+   "kab": "Solok",
+   "nama": "Nagari Paninggahan",
+   "kode": null,
+   "hunian": null,
+   "jenis": "rekap_pengaduan",
+   "baris": [
+    21
+   ],
+   "ts": "2026-11-19T11:22:45.766000",
+   "detail": {
+    "status_bulan": "Nihil",
+    "aduan_masuk": 0,
+    "kekerasan_perempuan": 0,
+    "kekerasan_anak": 0,
+    "non_kekerasan_perempuan": 0,
+    "non_kekerasan_anak": 0,
+    "sudah_ditindaklanjuti": 0,
+    "tercatat_simfoni": 0,
+    "tindak_lanjut_umum": null,
+    "pihak_terlibat": null
+   },
+   "link_dok": null,
+   "id_laporan": "f2125a64-67eb-510a-b1e1-c092487f4efc",
+   "id_rincian": "ee84b9e9-421d-5766-b852-eea13fa12dab",
+   "detail_final": {
+    "status_bulan": "Nihil",
+    "aduan_masuk": 0,
+    "kekerasan_perempuan": 0,
+    "kekerasan_anak": 0,
+    "non_kekerasan_perempuan": 0,
+    "non_kekerasan_anak": 0,
+    "sudah_ditindaklanjuti": 0,
+    "tercatat_simfoni": 0,
+    "tindak_lanjut_umum": null,
+    "pihak_terlibat": null
+   }
+  },
+  {
+   "kab": "Tanah Datar",
+   "nama": "Jorong Ladang Laweh, Nagari Rambatan",
+   "kode": null,
+   "hunian": null,
+   "jenis": "aktivitas_perempuan",
+   "baris": [
+    18
+   ],
+   "ts": "2026-11-19T11:21:50.632000",
+   "detail": {
+    "total_ikut": 74,
+    "kepala_keluarga": 44,
+    "hamil": 0,
+    "lansia": 33,
+    "disabilitas": 1,
+    "jumlah_kegiatan": 3,
+    "nama_kegiatan": "Dukungan Psikososial Terhadap orang tua ( ibu ) korban Bencana",
+    "jenis_kegiatan": "Sosialisasi ketahan. Keluarga",
+    "manfaat": "Mengetahui tentang ketahan keluarga dan kekerasan bertambah ilmu tentang ketahan keluarga , karakteristik , pola asuh",
+    "_per_baris": [
+     {
+      "nama": "Dukungan Psikososial Terhadap orang tua ( ibu ) korban Bencana",
+      "jenis": "Sosialisasi ketahan. Keluarga"
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "1f762634-5cea-5e3f-9370-f25f33c5c34f",
+   "id_rincian": "2942c216-9dcf-517a-ae67-f90d7f033c1c",
+   "detail_final": {
+    "total_ikut": 74,
+    "kepala_keluarga": 44,
+    "hamil": 0,
+    "lansia": 33,
+    "disabilitas": 1,
+    "jumlah_kegiatan": 3,
+    "nama_kegiatan": "Dukungan Psikososial Terhadap orang tua ( ibu ) korban Bencana",
+    "jenis_kegiatan": "Sosialisasi ketahan. Keluarga",
+    "manfaat": "Mengetahui tentang ketahan keluarga dan kekerasan bertambah ilmu tentang ketahan keluarga , karakteristik , pola asuh",
+    "kegiatan": null
+   }
+  },
+  {
+   "kab": "Tapanuli Tengah",
+   "nama": "Huntara Rusunawa Pandan",
+   "kode": "22611",
+   "hunian": "huntara",
+   "jenis": "aktivitas_anak",
+   "baris": [
+    13
+   ],
+   "ts": "2026-11-18T23:41:36.827000",
+   "detail": {
+    "usia_0_5": 4,
+    "usia_6_12": 25,
+    "usia_13_17": 0,
+    "laki_laki": 19,
+    "perempuan": 10,
+    "disabilitas": 0,
+    "perlu_layanan_lanjutan": 0,
+    "jumlah_kegiatan": 3,
+    "nama_kegiatan": "Layanan Psikososial",
+    "jenis_kegiatan": [
+     "Edukasi",
+     "Trauma Healing",
+     "Bermain Bersama"
+    ],
+    "temuan": null,
+    "tindak_lanjut": null,
+    "_per_baris": [
+     {
+      "nama": "Layanan Psikososial",
+      "jenis": [
+       "Edukasi",
+       "Trauma Healing",
+       "Bermain Bersama"
+      ]
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "c23d5f5b-aba9-5614-88e8-33cd6800eb0f",
+   "id_rincian": "d996f336-81ed-5799-83ed-e3ba89862e0a",
+   "detail_final": {
+    "usia_0_5": 4,
+    "usia_6_12": 25,
+    "usia_13_17": 0,
+    "laki_laki": 19,
+    "perempuan": 10,
+    "disabilitas": 0,
+    "perlu_layanan_lanjutan": 0,
+    "jumlah_kegiatan": 3,
+    "nama_kegiatan": "Layanan Psikososial",
+    "jenis_kegiatan": [
+     "Edukasi",
+     "Trauma Healing",
+     "Bermain Bersama"
+    ],
+    "temuan": null,
+    "tindak_lanjut": null,
+    "kegiatan": null
+   }
+  },
+  {
+   "kab": "Tapanuli Tengah",
+   "nama": "Huntara Rusunawa Pandan",
+   "kode": "22611",
+   "hunian": "huntara",
+   "jenis": "aktivitas_perempuan",
+   "baris": [
+    12
+   ],
+   "ts": "2026-11-19T00:08:19.849000",
+   "detail": {
+    "total_ikut": 87,
+    "kepala_keluarga": 11,
+    "hamil": 9,
+    "lansia": 50,
+    "disabilitas": 0,
+    "jumlah_kegiatan": 2,
+    "nama_kegiatan": "Pelatihan Penguatan Perilaku Hidup Bersih dan Sehat Pascabencana dan Senam Pagi Lansia",
+    "jenis_kegiatan": "Pelatihan Penguatan PHBS dan Senam pagi bagi Lansia",
+    "manfaat": "Penyintas peserta Pelatihan dan Penguatan Perilaku HIdup bersih dan Sehat Pascabencana menyatakan bahwa mereka merasakan perhatian pemerintah dan lembaga lainnya juga tertuju pada mereka. Mereka merasa senang akan kegiatan pelatihan yang dilaksanakan, selain mengingatkan akan pola hidup bersih dan sehat yang perlu mereka terapkan, para penyintas juga menyatakan bahwa kegiatan yang dibalut dengan suasana ceria mampu membuat mereka melupakan sejenak proses berat yang sedang mereka alami. Senam pagi lansia yang saat ini dijadikan sebagai kegiatan reguler mingguan juga menjadi salah satu aktivitas yang dinanti. Peserta yang sebelumnya berjumlah 27 orang, di minggu kedua telah bertambah menjadi 50 orang.",
+    "_per_baris": [
+     {
+      "nama": "Pelatihan Penguatan Perilaku Hidup Bersih dan Sehat Pascabencana dan Senam Pagi Lansia",
+      "jenis": "Pelatihan Penguatan PHBS dan Senam pagi bagi Lansia"
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "e6ff18ee-0d57-5505-8af4-75afeded9cfb",
+   "id_rincian": "7a7dc11e-5c58-5d06-8cc1-b181be323d62",
+   "detail_final": {
+    "total_ikut": 87,
+    "kepala_keluarga": 11,
+    "hamil": 9,
+    "lansia": 50,
+    "disabilitas": 0,
+    "jumlah_kegiatan": 2,
+    "nama_kegiatan": "Pelatihan Penguatan Perilaku Hidup Bersih dan Sehat Pascabencana dan Senam Pagi Lansia",
+    "jenis_kegiatan": "Pelatihan Penguatan PHBS dan Senam pagi bagi Lansia",
+    "manfaat": "Penyintas peserta Pelatihan dan Penguatan Perilaku HIdup bersih dan Sehat Pascabencana menyatakan bahwa mereka merasakan perhatian pemerintah dan lembaga lainnya juga tertuju pada mereka. Mereka merasa senang akan kegiatan pelatihan yang dilaksanakan, selain mengingatkan akan pola hidup bersih dan sehat yang perlu mereka terapkan, para penyintas juga menyatakan bahwa kegiatan yang dibalut dengan suasana ceria mampu membuat mereka melupakan sejenak proses berat yang sedang mereka alami. Senam pagi lansia yang saat ini dijadikan sebagai kegiatan reguler mingguan juga menjadi salah satu aktivitas yang dinanti. Peserta yang sebelumnya berjumlah 27 orang, di minggu kedua telah bertambah menjadi 50 orang.",
+    "kegiatan": null
+   }
+  },
+  {
+   "kab": "Tapanuli Utara",
+   "nama": "Huntap Dolok Nauli",
+   "kode": "22461",
+   "hunian": "huntap",
+   "jenis": "aktivitas_anak",
+   "baris": [
+    5
+   ],
+   "ts": "2026-11-18T23:52:49.627000",
+   "detail": {
+    "usia_0_5": 2,
+    "usia_6_12": 7,
+    "usia_13_17": 0,
+    "laki_laki": 3,
+    "perempuan": 6,
+    "disabilitas": 0,
+    "perlu_layanan_lanjutan": 0,
+    "jumlah_kegiatan": 1,
+    "nama_kegiatan": "Bermain dan Belajar Membaca",
+    "jenis_kegiatan": [
+     "Edukasi",
+     "Bermain Bersama"
+    ],
+    "temuan": null,
+    "tindak_lanjut": null,
+    "_per_baris": [
+     {
+      "nama": "Bermain dan Belajar Membaca",
+      "jenis": [
+       "Edukasi",
+       "Bermain Bersama"
+      ]
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "5c0ebecf-9484-5cf2-8e20-f209c6a01829",
+   "id_rincian": "c7477517-d61d-5426-a697-2551c094cfa9",
+   "detail_final": {
+    "usia_0_5": 2,
+    "usia_6_12": 7,
+    "usia_13_17": 0,
+    "laki_laki": 3,
+    "perempuan": 6,
+    "disabilitas": 0,
+    "perlu_layanan_lanjutan": 0,
+    "jumlah_kegiatan": 1,
+    "nama_kegiatan": "Bermain dan Belajar Membaca",
+    "jenis_kegiatan": [
+     "Edukasi",
+     "Bermain Bersama"
+    ],
+    "temuan": null,
+    "tindak_lanjut": null,
+    "kegiatan": [
+     {
+      "nama": "Bermain dan Belajar Membaca",
+      "jenis": [
+       "Edukasi",
+       "Bermain Bersama"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "kab": "Tapanuli Utara",
+   "nama": "Huntap Dolok Nauli",
+   "kode": "22461",
+   "hunian": "huntap",
+   "jenis": "aktivitas_perempuan",
+   "baris": [
+    4
+   ],
+   "ts": "2026-11-18T23:50:17.062000",
+   "detail": {
+    "total_ikut": 37,
+    "kepala_keluarga": 15,
+    "hamil": 0,
+    "lansia": 37,
+    "disabilitas": 1,
+    "jumlah_kegiatan": 1,
+    "nama_kegiatan": "Pelatihan Penguatan Perilaku Hidup Bersih dan Sehat Pascabencana",
+    "jenis_kegiatan": "Pelatihan PHBS Pascabencana",
+    "manfaat": "Para peserta pelatihan yang mengikuti kegiatan ini menyatakan bahwa mereka sangat senang akan adanya kegiatan edukasi yang mereka terima. Kegiatan yang berlangsung dalam suasana ceria terbukti mampu meningkatkan atensi, hingga tingkat partisipasi peserta tinggi bahkan menyeluruh. Pada kegiatan yang sama, para peserta menyatakan keinginan mereka agar dibuatkan program reguler berupa senam pagi bagi lansia dan pembuatan kebun pangan keluarga.",
+    "_per_baris": [
+     {
+      "nama": "Pelatihan Penguatan Perilaku Hidup Bersih dan Sehat Pascabencana",
+      "jenis": "Pelatihan PHBS Pascabencana"
+     }
+    ]
+   },
+   "link_dok": null,
+   "id_laporan": "d2a4e4b8-a128-5b1e-9377-0d22ced57b64",
+   "id_rincian": "783992e8-a748-57f2-999c-7d64b4f6534e",
+   "detail_final": {
+    "total_ikut": 37,
+    "kepala_keluarga": 15,
+    "hamil": 0,
+    "lansia": 37,
+    "disabilitas": 1,
+    "jumlah_kegiatan": 1,
+    "nama_kegiatan": "Pelatihan Penguatan Perilaku Hidup Bersih dan Sehat Pascabencana",
+    "jenis_kegiatan": "Pelatihan PHBS Pascabencana",
+    "manfaat": "Para peserta pelatihan yang mengikuti kegiatan ini menyatakan bahwa mereka sangat senang akan adanya kegiatan edukasi yang mereka terima. Kegiatan yang berlangsung dalam suasana ceria terbukti mampu meningkatkan atensi, hingga tingkat partisipasi peserta tinggi bahkan menyeluruh. Pada kegiatan yang sama, para peserta menyatakan keinginan mereka agar dibuatkan program reguler berupa senam pagi bagi lansia dan pembuatan kebun pangan keluarga.",
+    "kegiatan": [
+     {
+      "nama": "Pelatihan Penguatan Perilaku Hidup Bersih dan Sehat Pascabencana",
+      "jenis": "Pelatihan PHBS Pascabencana"
+     }
+    ]
+   }
+  }
+ ],
+ "tinjau": [
+  "baris 9: link publikasi 'googleforms.com' bukan URL https — BARIS DILEWATI (tidak dapat disimpan: link_publikasi wajib https)",
+  "baris 8: SIMFONI 'Ya' tetapi nomor/tanggal/penginput tidak lengkap — SIMFONI tidak diimpor (form tidak lagi memakainya)",
+  "baris 3: sel berisi dua URL -> dipakai yang pertama",
+  "baris 35: SIMFONI 'Ya' tetapi nomor/tanggal/penginput tidak lengkap — SIMFONI tidak diimpor (form tidak lagi memakainya)"
+ ]
+}

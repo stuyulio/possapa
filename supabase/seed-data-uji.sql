@@ -250,7 +250,10 @@ select
   case when b.status = 'terverifikasi' then vf.id end
 from baris b
 cross join verifikator vf
-on conflict (pos_id, periode_id, jenis_laporan) do nothing;
+-- Tanpa daftar kolom: sejak migrasi 20261127000004 arbiter unique-nya adalah
+-- index PARSIAL (publikasi dikecualikan), dan ON CONFLICT dengan daftar kolom
+-- tanpa predikat tidak menemukan index itu.
+on conflict do nothing;
 
 -- =============================================================================
 -- 4. DETAIL LAPORAN
