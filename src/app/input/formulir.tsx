@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { simpanLaporan } from "./actions";
 import {
+  buangJenisDraf,
+  gabungDraf,
+  normalisasiDraf,
+  type EmberDraf,
+  type IsiDraf,
+} from "./draf-lokal";
+import {
   galatPenerimaManfaat,
   LABEL_JENIS,
   type JenisForm,
@@ -32,7 +39,11 @@ import {
 } from "@/lib/kegiatan";
 import { FormRekap, type NilaiRekap } from "@/components/form/form-rekap";
 import { FormKasus, type NilaiKasus } from "@/components/form/form-kasus";
-import { FormPublikasi, type NilaiPublikasi } from "@/components/form/form-publikasi";
+import {
+  FormPublikasi,
+  publikasiKosong,
+  type NilaiPublikasi,
+} from "@/components/form/form-publikasi";
 
 type Pos = {
   id: string;
@@ -78,12 +89,7 @@ const NILAI_AWAL: Record<JenisForm, unknown> = {
     hambatan: "",
   } satisfies NilaiKasus,
   publikasi: {
-    tanggal_publikasi: "",
-    kegiatan: "",
-    platform: "Instagram",
-    nama_akun: "",
-    link_publikasi: "",
-    file_publikasi: "",
+    publikasi: [publikasiKosong()],
   } satisfies NilaiPublikasi,
 };
 
@@ -101,10 +107,10 @@ export type NilaiServer = Record<
   Record<string, Partial<Record<JenisForm, Record<string, unknown>>>>
 >;
 
-/** Draf yang disimpan di localStorage per lokasi. */
+/** Draf satu periode yang berlaku di formulir ini. */
 type DrafLokal = {
-  periodeId?: string;
-  data?: Partial<Record<JenisForm, unknown>>;
+  periodeId: string;
+  data: IsiDraf;
 };
 
 /**
@@ -245,6 +251,9 @@ export function FormulirInput({
   // memungkinkan mengisi lima laporan dalam satu duduk.
   const posId = pos.id;
   const periodeId = periode.id;
+  // Tujuan kembali selalu membawa periode yang sedang diisi. Tanpa itu,
+  // petugas yang mengisi periode lama dilempar ke halaman yang default-nya
+  // periode terbaru, lalu mengetik data periode lama ke periode baru.
   const urlKembali = kembaliHref ?? `/laporan-saya?periode=${periodeId}`;
   const labelHunian = labelJenisHunian(
     pos.jenis_hunian,
@@ -331,19 +340,32 @@ export function FormulirInput({
     [posId, periodeId, rapikanUntuk]
   );
 
+  /** Seluruh draf tersimpan untuk lokasi ini, sudah dalam bentuk baru. */
+  const semuaDraf = useCallback((): EmberDraf => {
+    const mentah = localStorage.getItem(KUNCI_DRAF(posId));
+    if (!mentah) return {};
+    try {
+      return normalisasiDraf(JSON.parse(mentah));
+    } catch {
+      return {};
+    }
+  }, [posId]);
+
+  /** Tulis seluruh ember draf lokasi ini ke localStorage. */
+  const tulisDraf = useCallback(
+    (ember: EmberDraf) =>
+      localStorage.setItem(
+        KUNCI_DRAF(posId),
+        JSON.stringify({ perPeriode: ember })
+      ),
+    [posId]
+  );
+
   /** Draf lokal yang tersimpan untuk kombinasi lokasi+periode ini. */
   const bacaDraf = useCallback((): DrafLokal | null => {
-    const mentah = localStorage.getItem(KUNCI_DRAF(posId));
-    if (!mentah) return null;
-    try {
-      const draf = JSON.parse(mentah) as DrafLokal;
-      // Draf disimpan per lokasi, tetapi hanya berlaku untuk periode yang
-      // sedang diisi.
-      return draf.periodeId === periodeId ? draf : null;
-    } catch {
-      return null;
-    }
-  }, [posId, periodeId]);
+    const data = semuaDraf()[periodeId];
+    return data ? { periodeId, data } : null;
+  }, [semuaDraf, periodeId]);
 
   // Muat isian saat halaman dibuka.
   //
@@ -401,35 +423,60 @@ export function FormulirInput({
       const sekarang = nilai[jenis];
       if (JSON.stringify(sekarang) === JSON.stringify(isi)) return;
 
-      // Gabungkan dengan draf jenis lain yang sudah ada agar tidak terhapus.
-      const drafLama = bacaDraf();
-      localStorage.setItem(
-        KUNCI_DRAF(posId),
-        JSON.stringify({
-          periodeId,
-          data: { ...(drafLama?.data ?? {}), ...nilai },
-        })
-      );
+      // Ember periode lain tidak disentuh, jadi draf periode lama tidak
+      // tertimpa saat petugas mulai mengisi periode berikutnya.
+      tulisDraf(gabungDraf(semuaDraf(), periodeId, nilai));
       setTersimpan(new Date().toLocaleTimeString("id-ID"));
     }, 600);
     return () => clearTimeout(t);
-  }, [nilai, periodeId, jenis, posId, dasarUntuk, bacaDraf, bolehSimpanDraf]);
+  }, [
+    nilai,
+    periodeId,
+    jenis,
+    posId,
+    dasarUntuk,
+    semuaDraf,
+    tulisDraf,
+    bolehSimpanDraf,
+  ]);
 
+  /**
+   * Ubah isian satu jenis.
+   *
+   * Dua bentuk pemanggil: `ubah(kunci, nilai)` untuk jenis yang berbentuk satu
+   * objek datar, dan `ubah(nilaiBaru)` untuk publikasi yang berbentuk daftar.
+   * Bentuk kedua mengganti seluruh objek jenis itu — daftar publikasi tidak
+   * punya nama kolom tunggal yang dapat dijadikan kunci.
+   */
   const ubah = useMemo(
     () =>
-      <K extends string>(k: K, v: unknown) => {
+      <K extends string>(k: K | Record<string, unknown>, v?: unknown) => {
+        const menggantiSeluruh = typeof k === "object" && k !== null;
+        const baru = menggantiSeluruh
+          ? (k as Record<string, unknown>)
+          : { [k as string]: v };
+
         setNilai((lama) => ({
           ...lama,
           [jenis]: {
             ...(lama[jenis] as Record<string, unknown>),
-            [k]: v,
+            ...baru,
           },
         }));
+
         setGalat((g) => {
-          if (!g[k]) return g;
-          const baru = { ...g };
-          delete baru[k];
-          return baru;
+          // Galat milik kartu publikasi dibuang saat kartu mana pun berubah;
+          // membiarkannya menempel membuat pesan lama tetap terlihat setelah
+          // isinya diperbaiki.
+          const kunci = menggantiSeluruh
+            ? Object.keys(g).filter(
+                (x) => x.startsWith("publikasi.") || x === "publikasi"
+              )
+            : Object.keys(baru).filter((x) => g[x]);
+          if (kunci.length === 0) return g;
+          const hasil = { ...g };
+          for (const x of kunci) delete hasil[x];
+          return hasil;
         });
       },
     [jenis]
@@ -468,6 +515,16 @@ export function FormulirInput({
    */
   const dataKirim = useCallback(
     (j: JenisForm, isian: unknown): unknown => {
+      // Publikasi: `id` baris lama bukan kolom tabel dan tidak boleh ikut
+      // dikirim ke validasi/skema. Yang dikirim hanya isian publikasinya;
+      // id-nya berjalan di jalur `idPublikasi` (sejajar urutannya).
+      if (j === "publikasi") {
+        const p = isian as NilaiPublikasi;
+        return {
+          publikasi: (p.publikasi ?? []).map(({ id: _abaikan, ...isi }) => isi),
+        };
+      }
+
       if (j !== "aktivitas_anak" && j !== "aktivitas_perempuan") return isian;
 
       if (j === "aktivitas_anak") {
@@ -518,6 +575,12 @@ export function FormulirInput({
         periodeId,
         data: dataKirim(jenis, nilai[jenis]),
         status,
+        // Hanya publikasi: id baris lama sejajar urutan kartu, agar baris yang
+        // dipertahankan dipakai ulang dan yang dihapus benar-benar dibuang.
+        idPublikasi:
+          jenis === "publikasi"
+            ? (nilai[jenis] as NilaiPublikasi).publikasi.map((p) => p.id ?? "")
+            : undefined,
         catatanVerifikasi: modeAdmin ? catatanVerifikasi : undefined,
       });
     } catch (e) {
@@ -541,14 +604,10 @@ export function FormulirInput({
       return;
     }
 
-    const drafLama = bacaDraf();
-
     if (status !== "draf") {
-      // Hapus draf jenis ini; jenis lain tetap tersimpan.
-      if (drafLama?.data) {
-        delete drafLama.data[jenis];
-        localStorage.setItem(KUNCI_DRAF(posId), JSON.stringify(drafLama));
-      }
+      // Hapus draf jenis ini pada PERIODE INI; jenis lain di periode yang sama
+      // dan seluruh ember periode lain tetap tersimpan.
+      tulisDraf(buangJenisDraf(semuaDraf(), periodeId, jenis));
       // Isian TIDAK dikosongkan di sini — halaman langsung ditinggalkan, jadi
       // tidak ada gunanya. Yang penting draf lokalnya sudah dihapus di atas.
       lewatiSimpan.current = true;
@@ -568,9 +627,7 @@ export function FormulirInput({
       // lengkap membuat halaman tujuan dirender segar.
       // `urlKembali` untuk Admin Pusat menunjuk /admin/input-laporan dan sudah
       // membawa periode di URL, jadi tidak perlu ditambahi lagi.
-      router.push(
-        kembaliHref ? urlKembali : `/laporan-saya?periode=${periodeId}`
-      );
+      router.push(urlKembali);
     } else {
       setPesan("Draf disimpan.");
     }

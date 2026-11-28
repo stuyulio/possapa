@@ -302,7 +302,8 @@ export const skemaKasus = z
     hambatan: teksOpsional,
   });
 
-export const skemaPublikasi = z.object({
+/** Satu publikasi. Satu laporan boleh memuat beberapa. */
+export const skemaSatuPublikasi = z.object({
   tanggal_publikasi: teksWajib("Tanggal publikasi"),
   kegiatan: teksWajib("Kegiatan yang dipublikasikan"),
   platform: z.enum(PLATFORM),
@@ -318,6 +319,30 @@ export const skemaPublikasi = z.object({
   // Kolom database masih bernama `file_publikasi`.
   file_publikasi: tautanOpsional,
 });
+
+/**
+ * Publikasi media sosial boleh lebih dari satu per lokasi-periode.
+ *
+ * Satu lokasi memang dapat mempublikasikan beberapa kegiatan di beberapa media
+ * pada periode yang sama; database sudah mengizinkannya sejak migrasi
+ * 20261127000004 (index unik parsial mengecualikan publikasi), dan impor
+ * Google Form menyimpan satu baris per publikasi.
+ *
+ * Validasi berjalan per publikasi lalu galatnya diberi awalan indeks
+ * (`publikasi.0.link_publikasi`) supaya formulir dapat menandai kartu yang
+ * salah, bukan menampilkan satu pesan untuk daftar yang panjang.
+ */
+export const MAX_PUBLIKASI = 30;
+
+export const skemaPublikasi = z.object({
+  publikasi: z
+    .array(skemaSatuPublikasi)
+    .min(1, "Isi minimal satu publikasi")
+    .max(MAX_PUBLIKASI, `Maksimal ${MAX_PUBLIKASI} publikasi per periode`),
+});
+
+/** Bentuk satu publikasi setelah validasi. */
+export type SatuPublikasi = z.infer<typeof skemaSatuPublikasi>;
 
 export const SKEMA = {
   aktivitas_anak: skemaAnak,

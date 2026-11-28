@@ -28,7 +28,12 @@ export type BarisKepatuhan = {
 
 export type MatriksKepatuhan = {
   periode: { id: string; label: string } | null;
-  daftarPeriode: { id: string; label: string }[];
+  daftarPeriode: {
+    id: string;
+    label: string;
+    tanggal_mulai: string;
+    tanggal_selesai: string;
+  }[];
   baris: BarisKepatuhan[];
   ringkasan: {
     totalPos: number;
@@ -45,7 +50,7 @@ export async function ambilMatriks(periodeId?: string): Promise<MatriksKepatuhan
   const [periodeRes, posRes, laporanRes] = await Promise.all([
     supabase
       .from("periode")
-      .select("id, label, tanggal_mulai")
+      .select("id, label, tanggal_mulai, tanggal_selesai")
       .order("tanggal_mulai", { ascending: false }),
     supabase
       .from("pos_sapa")
@@ -61,6 +66,7 @@ export async function ambilMatriks(periodeId?: string): Promise<MatriksKepatuhan
     id: string;
     label: string;
     tanggal_mulai: string;
+    tanggal_selesai: string;
   }[];
 
   // Default: periode terbaru.
@@ -121,7 +127,12 @@ export async function ambilMatriks(periodeId?: string): Promise<MatriksKepatuhan
 
   return {
     periode: periodeAktif ? { id: periodeAktif.id, label: periodeAktif.label } : null,
-    daftarPeriode: daftarPeriode.map((p) => ({ id: p.id, label: p.label })),
+    daftarPeriode: daftarPeriode.map((p) => ({
+      id: p.id,
+      label: p.label,
+      tanggal_mulai: p.tanggal_mulai,
+      tanggal_selesai: p.tanggal_selesai,
+    })),
     baris,
     ringkasan: {
       totalPos: baris.length,
@@ -133,6 +144,15 @@ export async function ambilMatriks(periodeId?: string): Promise<MatriksKepatuhan
         : 0,
     },
   };
+}
+
+/**
+ * Urutan kekuatan status untuk memilih satu baris wakil dari beberapa baris
+ * jenis yang sama. Publikasi adalah satu-satunya jenis yang boleh berbaris
+ * lebih dari satu; "belum" ikut di sini hanya agar perbandingannya lengkap.
+ */
+function urutanStatus(status: string): number {
+  return { belum: 0, draf: 1, terkirim: 2, terverifikasi: 3 }[status] ?? -1;
 }
 
 export type ChecklistPos = {
@@ -154,8 +174,23 @@ export type ChecklistPos = {
 };
 
 export type Checklist = {
-  periode: { id: string; label: string } | null;
-  daftarPeriode: { id: string; label: string }[];
+  periode: {
+    id: string;
+    label: string;
+    tanggal_mulai: string;
+    tanggal_selesai: string;
+  } | null;
+  /**
+   * Tanggal ikut dibawa supaya halaman dapat menandai periode mana yang
+   * sedang berjalan. Label saja tidak cukup — label adalah teks yang
+   * dibangun database dan tidak dapat dibandingkan dengan hari ini.
+   */
+  daftarPeriode: {
+    id: string;
+    label: string;
+    tanggal_mulai: string;
+    tanggal_selesai: string;
+  }[];
   pos: ChecklistPos[];
   ringkasan: { totalPos: number; lengkap: number; selesai: number };
 };
@@ -182,13 +217,14 @@ export async function ambilChecklist(
 
   const { data: dataPeriode } = await supabase
     .from("periode")
-    .select("id, label, tanggal_mulai")
+    .select("id, label, tanggal_mulai, tanggal_selesai")
     .order("tanggal_mulai", { ascending: false });
 
   const daftarPeriode = (dataPeriode ?? []) as {
     id: string;
     label: string;
     tanggal_mulai: string;
+    tanggal_selesai: string;
   }[];
 
   const aktifId =
@@ -238,7 +274,17 @@ export async function ambilChecklist(
   const daftar: ChecklistPos[] = pos.map((p) => {
     const milikPos = laporan.filter((l) => l.pos_id === p.id);
     const status = SEMUA_JENIS.map((j) => {
-      const ada = milikPos.find((l) => l.jenis_laporan === j);
+      // Publikasi boleh lebih dari satu baris. `.find()` akan memilih baris
+      // acak untuk status checklist — di sini yang diambil status TERKUAT,
+      // sama seperti di /input: satu Pos dianggap sudah melapor publikasi bila
+      // minimal satu publikasinya terkirim.
+      const milikJenis = milikPos.filter((l) => l.jenis_laporan === j);
+      const ada =
+        j === "publikasi"
+          ? milikJenis.sort(
+              (a, b) => urutanStatus(b.status) - urutanStatus(a.status)
+            )[0]
+          : milikJenis[0];
       return {
         jenis: j,
         status: (ada?.status ?? "belum") as
@@ -278,7 +324,12 @@ export async function ambilChecklist(
 
   return {
     periode: daftarPeriode.find((p) => p.id === aktifId) ?? null,
-    daftarPeriode: daftarPeriode.map((p) => ({ id: p.id, label: p.label })),
+    daftarPeriode: daftarPeriode.map((p) => ({
+      id: p.id,
+      label: p.label,
+      tanggal_mulai: p.tanggal_mulai,
+      tanggal_selesai: p.tanggal_selesai,
+    })),
     pos: daftar,
     ringkasan: {
       totalPos: daftar.length,

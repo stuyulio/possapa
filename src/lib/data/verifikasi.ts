@@ -253,7 +253,12 @@ export type PratinjauLaporan = {
     | { jenis: "aktivitas_perempuan"; data: Perempuan }
     | { jenis: "rekap_pengaduan"; data: Rekap }
     | { jenis: "tindak_lanjut_kasus"; data: Kasus }
-    | { jenis: "publikasi"; data: Publikasi }
+    /**
+     * Publikasi boleh lebih dari satu baris per lokasi-periode. Pratinjau
+     * menampilkan SELURUH publikasi kiriman itu supaya Admin menilai
+     * kelompoknya, bukan potongan pertama yang kebetulan dibuka.
+     */
+    | { jenis: "publikasi"; data: Publikasi[] }
     | null;
 };
 
@@ -301,19 +306,20 @@ export async function ambilPratinjauLaporan(
 
   // Kelima tabel rincian diambil sekaligus: satu laporan hanya punya satu
   // baris rincian, tetapi memilih tabelnya di SQL berarti lima bentuk query.
-  const { data, error } = await supabase
-    .from("laporan")
-    .select(
-      `id, jenis_laporan, status, sumber_input, submitted_at, verified_at,
+  const KOLOM = `id, jenis_laporan, status, sumber_input, submitted_at, verified_at,
        catatan_verifikasi, catatan_buka_kunci, link_dokumentasi,
+       pos_id, periode_id, submitted_at,
        pos_sapa:pos_id (
          id, nama_lokasi, jenis_hunian, jenis_hunian_lainnya,
          wilayah:wilayah_id ( provinsi, kab_kota )
        ),
        periode:periode_id ( id, label ),
        laporan_anak (*), laporan_perempuan (*), laporan_rekap_pengaduan (*),
-       laporan_kasus (*), laporan_publikasi (*)`
-    )
+       laporan_kasus (*), laporan_publikasi (*)`;
+
+  const { data, error } = await supabase
+    .from("laporan")
+    .select(KOLOM)
     .eq("id", laporanId)
     .in("status", ["terkirim", "terverifikasi"])
     .maybeSingle();
@@ -328,6 +334,33 @@ export async function ambilPratinjauLaporan(
       data: null,
       pesan: "Laporan tidak ditemukan, belum dikirim, atau berada di luar wilayah Anda.",
     };
+  }
+
+  // Publikasi: ambil SELURUH baris publikasi pada lokasi-periode yang sama.
+  // Satu kiriman publikasi adalah satu kelompok baris; menampilkan hanya baris
+  // yang diklik akan menyembunyikan publikasi lain yang ikut diverifikasi.
+  let publikasiSekelompok: Publikasi[] | null = null;
+  if ((data as { jenis_laporan: string }).jenis_laporan === "publikasi") {
+    const kepala = data as unknown as {
+      pos_id: string;
+      periode_id: string;
+    };
+    const { data: serumpun, error: errSerumpun } = await supabase
+      .from("laporan")
+      .select("id, submitted_at, laporan_publikasi (*)")
+      .eq("pos_id", kepala.pos_id)
+      .eq("periode_id", kepala.periode_id)
+      .eq("jenis_laporan", "publikasi")
+      .in("status", ["terkirim", "terverifikasi"])
+      .order("submitted_at", { ascending: true, nullsFirst: true });
+
+    if (errSerumpun) {
+      console.error("[ambilPratinjauLaporan:publikasi]", errSerumpun.message);
+    } else {
+      publikasiSekelompok = (serumpun ?? [])
+        .map((r) => r.laporan_publikasi as unknown as Publikasi | null)
+        .filter((p): p is Publikasi => Boolean(p));
+    }
   }
 
   const mentah = data as unknown as Record<string, unknown> & MentahPratinjau;
@@ -345,7 +378,12 @@ export async function ambilPratinjauLaporan(
       case "tindak_lanjut_kasus":
         return { jenis: "tindak_lanjut_kasus" as const, data: isi as Kasus };
       case "publikasi":
-        return { jenis: "publikasi" as const, data: isi as Publikasi };
+        return {
+          jenis: "publikasi" as const,
+          // Bila pembacaan kelompok gagal, tampilkan setidaknya baris yang
+          // sedang dibuka — lebih baik daripada pratinjau kosong.
+          data: publikasiSekelompok ?? [isi as Publikasi],
+        };
       default:
         return null;
     }

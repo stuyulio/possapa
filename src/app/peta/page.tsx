@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ambilPeta } from "@/lib/data/peta";
 import { PetaDimuat } from "@/components/peta/peta-dimuat";
 import { KpiCard } from "@/components/dashboard/kpi-card";
+import { PemilihPeriode } from "@/components/dashboard/pemilih-periode";
 import { Panel } from "@/components/dashboard/panel";
 
 export const metadata = { title: "Peta Sebaran — Pos SAPA" };
@@ -30,29 +31,14 @@ export default async function HalamanPeta({
       </div>
 
       {p.daftarPeriode.length > 1 && (
-        <form className="mb-4 no-print flex items-center gap-2">
-          <label htmlFor="periode" className="text-xs font-semibold text-slate-600">
-            Periode
-          </label>
-          <select
-            id="periode"
-            name="periode"
-            defaultValue={p.periode?.id ?? ""}
-            className="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white"
-          >
-            {p.daftarPeriode.map((pr) => (
-              <option key={pr.id} value={pr.id}>
-                {pr.label}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800"
-          >
-            Tampilkan
-          </button>
-        </form>
+        <div className="mb-4 no-print flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-600">Periode</span>
+          <PemilihPeriode
+            terpilih={p.periode?.id ?? ""}
+            daftar={p.daftarPeriode}
+            kelas="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white"
+          />
+        </div>
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">

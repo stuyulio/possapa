@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilAntreanVerifikasi } from "@/lib/data/verifikasi";
 import { AntreanVerifikasi } from "@/components/verifikasi/antrean";
+import { PemilihPeriode } from "@/components/dashboard/pemilih-periode";
 
 export const metadata = { title: "Verifikasi Laporan — Pos SAPA" };
 export const dynamic = "force-dynamic";
@@ -68,25 +69,12 @@ export default async function Verifikasi({
         </div>
 
         {antrean.daftarPeriode.length > 1 && (
-          <form className="no-print flex items-center gap-2">
-            <select
-              name="periode"
-              defaultValue={antrean.periode?.id ?? ""}
-              className="text-xs border border-slate-300 rounded-xl px-3 py-2 bg-white"
-            >
-              {antrean.daftarPeriode.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="text-xs font-semibold bg-slate-900 text-white px-3 py-2 rounded-xl"
-            >
-              Tampilkan
-            </button>
-          </form>
+          <div className="no-print">
+            <PemilihPeriode
+              terpilih={antrean.periode?.id ?? ""}
+              daftar={antrean.daftarPeriode}
+            />
+          </div>
         )}
       </div>
 

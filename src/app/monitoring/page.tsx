@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ambilMatriks, SEMUA_JENIS } from "@/lib/data/kepatuhan";
 import { angka } from "@/lib/format";
 import { KpiCard } from "@/components/dashboard/kpi-card";
+import { PemilihPeriode } from "@/components/dashboard/pemilih-periode";
 import { Panel } from "@/components/dashboard/panel";
 
 export const metadata = { title: "Monitoring Pelaporan — Pos SAPA" };
@@ -51,25 +52,12 @@ export default async function Monitoring({
         </div>
 
         {m.daftarPeriode.length > 1 && (
-          <form className="no-print flex items-center gap-2">
-            <select
-              name="periode"
-              defaultValue={m.periode?.id ?? ""}
-              className="text-xs border border-slate-300 rounded-xl px-3 py-2 bg-white"
-            >
-              {m.daftarPeriode.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="text-xs font-semibold bg-slate-900 text-white px-3 py-2 rounded-xl"
-            >
-              Tampilkan
-            </button>
-          </form>
+          <div className="no-print">
+            <PemilihPeriode
+              terpilih={m.periode?.id ?? ""}
+              daftar={m.daftarPeriode}
+            />
+          </div>
         )}
       </div>
 

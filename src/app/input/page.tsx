@@ -141,7 +141,14 @@ export default async function HalamanInput({
         .maybeSingle()
     : { data: null };
 
-  const kembaliHref = adminPusat ? "/admin/input-laporan" : "/laporan-saya";
+  // Tujuan kembali SELALU membawa periode yang sedang diisi. Tanpa itu,
+  // petugas yang mengisi periode lama dilempar ke /laporan-saya, yang default-nya
+  // periode terbaru — ia lalu menekan "Isi" lagi dan mengetik data periode lama
+  // ke periode baru. `/admin/input-laporan` punya perilaku default yang sama,
+  // jadi keduanya diperlakukan seragam.
+  const kembaliHref = adminPusat
+    ? `/admin/input-laporan?periode=${periodeDiminta}`
+    : `/laporan-saya?periode=${periodeDiminta}`;
   const kembaliLabel = adminPusat ? "Input Laporan" : "Laporan Saya";
 
   if (daftarPeriode.length === 0) {
@@ -302,7 +309,8 @@ async function ambilStatusJenis(
     .from("laporan")
     .select("jenis_laporan, status, catatan_buka_kunci")
     .eq("pos_id", posId)
-    .eq("periode_id", periodeId);
+    .eq("periode_id", periodeId)
+    .order("submitted_at", { ascending: true, nullsFirst: true });
 
   if (error) {
     console.error("[ambilStatusJenis]", error.message);
@@ -315,12 +323,38 @@ async function ambilStatusJenis(
     status: StatusLaporan;
     catatan_buka_kunci: string | null;
   }[]) {
+    const ada = hasil[baris.jenis_laporan];
+
+    // PUBLIKASI boleh punya beberapa baris dengan status berbeda di tengah
+    // proses. Satu status untuk satu kelompok: yang TERKUAT menang, sehingga
+    // formulir tidak pernah dibuka dalam mode tulis padahal ada baris yang
+    // sudah terkirim dan terkunci.
+    if (baris.jenis_laporan === "publikasi" && ada) {
+      hasil.publikasi = {
+        status: gabungStatus(ada.status, baris.status),
+        catatanBukaKunci:
+          ada.catatanBukaKunci ?? baris.catatan_buka_kunci ?? null,
+      };
+      continue;
+    }
+
     hasil[baris.jenis_laporan] = {
       status: baris.status,
       catatanBukaKunci: baris.catatan_buka_kunci,
     };
   }
   return hasil;
+}
+
+/** Status terkuat dari dua baris; urutannya mengikuti alur kerja. */
+function gabungStatus(a: StatusLaporan, b: StatusLaporan): StatusLaporan {
+  const urutan: StatusLaporan[] = [
+    "belum",
+    "draf",
+    "terkirim",
+    "terverifikasi",
+  ];
+  return urutan.indexOf(a) >= urutan.indexOf(b) ? a : b;
 }
 
 /**
@@ -346,7 +380,7 @@ async function ambilNilaiTersimpan(
   const { data, error } = await supabase
     .from("laporan")
     .select(
-      `jenis_laporan, pos_id, periode_id, status,
+      `id, jenis_laporan, pos_id, periode_id, status,
        laporan_anak (*), laporan_perempuan (*), laporan_rekap_pengaduan (*),
        laporan_kasus (*), laporan_publikasi (*)`
     )
@@ -355,7 +389,13 @@ async function ambilNilaiTersimpan(
     .in(
       "status",
       termasukTerverifikasi ? ["draf", "terkirim", "terverifikasi"] : ["draf", "terkirim"]
-    );
+    )
+    // Urutan WAJIB tetap: publikasi boleh berbaris banyak, dan `idPublikasi`
+    // dikirim sejajar urutan kartu. Tanpa ORDER BY, Postgres bebas
+    // mengembalikan urutan apa pun, dan pada simpan berikutnya id bisa
+    // terpasang ke kartu yang salah. Publikasi impor diurutkan menurut waktu
+    // pengisian aslinya, jadi urutan kartu pun mengikuti urutan Google Form.
+    .order("submitted_at", { ascending: true, nullsFirst: false });
 
   if (error) {
     console.error("[ambilNilaiTersimpan]", error.message);
@@ -379,6 +419,21 @@ async function ambilNilaiTersimpan(
 
     const perPos = (hasil[posId] ??= {});
     const perPeriode = (perPos[periodeId] ??= {});
+
+    // PUBLIKASI: satu kombinasi lokasi-periode dapat punya banyak baris, dan
+    // kelimanya harus terbaca — bukan hanya yang terakhir. `id` baris induk
+    // ikut dibawa supaya formulir dapat memakai ulang baris yang sama saat
+    // menyimpan, sehingga status dan jejak auditnya tidak hilang.
+    if (jenis === "publikasi") {
+      const ada = perPeriode.publikasi as
+        | { publikasi: unknown[] }
+        | undefined;
+      const daftar = ada?.publikasi ?? [];
+      daftar.push({ ...isian, id: baris.id as string });
+      perPeriode.publikasi = { publikasi: daftar };
+      continue;
+    }
+
     perPeriode[jenis] = isian;
   }
 

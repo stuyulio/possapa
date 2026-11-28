@@ -315,26 +315,34 @@ describe("skemaPublikasi — link penyimpanan dokumentasi", () => {
 
   it("menerima tautan penyimpanan https", () => {
     const hasil = validasi("publikasi", {
-      ...PUBLIKASI_DASAR,
-      file_publikasi: "https://drive.google.com/drive/folders/xyz",
+      publikasi: [
+        {
+          ...PUBLIKASI_DASAR,
+          file_publikasi: "https://drive.google.com/drive/folders/xyz",
+        },
+      ],
     });
     expect(hasil.sukses).toBe(true);
   });
 
   it("menerima kolom penyimpanan yang dikosongkan", () => {
     // Opsional: kegiatan yang dokumentasinya belum diarsipkan tetap sah.
-    const hasil = validasi("publikasi", PUBLIKASI_DASAR);
+    const hasil = validasi("publikasi", { publikasi: [PUBLIKASI_DASAR] });
     expect(hasil.sukses).toBe(true);
     if (hasil.sukses) {
-      expect((hasil.data as { file_publikasi?: string }).file_publikasi)
-        .toBeUndefined();
+      const data = hasil.data as { publikasi: { file_publikasi?: string }[] };
+      expect(data.publikasi[0].file_publikasi).toBeUndefined();
     }
   });
 
   it("menolak tautan penyimpanan yang bukan https", () => {
     const hasil = validasi("publikasi", {
-      ...PUBLIKASI_DASAR,
-      file_publikasi: "https://drive.google.com/x http://dropbox.com/y",
+      publikasi: [
+        {
+          ...PUBLIKASI_DASAR,
+          file_publikasi: "https://drive.google.com/x http://dropbox.com/y",
+        },
+      ],
     });
     expect(hasil.sukses).toBe(false);
   });
@@ -342,12 +350,61 @@ describe("skemaPublikasi — link penyimpanan dokumentasi", () => {
   it("menolak nama berkas lepas sebagai pengganti tautan", () => {
     // Data Google Form lama bisa berisi nama berkas; kiriman baru harus tautan.
     const hasil = validasi("publikasi", {
-      ...PUBLIKASI_DASAR,
-      file_publikasi: "dokumentasi-kegiatan.jpg",
+      publikasi: [
+        { ...PUBLIKASI_DASAR, file_publikasi: "dokumentasi-kegiatan.jpg" },
+      ],
     });
     expect(hasil.sukses).toBe(false);
     if (!hasil.sukses) {
-      expect(hasil.galat.file_publikasi).toMatch(/https/);
+      expect(hasil.galat["publikasi.0.file_publikasi"]).toMatch(/https/);
     }
+  });
+});
+
+describe("skemaPublikasi — lebih dari satu publikasi", () => {
+  const satu = {
+    tanggal_publikasi: "2026-11-12",
+    kegiatan: "Dokumentasi Ruang Sahabat Anak",
+    platform: "Instagram",
+    nama_akun: "Dinas PPPA Kab. X",
+    link_publikasi: "https://www.instagram.com/p/abc123/",
+  };
+
+  it("menerima banyak publikasi dalam satu laporan", () => {
+    // Kasus nyata: RPTRA Gebang punya 12 publikasi pada satu periode.
+    const hasil = validasi("publikasi", {
+      publikasi: Array.from({ length: 12 }, (_, i) => ({
+        ...satu,
+        kegiatan: `Kegiatan ${i + 1}`,
+      })),
+    });
+    expect(hasil.sukses).toBe(true);
+    if (hasil.sukses) {
+      expect((hasil.data as { publikasi: unknown[] }).publikasi).toHaveLength(12);
+    }
+  });
+
+  it("menolak daftar kosong", () => {
+    const hasil = validasi("publikasi", { publikasi: [] });
+    expect(hasil.sukses).toBe(false);
+    if (!hasil.sukses) expect(hasil.galat.publikasi).toMatch(/minimal satu/i);
+  });
+
+  it("menandai kartu yang salah lewat indeks, bukan seluruh daftar", () => {
+    const hasil = validasi("publikasi", {
+      publikasi: [satu, { ...satu, link_publikasi: "bukan-url" }],
+    });
+    expect(hasil.sukses).toBe(false);
+    if (!hasil.sukses) {
+      expect(hasil.galat["publikasi.1.link_publikasi"]).toBeDefined();
+      expect(hasil.galat["publikasi.0.link_publikasi"]).toBeUndefined();
+    }
+  });
+
+  it("menolak melebihi batas maksimal", () => {
+    const hasil = validasi("publikasi", {
+      publikasi: Array.from({ length: 31 }, () => satu),
+    });
+    expect(hasil.sukses).toBe(false);
   });
 });

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { validasi, type JenisForm } from "@/lib/validasi/laporan";
 import { terkunciUntukPetugas, type StatusLaporan } from "@/lib/laporan";
 import { ambilAnomaliLaporan } from "@/lib/data/verifikasi";
+import { idPublikasiDibuang, petakanIdPublikasi } from "@/lib/publikasi";
 
 export type HasilSimpan =
   | { sukses: true; laporanId: string }
@@ -93,6 +94,20 @@ const KOLOM_DETAIL: Record<JenisForm, readonly string[]> = {
   ],
 };
 
+/**
+ * Kolom tabel `laporan` yang boleh disentuh pemanggil saat menentukan baris
+ * publikasi mana yang dipakai ulang.
+ *
+ * Tujuannya bukan keamanan — RLS sudah membatasi baris mana yang boleh
+ * ditulis — melainkan agar `terkirim` dari klien tidak bisa dipakai untuk
+ * melewati aturan status (petugas hanya boleh menulis baris `draf`/`terkirim`,
+ * dan `terverifikasi` selalu terkunci).
+ */
+function idPublikasiDariKlien(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v.filter((x): x is string => typeof x === "string" && x.length > 0);
+}
+
 export async function simpanLaporan(masukan: {
   jenis: JenisForm;
   posId: string;
@@ -100,6 +115,12 @@ export async function simpanLaporan(masukan: {
   data: unknown;
   status: "draf" | "terkirim" | "terverifikasi";
   laporanId?: string;
+  /**
+   * Khusus publikasi: id baris `laporan` lamanya, sejajar dengan urutan
+   * `data.publikasi`. Baris yang dipertahankan dipakai ulang (agar status dan
+   * jejak auditnya tidak hilang); baris yang tidak disebut lagi dihapus.
+   */
+  idPublikasi?: string[];
   /** Hanya dibaca untuk Admin Pusat; wajib bila datanya beranomali. */
   catatanVerifikasi?: string;
 }): Promise<HasilSimpan> {
@@ -186,13 +207,17 @@ export async function simpanLaporan(masukan: {
   // Admin Pusat tidak diperiksa: baginya tidak ada kunci. Keputusan produknya
   // jelas — Admin Pusat boleh memperbaiki laporan mana pun, termasuk yang sudah
   // terverifikasi, dan jejaknya tetap tercatat di audit_log.
-  const { data: tersimpan, error: errCek } = await supabase
+  // Publikasi boleh lebih dari satu baris, jadi pencariannya TIDAK boleh
+  // `.maybeSingle()`: PostgREST akan menjawab "multiple rows" dan petugas tidak
+  // dapat menyimpan sama sekali. Baris publikasi juga dipakai ulang per
+  // publikasi (lihat `barisPublikasi`), bukan satu baris untuk seluruh jenis.
+  const { data: barisAda, error: errCek } = await supabase
     .from("laporan")
     .select("id, status, catatan_buka_kunci")
     .eq("pos_id", masukan.posId)
     .eq("periode_id", masukan.periodeId)
     .eq("jenis_laporan", masukan.jenis)
-    .maybeSingle();
+    .order("submitted_at", { ascending: true, nullsFirst: true });
 
   if (errCek) {
     return {
@@ -201,18 +226,37 @@ export async function simpanLaporan(masukan: {
     };
   }
 
-  if (
-    !adminPusat &&
-    tersimpan &&
-    terkunciUntukPetugas(
-      tersimpan.status as StatusLaporan,
-      tersimpan.catatan_buka_kunci
-    )
-  ) {
+  // Satu baris tetap dipakai untuk empat jenis lain dan untuk jalur lama;
+  // publikasi memakai seluruh daftar.
+  const tersimpan = barisAda?.[0] ?? null;
+
+  // Bagi publikasi, "terkunci" berarti SEMUA barisnya terkunci: satu baris
+  // terkirim tidak boleh diubah hanya karena baris lain masih draf.
+  const terkunci = !adminPusat
+    ? masukan.jenis === "publikasi"
+      ? (barisAda ?? []).some((b) =>
+          terkunciUntukPetugas(
+            b.status as StatusLaporan,
+            b.catatan_buka_kunci
+          )
+        )
+      : Boolean(
+          tersimpan &&
+            terkunciUntukPetugas(
+              tersimpan.status as StatusLaporan,
+              tersimpan.catatan_buka_kunci
+            )
+        )
+    : false;
+
+  if (terkunci) {
+    const statusTerkunci = (barisAda ?? []).find((b) =>
+      terkunciUntukPetugas(b.status as StatusLaporan, b.catatan_buka_kunci)
+    )?.status;
     return {
       sukses: false,
       pesan:
-        tersimpan.status === "terverifikasi"
+        statusTerkunci === "terverifikasi"
           ? "Laporan ini sudah terverifikasi dan terkunci. Minta Admin membuka kuncinya bila perlu diperbaiki."
           : "Laporan ini sudah terkirim dan menunggu verifikasi, sehingga belum dapat diubah. Minta Admin membuka kuncinya bila perlu diperbaiki.",
     };
@@ -247,6 +291,23 @@ export async function simpanLaporan(masukan: {
   //    mengubah statusnya di sini akan menutup hak tulis rincian pada langkah 2.
   //    Baris baru disisipkan berstatus draf — satu-satunya status yang boleh
   //    disisipkan petugas.
+  //
+  //    PUBLIKASI BERBEDA: satu kiriman membawa BEBERAPA publikasi, dan tiap
+  //    publikasi adalah satu baris `laporan` penuh (dashboard menghitung
+  //    publikasi dari banyaknya baris). Karena itu jalurnya dipisah ke
+  //    `simpanPublikasi`, bukan diselipkan ke alur satu-baris di bawah.
+  if (masukan.jenis === "publikasi") {
+    return simpanPublikasi({
+      supabase,
+      userId: user.id,
+      masukan,
+      terkirim,
+      adminPusat,
+      daftar: hasil.data as { publikasi: Record<string, unknown>[] },
+      barisAda: barisAda ?? [],
+    });
+  }
+
   let indukId: string;
 
   if (tersimpan) {
@@ -397,6 +458,216 @@ export async function simpanLaporan(masukan: {
   revalidatePath("/verifikasi");
 
   return { sukses: true, laporanId: indukId };
+}
+
+/**
+ * Simpan satu kiriman yang memuat beberapa publikasi.
+ *
+ * Setiap publikasi adalah satu baris `laporan` + satu baris `laporan_publikasi`.
+ * Baris yang sudah ada dipakai ulang sesuai `idPublikasi` yang dikirim klien,
+ * sehingga status dan jejak auditnya bertahan; baris yang tidak disebut lagi
+ * dihapus — itu yang dilakukan tombol "Hapus" di formulir.
+ *
+ * URUTAN TETAP SAMA dengan jalur satu-baris, dan alasannya sama: RLS menilai
+ * hak tulis rincian dari keadaan INDUK. Baris baru disisipkan sebagai `draf`
+ * dan ditulis rinciannya lebih dulu; status akhir ditetapkan paling akhir.
+ * Kalau status ditetapkan lebih awal, rinciannya sendiri langsung terkunci.
+ */
+async function simpanPublikasi({
+  supabase,
+  userId,
+  masukan,
+  terkirim,
+  adminPusat,
+  daftar,
+  barisAda,
+}: {
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  userId: string;
+  masukan: {
+    posId: string;
+    periodeId: string;
+    catatanVerifikasi?: string;
+    idPublikasi?: string[];
+  };
+  terkirim: boolean;
+  adminPusat: boolean;
+  daftar: { publikasi: Record<string, unknown>[] };
+  barisAda: { id: string; status: string; catatan_buka_kunci: string | null }[];
+}): Promise<HasilSimpan> {
+  // `idPakai[i]` selalu milik `publikasi[i]` — lihat alasannya di modul itu:
+  // pemetaan yang bergeser menimpa publikasi yang salah tanpa galat.
+  const idPakai = petakanIdPublikasi(
+    masukan.idPublikasi,
+    new Set(barisAda.map((b) => b.id)),
+    daftar.publikasi.length
+  );
+
+  const indukIds: string[] = [];
+
+  for (let i = 0; i < daftar.publikasi.length; i++) {
+    const publikasi = daftar.publikasi[i];
+    const isian = Object.fromEntries(
+      KOLOM_DETAIL.publikasi
+        .filter((k) => k in publikasi)
+        .map((k) => [k, publikasi[k]])
+    );
+
+    let indukId: string | null = idPakai[i] ?? null;
+
+    // Langkah 1 — induk. Baris lama tidak disentuh; baris baru disisipkan
+    // sebagai draf agar rinciannya boleh ditulis.
+    if (!indukId) {
+      const { data: indukBaru, error: errInduk } = await supabase
+        .from("laporan")
+        .insert({
+          pos_id: masukan.posId,
+          periode_id: masukan.periodeId,
+          jenis_laporan: "publikasi",
+          status: "draf",
+          sumber_input: "form_internal",
+          submitted_by: userId,
+        })
+        .select("id")
+        .single();
+
+      if (errInduk || !indukBaru) {
+        return {
+          sukses: false,
+          pesan:
+            `Publikasi ke-${i + 1} gagal disimpan: ` +
+            `${errInduk?.message ?? "tidak diketahui"}.` +
+            (indukIds.length > 0
+              ? ` ${indukIds.length} publikasi sebelumnya sudah tersimpan.`
+              : ""),
+        };
+      }
+      indukId = indukBaru.id;
+    }
+
+    // Langkah 2 — rincian, selagi hak tulisnya masih terbuka.
+    const { error: errDetail } = await supabase
+      .from("laporan_publikasi")
+      .upsert({ laporan_id: indukId, ...isian }, { onConflict: "laporan_id" });
+
+    if (errDetail) {
+      return {
+        sukses: false,
+        pesan:
+          `Rincian publikasi ke-${i + 1} gagal disimpan: ${errDetail.message}.` +
+          (indukIds.length > 0
+            ? ` ${indukIds.length} publikasi sebelumnya sudah tersimpan.`
+            : ""),
+      };
+    }
+
+    indukIds.push(indukId as string);
+  }
+
+  // Baris yang tidak dipakai lagi dihapus — inilah tombol "Hapus" di
+  // formulir. Dihapus SEBELUM status final ditetapkan: setelah menjadi
+  // `terkirim`, baris lama itu terkunci dan tidak dapat dibersihkan lagi.
+  const idBuang = idPublikasiDibuang(
+    barisAda.map((b) => b.id),
+    indukIds
+  );
+  if (idBuang.length > 0) {
+    // `.select("id")` WAJIB. RLS yang menolak DELETE tidak mengembalikan galat
+    // — ia menyaring baris, sehingga DELETE mengenai nol baris dan tampak
+    // berhasil. Tanpa membaca baris yang benar-benar terhapus, petugas diberi
+    // tahu "tersimpan" padahal publikasi yang ia hapus masih ada.
+    const { data: terhapus, error: errHapus } = await supabase
+      .from("laporan")
+      .delete()
+      .in("id", idBuang)
+      .select("id");
+
+    if (errHapus) {
+      return {
+        sukses: false,
+        pesan:
+          `Publikasi tersimpan, tetapi ${idBuang.length} publikasi yang ` +
+          `dihapus gagal dibersihkan: ${errHapus.message}`,
+      };
+    }
+
+    const sisa = idBuang.length - (terhapus?.length ?? 0);
+    if (sisa > 0) {
+      return {
+        sukses: false,
+        pesan:
+          `Publikasi tersimpan, tetapi ${sisa} publikasi gagal dihapus. ` +
+          "Kemungkinan publikasi itu sudah terkirim atau terverifikasi — " +
+          "hanya draf yang dapat dihapus petugas. Minta Admin menanganinya.",
+      };
+    }
+  }
+
+  // Langkah 3 — status final untuk SELURUH baris kiriman ini.
+  // Satu status untuk satu kelompok publikasi: visi produknya "publikasi Pos
+  // ini sudah terkirim", bukan status per tautan.
+  if (terkirim) {
+    const catatanVerifikasi = masukan.catatanVerifikasi?.trim() || null;
+
+    // Gerbang anomali Admin Pusat. Sama dengan jalur satu-baris: anomali
+    // dihitung dari data yang TERSIMPAN, bukan dari kiriman klien.
+    if (adminPusat) {
+      for (const id of indukIds) {
+        const anomali = await ambilAnomaliLaporan(id);
+        if (anomali.length > 0 && !catatanVerifikasi) {
+          // Kembalikan baris yang sudah terverifikasi ke draf, seperti jalur
+          // satu-baris — data terverifikasi tidak boleh tersimpan tanpa alasan.
+          await supabase
+            .from("laporan")
+            .update({ status: "draf" })
+            .in("id", indukIds)
+            .eq("status", "terverifikasi");
+
+          const tinggi = anomali.filter((a) => a.tingkat === "tinggi").length;
+          return {
+            sukses: false,
+            pesan:
+              "Isian tersimpan, tetapi belum terverifikasi: salah satu " +
+              `publikasi punya ${anomali.length} anomali` +
+              (tinggi > 0 ? ` (${tinggi} tingkat tinggi)` : "") +
+              ". Isi catatan verifikasi untuk menjelaskan mengapa datanya diterima, lalu simpan lagi.",
+          };
+        }
+      }
+    }
+
+    const finalKolom: Record<string, unknown> = adminPusat
+      ? {
+          status: "terverifikasi",
+          verified_by: userId,
+          verified_at: new Date().toISOString(),
+          catatan_verifikasi: catatanVerifikasi,
+          catatan_buka_kunci: null,
+        }
+      : { status: "terkirim", catatan_buka_kunci: null };
+
+    const { error: errFinal } = await supabase
+      .from("laporan")
+      .update(finalKolom)
+      .in("id", indukIds);
+
+    if (errFinal) {
+      return {
+        sukses: false,
+        pesan:
+          "Publikasi tersimpan, tetapi status akhir gagal ditetapkan: " +
+          `${errFinal.message}. Coba kirim ulang sekali lagi.`,
+      };
+    }
+  }
+
+  revalidatePath("/laporan-saya");
+  revalidatePath("/admin/input-laporan");
+  revalidatePath("/monitoring");
+  revalidatePath("/dashboard");
+  revalidatePath("/verifikasi");
+
+  return { sukses: true, laporanId: indukIds[0] ?? "" };
 }
 
 export async function hapusDraf(laporanId: string): Promise<HasilSimpan> {

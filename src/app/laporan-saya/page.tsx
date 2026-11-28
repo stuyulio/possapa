@@ -4,7 +4,13 @@ import { ambilChecklist, SEMUA_JENIS } from "@/lib/data/kepatuhan";
 import { LABEL_JENIS } from "@/lib/validasi/laporan";
 import { terkunciUntukPetugas } from "@/lib/laporan";
 import { labelJenisHunian } from "@/lib/lokasi/jenis-hunian";
+import {
+  peringatanPeriode,
+  ringkasPeriodeBerjalan,
+  tanggalJakarta,
+} from "@/lib/periode-berjalan";
 import { Badge } from "@/components/dashboard/panel";
+import { PemilihPeriode } from "@/components/dashboard/pemilih-periode";
 
 export const metadata = { title: "Laporan Saya — Pos SAPA" };
 export const dynamic = "force-dynamic";
@@ -75,6 +81,16 @@ export default async function LaporanSaya({
 
   const checklist = await ambilChecklist(profil.wilayah_id, periodeId);
   const totalTarget = checklist.ringkasan.totalPos * SEMUA_JENIS.length;
+
+  // Penanda periode berjalan. Periode pelaporan mingguan, jadi tanpa penanda
+  // ini petugas tidak dapat membedakan "periode yang harus saya isi sekarang"
+  // dari periode lampau yang kebetulan sedang terbuka.
+  const hariIni = tanggalJakarta();
+  const { berjalan, status: statusPeriode } = ringkasPeriodeBerjalan(
+    checklist.daftarPeriode,
+    hariIni
+  );
+  const peringatan = peringatanPeriode(checklist.periode, berjalan, hariIni);
   // Dipakai di dalam closure, jadi disimpan di variabel terpisah agar
   // penyempitan tipe tidak hilang.
   const idPeriode = checklist.periode?.id ?? "";
@@ -102,6 +118,21 @@ export default async function LaporanSaya({
                 <p className="font-display font-bold text-slate-900">
                   {checklist.periode.label}
                 </p>
+                {berjalan ? (
+                  checklist.periode.id === berjalan.id ? (
+                    <p className="text-[11px] font-semibold text-emerald-700 mt-0.5">
+                      ● Periode berjalan
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Periode berjalan: {berjalan.label}
+                    </p>
+                  )
+                ) : (
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Belum ada periode berjalan hari ini
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -118,27 +149,47 @@ export default async function LaporanSaya({
             </div>
 
             {checklist.daftarPeriode.length > 1 && (
-              <form className="mt-4 no-print flex items-center gap-2">
-                <select
-                  name="periode"
-                  defaultValue={checklist.periode.id}
-                  className="text-xs border border-slate-300 rounded-xl px-3 py-2 bg-white"
-                >
-                  {checklist.daftarPeriode.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="submit"
-                  className="text-xs font-semibold bg-slate-900 text-white px-3 py-2 rounded-xl"
-                >
-                  Tampilkan
-                </button>
-              </form>
+              <div className="mt-4 no-print">
+                <PemilihPeriode
+                  terpilih={checklist.periode.id}
+                  daftar={checklist.daftarPeriode.map((p) => {
+                    // Penanda di tiap opsi membuat petugas dapat memilih
+                    // periode yang benar tanpa membuka satu per satu.
+                    const st = statusPeriode.get(p.id);
+                    return {
+                      id: p.id,
+                      label: p.label,
+                      tanda:
+                        st === "berjalan"
+                          ? " (berjalan)"
+                          : st === "belum"
+                            ? " (belum dimulai)"
+                            : undefined,
+                    };
+                  })}
+                />
+              </div>
             )}
           </div>
+
+          {peringatan && (
+            <div
+              className={`rounded-2xl p-4 text-sm mb-5 border ${
+                peringatan.jenis === "lewat"
+                  ? "bg-amber-50 border-amber-200 text-amber-900"
+                  : "bg-blue-50 border-blue-200 text-blue-900"
+              }`}
+            >
+              <p>{peringatan.teks}</p>
+              {peringatan.jenis === "lewat" && (
+                <p className="mt-1 text-[13px]">
+                  Laporan yang dikirim ke periode lama tetap dihitung pada
+                  periode itu — periksa kembali kalau niatnya mengisi periode
+                  sekarang.
+                </p>
+              )}
+            </div>
+          )}
 
           {checklist.pos.length === 0 ? (
             <div className="bg-white rounded-2xl border border-amber-200 p-6">

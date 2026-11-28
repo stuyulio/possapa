@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ambilChecklist, SEMUA_JENIS } from "@/lib/data/kepatuhan";
 import { LABEL_JENIS } from "@/lib/validasi/laporan";
-import { labelJenisHunian } from "@/lib/lokasi/jenis-hunian";
+import { JENIS_HUNIAN, labelJenisHunian } from "@/lib/lokasi/jenis-hunian";
 import { Badge } from "@/components/dashboard/panel";
+import { FilterInput } from "./filter-input";
+import { bacaFilter, ringkas, saringPos } from "./saring";
 
 export const metadata = { title: "Input Laporan — Admin Pos SAPA" };
 export const dynamic = "force-dynamic";
@@ -17,6 +19,14 @@ const LABEL_STATUS: Record<
   terverifikasi: { teks: "Verifikasi", warna: "emerald" },
 };
 
+/** Pilihan status untuk dropdown; urutannya mengikuti alur kerja. */
+const PILIHAN_STATUS = [
+  { nilai: "belum", label: "Belum diisi" },
+  { nilai: "draf", label: "Tertahan (draf)" },
+  { nilai: "terkirim", label: "Terkirim" },
+  { nilai: "terverifikasi", label: "Terverifikasi" },
+];
+
 /**
  * Daftar semua Pos SAPA lintas wilayah untuk Admin Pusat.
  *
@@ -25,6 +35,9 @@ const LABEL_STATUS: Record<
  * sendiri. Dengan begitu mitigasi PRD §15 ("lokasi dipilih eksplisit di setiap
  * input") tetap berlaku untuk admin — satu-satunya bedanya, daftarnya tidak
  * dipersempit ke satu kabupaten/kota.
+ *
+ * Penyaringan dilakukan di memori (lihat `saring.ts`): seluruh Pos SAPA sudah
+ * terambil untuk ringkasan, jadi tidak ada gunanya menambah query per filter.
  */
 export default async function HalamanInputLaporanAdmin({
   searchParams,
@@ -32,7 +45,13 @@ export default async function HalamanInputLaporanAdmin({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const periodeId = typeof params.periode === "string" ? params.periode : undefined;
+  const filter = bacaFilter(params);
+  // Periode bukan filter tampilan: ia memilih himpunan data yang diambil,
+  // jadi dibaca terpisah dan diteruskan ke `ambilChecklist`.
+  const periodeId =
+    typeof params.periode === "string" && params.periode !== ""
+      ? params.periode
+      : undefined;
 
   // Admin Pusat melihat draf: simpanan yang tertahan karena anomali tersimpan
   // sebagai draf, dan harus terlihat di sini sebagai "Tertahan" agar Admin tahu
@@ -40,7 +59,11 @@ export default async function HalamanInputLaporanAdmin({
   const checklist = await ambilChecklist(null, periodeId, { sertakanDraf: true });
 
   const idPeriode = checklist.periode?.id ?? "";
-  const totalTarget = checklist.pos.length * SEMUA_JENIS.length;
+  const terpilih = saringPos(checklist.pos, filter);
+  const total = ringkas(terpilih);
+  // Target nasional tetap ditampilkan sebagai pembanding saat filter aktif,
+  // supaya "3/5" tidak terbaca sebagai capaian seluruh program.
+  const targetSemua = checklist.pos.length * SEMUA_JENIS.length;
 
   // Dikelompokkan per wilayah untuk tampilan; urutan baris sudah disiapkan
   // ambilChecklist (provinsi → kab/kota → lokasi).
@@ -48,7 +71,7 @@ export default async function HalamanInputLaporanAdmin({
     string,
     { kab_kota: string; provinsi: string; pos: typeof checklist.pos }
   >();
-  for (const p of checklist.pos) {
+  for (const p of terpilih) {
     const kunci = `${p.provinsi ?? "—"}|${p.kab_kota ?? "—"}`;
     const ada = kelompok.get(kunci);
     if (ada) ada.pos.push(p);
@@ -62,37 +85,13 @@ export default async function HalamanInputLaporanAdmin({
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-display text-xl font-extrabold text-slate-900">
-            Input Laporan
-          </h2>
-          <p className="text-sm text-slate-500">
-            Seluruh Pos SAPA lintas wilayah Admin Pusat
-          </p>
-        </div>
-
-        {checklist.daftarPeriode.length > 1 && (
-          <form className="no-print flex items-center gap-2">
-            <select
-              name="periode"
-              defaultValue={checklist.periode?.id ?? ""}
-              className="text-xs border border-slate-300 rounded-xl px-3 py-2 bg-white"
-            >
-              {checklist.daftarPeriode.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="text-xs font-semibold bg-slate-900 text-white px-3 py-2 rounded-xl"
-            >
-              Tampilkan
-            </button>
-          </form>
-        )}
+      <div className="mb-5">
+        <h2 className="font-display text-xl font-extrabold text-slate-900">
+          Input Laporan
+        </h2>
+        <p className="text-sm text-slate-500">
+          Seluruh Pos SAPA lintas wilayah Admin Pusat
+        </p>
       </div>
 
       {!checklist.periode ? (
@@ -107,6 +106,29 @@ export default async function HalamanInputLaporanAdmin({
         </div>
       ) : (
         <>
+          <FilterInput
+            pos={checklist.pos.map((p) => ({
+              id: p.pos_id,
+              nama_lokasi: p.nama_lokasi,
+              provinsi: p.provinsi,
+              kab_kota: p.kab_kota,
+              jenis_hunian: p.jenis_hunian,
+            }))}
+            periode={checklist.daftarPeriode.map((p) => ({
+              nilai: p.id,
+              label: p.label,
+            }))}
+            jenisTempat={JENIS_HUNIAN.map((j) => ({
+              nilai: j.nilai,
+              label: j.label,
+            }))}
+            jenisLaporan={SEMUA_JENIS.map((j) => ({
+              nilai: j,
+              label: LABEL_JENIS[j],
+            }))}
+            statusLaporan={PILIHAN_STATUS}
+          />
+
           <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 mb-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -122,11 +144,14 @@ export default async function HalamanInputLaporanAdmin({
                   Laporan terverifikasi / terkirim
                 </p>
                 <p className="font-display text-2xl font-extrabold text-slate-900">
-                  {checklist.ringkasan.selesai}
+                  {total.selesai}
                   <span className="text-sm font-semibold text-slate-400">
                     {" "}
-                    / {totalTarget}
+                    / {total.target}
                   </span>
+                </p>
+                <p className="text-[10px] text-slate-400">
+                  dari {targetSemua} target seluruh Pos
                 </p>
               </div>
               <div className="text-right">
@@ -134,7 +159,10 @@ export default async function HalamanInputLaporanAdmin({
                   Pos SAPA aktif
                 </p>
                 <p className="font-display text-2xl font-extrabold text-slate-900">
-                  {checklist.pos.length}
+                  {total.jumlahPos}
+                </p>
+                <p className="text-[10px] text-slate-400">
+                  dari {checklist.pos.length} Pos total
                 </p>
               </div>
             </div>
@@ -152,6 +180,23 @@ export default async function HalamanInputLaporanAdmin({
                 </Link>
                 .
               </p>
+            </div>
+          ) : terpilih.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6">
+              <h3 className="font-display font-bold text-slate-900">
+                Tidak ada Pos SAPA yang cocok
+              </h3>
+              <p className="text-sm text-slate-600 mt-2">
+                Longgarkan filter atau pilih provinsi/kabupaten lain. Bila
+                filter status sedang aktif, Pos yang lolos hanya yang status
+                laporannya persis seperti yang dipilih.
+              </p>
+              <Link
+                href={`/admin/input-laporan?periode=${idPeriode}`}
+                className="inline-block mt-4 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl no-print"
+              >
+                Reset filter
+              </Link>
             </div>
           ) : (
             <div className="space-y-5">
@@ -195,10 +240,16 @@ export default async function HalamanInputLaporanAdmin({
                         <ul className="divide-y divide-slate-100">
                           {p.status.map((s) => {
                             const meta = LABEL_STATUS[s.status] ?? LABEL_STATUS.belum;
+                            // Saat menyorot satu jenis laporan, baris jenis lain
+                            // diredupkan agar mata tidak membaca semuanya.
+                            const disorot =
+                              !filter.lap || filter.lap === s.jenis;
                             return (
                               <li
                                 key={s.jenis}
-                                className="px-4 py-2.5 flex flex-wrap items-center justify-between gap-2"
+                                className={`px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 ${
+                                  disorot ? "" : "opacity-40"
+                                }`}
                               >
                                 <div className="flex items-center gap-2.5">
                                   <Badge warna={meta.warna}>{meta.teks}</Badge>

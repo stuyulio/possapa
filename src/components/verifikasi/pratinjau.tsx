@@ -623,49 +623,71 @@ function IsiPublikasi({
 }: {
   d: Extract<Rincian, { jenis: "publikasi" }>["data"];
 }) {
+  // Satu laporan publikasi memuat seluruh publikasi lokasi itu pada periode
+  // yang sama. Semuanya ditampilkan: Admin memverifikasi kelompoknya, dan
+  // menyembunyikan sebagian akan membuat keputusan verifikasi tidak utuh.
   return (
-    <div>
-      <Sebaran
-        item={[
-          { label: "Tanggal publikasi", nilai: tanggalPanjang(d.tanggal_publikasi) },
-          { label: "Platform", nilai: d.platform || "—" },
-          { label: "Nama akun", nilai: d.nama_akun || "—" },
-          { label: "Kegiatan", nilai: d.kegiatan || "—" },
-        ]}
-      />
+    <div className="space-y-4">
+      <p className="text-[11px] text-slate-500">
+        {d.length} publikasi pada periode ini
+      </p>
 
-      <div className="mt-4 space-y-2 text-xs">
-        <p>
-          <span className="text-slate-500">Link publikasi media sosial: </span>
-          {d.link_publikasi ? (
-            <a
-              href={d.link_publikasi}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-blue-700 hover:underline break-all"
-            >
-              {d.link_publikasi}
-            </a>
-          ) : (
-            <span className="text-slate-500">—</span>
-          )}
-        </p>
-        <p>
-          <span className="text-slate-500">Link penyimpanan dokumentasi: </span>
-          {d.file_publikasi ? (
-            <a
-              href={d.file_publikasi}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-blue-700 hover:underline break-all"
-            >
-              {d.file_publikasi}
-            </a>
-          ) : (
-            <span className="text-slate-500">tidak diisi</span>
-          )}
-        </p>
-      </div>
+      {d.map((p, i) => (
+        <div
+          key={i}
+          className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5"
+        >
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-2">
+            Publikasi {i + 1}
+          </p>
+
+          <Sebaran
+            item={[
+              { label: "Tanggal publikasi", nilai: tanggalPanjang(p.tanggal_publikasi) },
+              { label: "Platform", nilai: p.platform || "—" },
+              { label: "Nama akun", nilai: p.nama_akun || "—" },
+              { label: "Kegiatan", nilai: p.kegiatan || "—" },
+            ]}
+          />
+
+          <div className="mt-3 space-y-2 text-xs">
+            <p>
+              <span className="text-slate-500">
+                Link publikasi media sosial:{" "}
+              </span>
+              {p.link_publikasi ? (
+                <a
+                  href={p.link_publikasi}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-blue-700 hover:underline break-all"
+                >
+                  {p.link_publikasi}
+                </a>
+              ) : (
+                <span className="text-slate-500">—</span>
+              )}
+            </p>
+            <p>
+              <span className="text-slate-500">
+                Link penyimpanan dokumentasi:{" "}
+              </span>
+              {p.file_publikasi ? (
+                <a
+                  href={p.file_publikasi}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-blue-700 hover:underline break-all"
+                >
+                  {p.file_publikasi}
+                </a>
+              ) : (
+                <span className="text-slate-500">tidak diisi</span>
+              )}
+            </p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
