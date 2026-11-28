@@ -59,8 +59,11 @@ export function Hero() {
       <div className="relative mt-8 sm:mt-10">
         <div className="relative mx-auto aspect-[21/9] w-full max-w-[1400px] sm:aspect-[1650/620]">
           <Gambar
-            src={FOTO.heroUtama}
-            alt="Suasana layanan Pos SAPA di huntara: tenda layanan dengan lambang KemenPPPA, ibu mendampingi dua anak"
+            src={FOTO.heroUtama?.src}
+            alt={
+              FOTO.heroUtama?.alt ??
+              "Suasana layanan Pos SAPA di huntara"
+            }
             prioritas
           />
           <div

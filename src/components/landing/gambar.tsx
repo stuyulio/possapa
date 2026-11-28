@@ -9,20 +9,11 @@ import { LogoKemenPPPA } from "@/components/brand/logo";
  *
  * KONVENSI BERKAS
  * ---------------
- * Simpan foto ke `public/foto/` dengan nama berikut, lalu isi `FOTO` di
- * `src/components/landing/konvensi.ts` dengan path publiknya (mis.
- * `"/foto/hero-utama.jpg"`). Rasio yang disarankan:
- *
- *   hero-utama.jpg          hero, 16:9
- *   hero-latar.jpg          lapisan belakang hero, 21:9
- *   aktivitas-anak.jpg      kartu aktivitas 01, 16:10
- *   aktivitas-perempuan.jpg kartu aktivitas 02, 16:10
- *   aktivitas-pengaduan.jpg kartu aktivitas 03, 16:10
- *   aktivitas-edu.jpg       kartu aktivitas 04, 16:10
- *   pintu-warga.jpg         kartu jalur 1, 16:10
- *   pintu-petugas.jpg       kartu jalur 2, 16:10
- *   pintu-mitra.jpg         kartu jalur 3, 16:10
- *   mandat.jpg              sisi kanan blok kutipan, 4:3
+ * Foto terbit disimpan di `public/foto/beranda/` sebagai WebP, diproduksi
+ * oleh `scripts/siapkan-foto-landing.py` dari berkas kamera mentah (skrip itu
+ * membuang EXIF/GPS dan menurunkan lebar). Pemetaan slot ada di
+ * `src/components/landing/konvensi.ts`; slot yang bisa memuat lebih dari satu
+ * foto memakai `Galeri` di `galeri.tsx`.
  *
  * Catatan: `alt` wajib. Saat placeholder tampil, pembaca layar tetap
  * mendapat deskripsi gambar yang dimaksud lewat `role="img"`.

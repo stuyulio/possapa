@@ -1,5 +1,5 @@
 import { Pengungkap } from "./pengungkap";
-import { Gambar } from "./gambar";
+import { Galeri } from "./galeri";
 import { FOTO } from "./konvensi";
 
 /**
@@ -65,7 +65,7 @@ export function Pintu() {
             <Pengungkap key={p.jalur} jeda={i}>
               <a href={p.tujuan} className="publik-pintu group h-full">
                 <div className="aspect-[16/10] w-full overflow-hidden">
-                  <Gambar src={p.foto} alt={p.alt} />
+                  <Galeri foto={p.foto} alt={p.alt} label={p.judul} />
                 </div>
                 <div className="flex flex-1 flex-col gap-1.5 p-5">
                   <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">

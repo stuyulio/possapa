@@ -1,11 +1,13 @@
 import { Pengungkap } from "./pengungkap";
-import { Gambar } from "./gambar";
+import { Galeri } from "./galeri";
 import { FOTO } from "./konvensi";
 
 /**
  * Empat aktivitas kunci di Pos SAPA (slide 8). Nomor 01–04 memakai warna
  * semantik PRD §8.1: biru untuk layanan anak, emerald untuk pemberdayaan,
  * rose untuk pengaduan kekerasan, slate/biru untuk edukasi.
+ *
+ * `foto` berisi daftar: kartu dengan beberapa foto menjadi galeri geser.
  */
 
 const AKTIVITAS = [
@@ -68,7 +70,7 @@ export function Aktivitas() {
             <Pengungkap key={a.no} jeda={i % 2}>
               <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
                 <div className="aspect-[16/10] w-full">
-                  <Gambar src={a.foto} alt={a.alt} />
+                  <Galeri foto={a.foto} alt={a.alt} label={a.judul} />
                 </div>
                 <div className="flex flex-1 flex-col p-5">
                   <span

@@ -41,8 +41,8 @@ export function Mandat() {
             <figure className="m-0">
               <div className="aspect-[4/3] overflow-hidden rounded-2xl">
                 <Gambar
-                  src={FOTO.mandat}
-                  alt="Anak-anak mengikuti kegiatan bermain di Pos SAPA"
+                  src={FOTO.mandat?.src}
+                  alt={FOTO.mandat?.alt ?? "Anak-anak mengikuti kegiatan bermain di Pos SAPA"}
                 />
               </div>
               <figcaption className="mt-2.5 text-xs text-slate-500">

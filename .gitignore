@@ -37,6 +37,17 @@ yarn-error.log*
 supabase/.branches
 supabase/.temp
 
+# foto kamera mentah (233 MB, ber-EXIF GPS); yang terbit hanya versi WebP di
+# public/foto/beranda lewat scripts/siapkan-foto-landing.py
+/public/foto/aktivitas anak/
+/public/foto/aktivitas edu/
+/public/foto/aktivitas pengaduan/
+/public/foto/aktivitas perempuan/
+/public/foto/hero utama/
+/public/foto/pintu mitra/
+/public/foto/pintu petugas/
+/public/foto/pintu warga/
+
 # data mentah & hasil migrasi
 /docs/*.xlsx
 /docs/*.docx
